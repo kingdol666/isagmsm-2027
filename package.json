@@ -15,7 +15,7 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx server/db/seed/index.ts",
+    "db:seed": "tsx --env-file=.env server/db/seed/index.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
