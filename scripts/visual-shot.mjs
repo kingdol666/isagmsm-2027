@@ -22,11 +22,12 @@ for (const t of targets) {
     // 地图页：滚入视野等瓦片铺满，再按视口截图（整页截图会触发布局重排导致瓦片空白）
     await page.locator('.maplibregl-canvas').first().scrollIntoViewIfNeeded()
     await page.waitForTimeout(9000)
-    await page.screenshot({ path: `${outDir}/${t.name}.png`, fullPage: false })
+    await page.screenshot({ path: `${outDir}/${t.name}.png`, fullPage: false, animations: 'disabled' })
   }
   else {
     await page.waitForTimeout(3200)
-    await page.screenshot({ path: `${outDir}/${t.name}.png`, fullPage: true })
+    // animations: 'disabled' — 无限动画定格、入场动画快进到末态，避免滚动拼接截图与运行中动效叠影
+    await page.screenshot({ path: `${outDir}/${t.name}.png`, fullPage: true, animations: 'disabled' })
   }
   console.log(`shot ${t.name}`)
   await page.close()

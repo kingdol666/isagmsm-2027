@@ -78,16 +78,38 @@ body.nav-open { overflow: hidden; }
   font-family: var(--mono); font-size: 13px; font-weight: 500;
   letter-spacing: .12em; text-transform: uppercase;
   padding: 17px 30px; cursor: pointer;
-  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease,
+    transform .2s cubic-bezier(.22, 1, .36, 1), box-shadow .2s cubic-bezier(.22, 1, .36, 1);
   white-space: nowrap; text-decoration: none;
 }
 .btn-solid { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
-.btn-solid:hover { background: var(--copper-deep); border-color: var(--copper-deep); color: var(--paper); }
+.btn-solid:hover {
+  background: var(--copper-deep); border-color: var(--copper-deep); color: var(--paper);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(17, 17, 17, .22);
+}
 .btn-ghost { border: 1px solid var(--ink); color: var(--ink); background: transparent; }
-.btn-ghost:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
+.btn-ghost:hover {
+  border-color: var(--copper-deep); color: var(--copper-deep);
+  background: rgba(180, 95, 58, .06);
+}
 .btn-inv { border: 1px solid var(--paper); color: var(--paper); background: transparent; }
 .btn-inv:hover { border-color: var(--copper-light); color: var(--copper-light); }
-.btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.btn:active { transform: translate(0, 1px); box-shadow: none; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ---- page transition: one quiet crossfade between routes ---- */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity .18s ease;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* ---- typography niceties ---- */
+p { text-wrap: pretty; }
 
 /* ---- strata: five parallel hairlines = film cross-section; the melt is copper ---- */
 .strata { display: block; }

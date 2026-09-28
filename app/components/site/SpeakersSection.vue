@@ -88,6 +88,32 @@ import { speakersContent } from '#shared/content/site'
   font-size: clamp(3rem, 7vw, 3.6rem);
   line-height: 1;
   color: var(--ink);
+  transition: color .25s ease, transform .3s cubic-bezier(.22, 1, .36, 1);
+}
+
+/* hover：角标外扩 + monogram 转铜 + 底色微染 —— 仪器图纸的取景框感 */
+.sp-plate::before,
+.sp-plate::after,
+.sp-plate,
+.sp-plate span {
+  transition-property: color, transform, background-color, width, height;
+  transition-duration: .25s;
+  transition-timing-function: ease;
+}
+
+.speaker:hover .sp-plate {
+  background: rgba(180, 95, 58, .07);
+}
+
+.speaker:hover .sp-plate::before,
+.speaker:hover .sp-plate::after {
+  width: 22px;
+  height: 22px;
+}
+
+.speaker:hover .sp-plate span {
+  color: var(--copper-deep);
+  transform: translateY(-2px);
 }
 
 .speaker h3 {

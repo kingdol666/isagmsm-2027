@@ -12,7 +12,7 @@ useHead({
   <UApp>
     <NuxtLoadingIndicator color="#B45F3A" :height="2" />
     <NuxtLayout>
-      <NuxtPage />
+      <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
     </NuxtLayout>
   </UApp>
 </template>
