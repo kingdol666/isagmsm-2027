@@ -237,11 +237,11 @@ onUnmounted(stopCamera)
       <form class="login" @submit.prevent="login">
         <label class="field">
           <span class="f-label mono">Username</span>
-          <input v-model="loginUsername" type="text" autocomplete="username">
+          <input v-model="loginUsername" type="text" name="username" autocomplete="username">
         </label>
         <label class="field">
           <span class="f-label mono">Password</span>
-          <input v-model="loginPassword" type="password" autocomplete="current-password">
+          <input v-model="loginPassword" type="password" name="password" autocomplete="current-password">
         </label>
         <p v-if="loginError" class="msg bad mono">{{ loginError }}</p>
         <button class="btn btn-solid wide" type="submit" :disabled="loginBusy">

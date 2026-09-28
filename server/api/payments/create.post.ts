@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
       payment: {
         id: payment.id,
         provider: payment.provider,
+        providerPaymentNo: payment.providerPaymentNo,
         status: payment.status,
         amountFen: payment.amountFen,
         currency: payment.currency,

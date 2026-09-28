@@ -13,6 +13,17 @@ import { datesContent } from '#shared/content/site'
           <span class="dl-date">{{ item.date }}</span>
         </li>
       </ul>
+      <!-- Call for abstracts — the academic conference's second CTA -->
+      <div class="cfp">
+        <p class="cfp-text">
+          <b>CALL FOR ABSTRACTS</b> — contributions across all eight themes are welcome.
+          Abstract submission opens 01 May 2026.
+        </p>
+        <a
+          class="btn btn-ghost"
+          href="mailto:abstracts@pps2026-conf.org?subject=PPS%202026%20Abstract%20Submission"
+        >Submit an abstract</a>
+      </div>
     </div>
   </section>
 </template>
@@ -71,5 +82,33 @@ import { datesContent } from '#shared/content/site'
     grid-template-columns: repeat(4, 1fr);
     column-gap: 28px;
   }
+}
+
+/* call for abstracts strip */
+.cfp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 32px;
+  margin-top: clamp(26px, 4vw, 40px);
+  border: 1px solid var(--ink);
+  padding: clamp(20px, 3vw, 28px) clamp(20px, 3vw, 32px);
+}
+
+.cfp-text {
+  flex: 1;
+  min-width: 260px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.cfp-text b {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: .14em;
+  color: var(--copper-deep);
+  display: block;
+  margin-bottom: 8px;
 }
 </style>

@@ -23,6 +23,9 @@ export function clientKey(event: import('h3').H3Event, scope: string): string {
 
 /** Throws 429 when the caller exceeds the limit. */
 export function enforceRateLimit(event: import('h3').H3Event, scope: string, limit: number, windowMs: number): void {
+  // Test-only bypass: the full E2E suite legitimately exceeds per-IP windows
+  // from one machine. NEVER active in production builds.
+  if (process.env.RATE_LIMIT_DISABLED === '1' && process.env.NODE_ENV !== 'production') return
   if (!rateLimit(clientKey(event, scope), limit, windowMs)) {
     throw createError({ statusCode: 429, statusMessage: 'Too many requests, please retry later' })
   }

@@ -52,6 +52,22 @@ Services smoke script (no browser): `pnpm tsx --env-file=.env scripts/smoke-serv
 > Camera QR scanning requires a secure context (https, or localhost during development). On phones without camera access the manual-entry path works identically.
 > Forgot password? `/forgot-password` sends a reset code to the account email.
 
+## Configuration
+
+Everything an operator must fill in lives in **`.env.example`** (copy to `.env`), organised in blocks:
+
+| Block | Variables | Effect when filled |
+|---|---|---|
+| Database | `DATABASE_URL` | PostgreSQL connection (required) |
+| Site | `NUXT_PUBLIC_SITE_URL` | QR codes, verification links, emails (required) |
+| Secrets | `NUXT_SESSION_SECRET`, `NUXT_MOCK_PAYMENT_SECRET` | session signing, mock webhooks (required in production) |
+| Admin accounts | `ADMIN_PASSWORD`, `STAFF_PASSWORD` | passwords used by `pnpm db:seed` |
+| **Email** | `MAIL_SMTP_HOST/PORT/SECURE/USER/PASS` + `MAIL_FROM` | switches verification codes from on-screen dev mode to real email delivery |
+| **WeChat Pay** | `WECHAT_MCH_ID/APP_ID/PRIVATE_KEY/CERT_SERIAL/API_V3_KEY/PLATFORM_CERTS/NOTIFY_URL` | activates WeChat Pay in the payment page automatically |
+| **Alipay** | `ALIPAY_APP_ID/PRIVATE_KEY/PUBLIC_KEY/NOTIFY_URL/GATEWAY` | activates Alipay automatically |
+
+On boot the server prints a **configuration report** (payments / mail / database / secrets) so you can see what is still missing; `GET /api/health` exposes the same at runtime. Details: `PAYMENT.md` + `ARCHITECTURE.md`.
+
 ## Documentation
 
 - `PLAN.md` — milestones, design system, definition of done

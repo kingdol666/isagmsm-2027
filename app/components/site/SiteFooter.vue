@@ -18,6 +18,19 @@ import { footerContent, siteMeta, siteNav } from '#shared/content/site'
           <a v-for="item in siteNav" :key="item.code" :href="item.href">{{ item.label }}</a>
         </nav>
       </div>
+      <!-- utility row: participant + staff entry points -->
+      <div class="f-util">
+        <ClientOnly>
+          <AuthChip />
+          <template #fallback>
+            <span class="u-link mono" style="color: var(--paper-dim)">Account</span>
+          </template>
+        </ClientOnly>
+        <span class="u-sep" aria-hidden="true">·</span>
+        <NuxtLink class="u-link" href="/scan">Check-in scanner</NuxtLink>
+        <span class="u-sep" aria-hidden="true">·</span>
+        <a class="u-link" href="/api/health">System status</a>
+      </div>
       <!-- the strata close the line: five layers, the melt strand among them -->
       <div class="f-strata strata" aria-hidden="true">
         <span /><span /><span /><span /><span />
@@ -109,6 +122,43 @@ import { footerContent, siteMeta, siteNav } from '#shared/content/site'
 .f-nav a:hover {
   color: var(--copper-light);
 }
+
+/* utility row — dark-context overrides for the shared AuthChip */
+.f-util {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+  margin-top: clamp(28px, 4vw, 40px);
+  padding-top: 18px;
+  border-top: 1px solid var(--paper-hl);
+}
+
+.f-util :deep(.chip-link) {
+  color: var(--paper-dim);
+}
+
+.f-util :deep(.chip-link:hover),
+.f-util :deep(.chip-link.accent) {
+  color: var(--copper-light);
+}
+
+.f-util :deep(.chip-link.name) {
+  color: var(--paper);
+}
+
+.u-link {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  transition: color .2s ease;
+}
+
+.u-link:hover { color: var(--copper-light); }
+
+.u-sep { color: var(--paper-hl); }
 
 .f-strata {
   color: var(--paper);

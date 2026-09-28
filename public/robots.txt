@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /scan
+Disallow: /account
+Disallow: /api/
+
+Sitemap: https://pps2026-conf.org/sitemap.xml

@@ -34,13 +34,17 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 6. Credential verifies → first check-in succeeds → second reports `duplicate` with the same timestamp → verification shows checked-in.
 7. Unknown tokens rejected with `not_found`.
 
-## E2E coverage (`tests/e2e/full-flow.spec.ts`)
+## E2E coverage (Playwright — `tests/e2e/`, `pnpm test:e2e`)
 
-**THE critical smoke test (PLAN §33, account edition):**
+| Spec | Coverage |
+|---|---|
+| `full-flow.spec.ts` | **THE critical smoke test**: homepage → gated register → email-code sign-up → conference registration (locked email, prefilled profile) → order → mock QR payment → cashier → PAID → credential pass → verify page → `/account` shows paid → admin login → scanner check-in → admin list reflects it |
+| `auth.spec.ts` | wrong code rejected, resend cooldown (disabled + countdown), duplicate sign-up rejected, sign-out, forgot-password full recovery, wrong login rejected, `/account` gating |
+| `admin.spec.ts` | anonymous API 401, wrong admin password 401, dashboard counts + revenue, all five admin lists render, registrations table with per-row payment status + search filter, staff role separation (403 on admin APIs) |
+| `scanner.spec.ts` | staff login gate, unknown code → NOT RECOGNISED, valid credential → verify → confirm → duplicate blocked → record visible in admin check-ins |
+| `misc.spec.ts` | `/api/health` integrations report, styled 404 page, robots.txt + sitemap.xml, JSON-LD structured data, profile save/persist, 390 px homepage zero overflow |
 
-homepage → register gated by the account wall → email-code sign-up (dev code surfaced) → conference registration (email locked, profile prefilled) → order → payment page (QR, waiting) → simulated cashier → successful payment → automatic redirect to the credential pass → verify page shows `Valid credential` → `/account` shows the registration with paid status → admin login → dashboard visible → `/scan` manual-entry check-in → `Confirm check-in` → success logged → `/admin/registrations` lists the participant with `paid`.
-
-Plus: homepage renders at 390 px with zero horizontal overflow.
+Run against a dev server (`reuseExistingServer`); the suite sets `RATE_LIMIT_DISABLED=1` for the server it starts (test-only bypass, never active in production builds — see `server/utils/rate-limit.ts`).
 
 ## Manual verification checklist (per release)
 
