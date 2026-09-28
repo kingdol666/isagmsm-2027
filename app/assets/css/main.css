@@ -1,0 +1,114 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* ============================================================
+   PPS 2026 DESIGN SYSTEM — "The Grid as Instrument"
+   after Josef Müller-Brockmann / Swiss International Style
+   Ported 1:1 from design direction C (design-demos/C-master-designer.html)
+   ============================================================ */
+
+:root {
+  --paper: #F7F6F2;
+  --ink: #111111;
+  --grey: #6B6B66;
+  --copper: #B45F3A;
+  --copper-deep: #9A4E2E;   /* lightness variant of copper for small text on light */
+  --copper-light: #D9885F;  /* lightness variant of copper for accents on ink */
+  --hairline: rgba(17, 17, 17, .18);
+  --hairline-soft: rgba(17, 17, 17, .10);
+  --tint: #F0EEE8;
+  --tint-2: #E9E7DF;
+  --paper-hl: rgba(247, 246, 242, .20); /* hairlines on ink */
+  --paper-dim: rgba(247, 246, 242, .66);
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
+  --rail-w: 232px;
+  --pad: clamp(20px, 5vw, 64px);
+  --sec-y: clamp(76px, 11vh, 132px);
+}
+
+/* ---- Nuxt UI theme bridging: keep U components on-brand ---- */
+:root {
+  --ui-primary: var(--copper);
+  --ui-neutral: var(--ink);
+  --ui-bg: var(--paper);
+  --ui-bg-elevated: var(--paper);
+  --ui-text: var(--ink);
+  --ui-text-muted: var(--grey);
+  --ui-border: var(--hairline);
+  --ui-radius: 0rem;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--copper); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--copper-deep); outline-offset: 3px; }
+
+.mono { font-family: var(--mono); letter-spacing: .08em; }
+.wrap { padding-inline: var(--pad); max-width: 1280px; }
+
+/* ---- buttons: flush rectangles, no radius, Swiss hard edges ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--mono); font-size: 13px; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 17px 30px; cursor: pointer;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+  white-space: nowrap; text-decoration: none;
+}
+.btn-solid { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
+.btn-solid:hover { background: var(--copper-deep); border-color: var(--copper-deep); color: var(--paper); }
+.btn-ghost { border: 1px solid var(--ink); color: var(--ink); background: transparent; }
+.btn-ghost:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
+.btn-inv { border: 1px solid var(--paper); color: var(--paper); background: transparent; }
+.btn-inv:hover { border-color: var(--copper-light); color: var(--copper-light); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+
+/* ---- strata: five parallel hairlines = film cross-section; the melt is copper ---- */
+.strata { display: block; }
+.strata span { display: block; height: 1px; background: currentColor; opacity: .22; }
+.strata span + span { margin-top: 5px; }
+.strata span:nth-child(3) { opacity: 1; background: var(--copper); }
+
+/* ---- section head: batch code + hairline + tag, then display title ---- */
+.sec { padding-block: var(--sec-y); }
+.sec-head { border-top: 1px solid var(--ink); padding-top: 12px; margin-bottom: clamp(36px, 5vw, 56px); }
+.sec-meta { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.sec-code { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--copper-deep); }
+.sec-tag { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--grey); text-align: right; }
+.sec-title {
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(2.3rem, 4.6vw, 3.7rem);
+  line-height: 1.02; letter-spacing: -.01em; max-width: 18ch;
+}
+.sec-title em { font-style: italic; color: var(--copper-deep); }
+
+@media (min-width: 1024px) {
+  :root { --pad: clamp(40px, 4.5vw, 72px); }
+  html { scroll-padding-top: 24px; }
+}
+
+@media (min-width: 1440px) {
+  :root { --rail-w: 264px; }
+  .sec-title { font-size: clamp(2.8rem, 3.4vw, 4rem); }
+  .wrap { max-width: 1360px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

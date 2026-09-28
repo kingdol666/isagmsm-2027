@@ -1,0 +1,21 @@
+node_modules
+.nuxt
+.output
+.data
+dist
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+playwright-report
+test-results
+.blob
+.vercel
+.netlify
+
+# design exploration workspace (temporary tooling)
+design-demos/node_modules
+design-demos/package-lock.json
+design-demos/package.json

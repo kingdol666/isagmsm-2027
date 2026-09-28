@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: pps-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pps
+      POSTGRES_PASSWORD: pps_dev_pw
+      POSTGRES_DB: pps2026
+    ports:
+      - '5433:5432'
+    volumes:
+      - pps_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pps -d pps2026']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pps_pgdata:

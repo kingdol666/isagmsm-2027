@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ============================================================================
+  PPS 2026 — Polymer Processing Symposium · Design Direction B
+  Direction: "Benchmark Editorial" — grammar migrated from ecsymposium.com
+  ============================================================================
+
+  BENCHMARK RESEARCH (ecsymposium.com / ISEC 2026) — GRAMMAR EXTRACTION
+  The site is a client-rendered SPA; static fetching returns the app shell only,
+  so the grammar below was extracted from its shipped CSS system (index/home
+  bundles: tokens, type scale, layout primitives) + rendered home structure.
+  What I isolated as ITS grammar (structure, not content — nothing copied):
+
+  1. SINGLE-ACCENT RESTRAINT — one --color-primary token; accent appears ONLY on:
+     micro-labels (eyebrows), links/hover states, the primary button, one panel
+     top-border, active-nav underline. Everything else is near-black / muted grey
+     / white separated by 1px hairlines.
+  2. UPPERCASE MICRO-LABEL SYSTEM — ~13px, uppercase, tracked ~.08em, heavy
+     weight, accent-colored, preceding every heading and every data row label.
+  3. TYPE-SCALE RELATIONSHIPS — display clamp(38→66px) lh≈1.03; section h2 34px;
+     lead 20/1.65; body 18/1.75; labels 13px. Tight display leading, generous
+     body leading.
+  4. LAYOUT GRAMMAR — one max-width container (~1180px); vertical stack of
+     section blocks with consistent large gaps; "split heading" rows (title left,
+     meta/link right, baseline-aligned); 1px hairline borders as THE divider
+     device (row separators, panel internals, footer bottom rule).
+  5. HERO GRAMMAR — centered overlay stack: uppercase edition micro-label → big
+     title → date line. Nav overlays the hero, becomes solid on scroll; active
+     nav link = short accent underline. Mobile: hero flips left-aligned, nav
+     becomes a slide-in drawer; CTAs stack full-width.
+  6. DATA GRAMMAR — label/value rows with hairline separators; pill chips;
+     4→2→1 column grids; numbered/indexed lists.
+  7. MOTION — translateY(-2px) hovers, 1.04 image scales, .2s transitions;
+     nothing decorative.
+
+  ASSUMPTIONS (research limits, stated honestly):
+  - Subpages were not statically reachable (SPA client routing), so section-level
+    grammar is reconstructed from the home page's section-block system plus the
+    mature conventions of international academic conference sites.
+  - The reference's exact webfonts are not identifiable from shipped CSS; per
+    spec, PPS 2026 keeps Instrument Serif + Inter (+ IBM Plex Mono as my one
+    auxiliary face). I migrated the reference's SCALE RELATIONSHIPS, not its faces.
+  - Zero HTML/CSS/imagery/copy/brand colors copied. Accent is spec copper, not
+    their amber. Corners are square (editorial), theirs are 6-8px radius.
+
+  WHERE MY FORM COMES FROM (spec §4 motif):
+  The continuous extrusion line, industrial batch numbering, and film cross-
+  section strata. Concretely: every section opens on a "film strata" divider
+  (three graded hairlines, one copper layer = film cross-section); sections carry
+  batch numbers PPS26—01…08 set in mono like lot codes; the hero opens on a
+  melt-line rule with a copper melt segment (PPS26—00); speaker plates carry
+  strata lines and K1–K4 lot tags. The page itself reads as one continuous
+  process line: feed (about) → die (themes) → drawdown (people) → line schedule
+  →出货 (registration). Ink stops the line at the footer.
+  ============================================================================
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPS 2026 — Polymer Processing Symposium</title>
+<meta name="description" content="Polymer Processing Symposium 2026 — Materials · Processing · Manufacturing · Intelligence. 15—17 October 2026, Hefei, China.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F6F2;
+    --ink:#111111;
+    --grey:#6B6B66;
+    --copper:#B45F3A;          /* graphic accent: rules, fills, large type */
+    --copper-ink:#99492A;      /* darker copper for small text — ≥4.5:1 on paper */
+    --copper-lift:#D08A5F;     /* copper for dark surfaces */
+    --hairline:rgba(17,17,17,.16);
+    --hairline-soft:rgba(17,17,17,.09);
+    --hairline-inverse:rgba(247,246,242,.16);
+    --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Courier New',monospace;
+    --wrap:1240px;
+    --nav-h:64px;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:clip;
+  }
+  ::selection{background:var(--copper);color:#fff}
+  img,svg{max-width:100%;display:block}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  .wrap{width:min(var(--wrap),100%);margin-inline:auto;padding-inline:clamp(1.25rem,5vw,3rem)}
+
+  /* ---------- shared type furniture (benchmark grammar: micro-label system) */
+  .batch{
+    font-family:var(--mono);
+    font-size:.75rem;              /* 12px floor */
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--copper-ink);
+    display:inline-block;
+  }
+  .mono-meta{
+    font-family:var(--mono);
+    font-size:.75rem;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--grey);
+  }
+
+  /* ---------- film-strata divider (motif: film cross-section, 3 graded lines) */
+  .strata{
+    height:8px;
+    background-image:linear-gradient(to bottom,
+      var(--hairline) 0,var(--hairline) 1px,transparent 1px,transparent 4px,
+      var(--hairline-soft) 4px,var(--hairline-soft) 5px,transparent 5px,transparent 7px,
+      rgba(180,95,58,.5) 7px,rgba(180,95,58,.5) 8px,transparent 8px);
+    background-repeat:no-repeat;
+    margin-bottom:clamp(2.5rem,5vw,4rem);
+  }
+
+  /* ================= NAVIGATION (grammar: overlay bar → sticky solid, accent underline) */
+  .nav{
+    position:sticky;top:0;z-index:60;
+    background:var(--paper);
+    border-bottom:1px solid var(--hairline-soft);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:var(--nav-h)}
+  .brand{
+    font-family:var(--serif);
+    font-size:1.5rem;
+    line-height:1;
+    letter-spacing:.01em;
+    display:inline-flex;align-items:baseline;gap:.1em;
+  }
+  .brand .dot{color:var(--copper)}
+  .brand .yr{font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;color:var(--grey);transform:translateY(-2px)}
+  .nav-links{display:none}
+  .nav-right{display:flex;align-items:center;gap:1rem}
+  .nav-cta{
+    font-family:var(--mono);
+    font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
+    background:var(--copper);color:#fff;
+    padding:.65rem 1.1rem;
+    border:1px solid var(--copper);
+    transition:background .2s,border-color .2s;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--ink);border-color:var(--ink)}
+  .burger{
+    display:inline-flex;flex-direction:column;justify-content:center;gap:6px;
+    width:40px;height:40px;padding:8px;align-items:flex-end;
+  }
+  .burger span{display:block;height:1.5px;background:var(--ink);transition:transform .2s,opacity .2s}
+  .burger span:nth-child(1){width:22px}
+  .burger span:nth-child(2){width:15px}
+  .burger:hover span:nth-child(2){width:22px}
+
+  /* mobile drawer */
+  .drawer{
+    display:none;
+    position:fixed;inset:0;z-index:90;
+    background:var(--paper);
+    padding:calc(var(--nav-h) + 1.5rem) clamp(1.25rem,6vw,3rem) 2.5rem;
+    flex-direction:column;
+  }
+  .drawer.open{display:flex}
+  .drawer-close{
+    position:absolute;top:.85rem;right:clamp(1.25rem,6vw,3rem);
+    font-family:var(--mono);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--grey);padding:.5rem;
+  }
+  .drawer-close:hover{color:var(--copper-ink)}
+  .drawer nav{display:flex;flex-direction:column;margin-top:1.5rem}
+  .drawer nav a{
+    font-family:var(--serif);
+    font-size:clamp(2rem,8.5vw,2.75rem);
+    line-height:1.15;
+    padding:.55rem 0;
+    border-bottom:1px solid var(--hairline-soft);
+    display:flex;align-items:baseline;gap:1rem;
+  }
+  .drawer nav a .ix{font-family:var(--mono);font-size:.75rem;letter-spacing:.18em;color:var(--copper-ink)}
+  .drawer nav a:hover{color:var(--copper-ink)}
+  .drawer .drawer-foot{margin-top:auto;padding-top:2rem;display:grid;gap:.9rem}
+  .drawer .drawer-foot .nav-cta{justify-self:start;padding:.9rem 1.5rem}
+  .drawer .drawer-foot .mono-meta{letter-spacing:.14em}
+
+  /* ================= HERO (grammar: centered stack — label / display / date) */
+  .hero{padding-block:clamp(2.75rem,7vw,5.5rem) clamp(3.25rem,8vw,6.5rem);text-align:center}
+  .flowline{
+    position:relative;height:1px;background:var(--hairline);
+    margin:0 0 clamp(2.5rem,6vw,4.25rem);
+  }
+  .flowline::before{ /* copper melt segment on the line */
+    content:"";position:absolute;left:41%;top:-1px;width:13%;height:3px;background:var(--copper);
+  }
+  .flowline::after{ /* die node */
+    content:"";position:absolute;left:54%;top:-3.5px;width:8px;height:8px;background:var(--paper);
+    border:1.5px solid var(--copper);transform:translateX(-50%) rotate(45deg);
+  }
+  .flow-tag{
+    position:absolute;right:0;top:10px;
+    font-family:var(--mono);font-size:.75rem;letter-spacing:.2em;color:var(--grey);
+  }
+  .hero-title{
+    margin:0;
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:clamp(3.4rem,12.6vw,11.25rem);
+    line-height:.92;
+    letter-spacing:-.015em;
+    text-transform:uppercase;
+  }
+  .hero-title span{display:block}
+  .hero-sub{
+    margin-top:clamp(1.75rem,4vw,2.75rem);
+    display:flex;align-items:center;justify-content:center;gap:clamp(.9rem,2.5vw,1.75rem);
+  }
+  .hero-sub .rule{flex:0 1 110px;height:1px;background:var(--hairline)}
+  .hero-sub strong{
+    font-weight:600;
+    font-size:clamp(.8rem,1.6vw,1.05rem);
+    letter-spacing:.42em;margin-right:-.42em; /* optical centering vs trailing tracking */
+    text-transform:uppercase;
+  }
+  .hero-tagline{
+    margin:clamp(1.4rem,3vw,2rem) auto 0;
+    max-width:44ch;
+    font-size:clamp(.9rem,1.8vw,1.05rem);
+    color:var(--grey);
+    letter-spacing:.02em;
+    text-wrap:balance;
+  }
+  .hero-meta{
+    margin-top:clamp(1.5rem,3vw,2rem);
+    display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+    gap:.9rem clamp(1.25rem,3vw,2.25rem);
+    font-family:var(--mono);font-size:.85rem;letter-spacing:.18em;text-transform:uppercase;
+  }
+  .hero-meta .dia{width:6px;height:6px;background:var(--copper);transform:rotate(45deg);flex:none}
+  .hero-actions{
+    margin-top:clamp(2.25rem,4.5vw,3.25rem);
+    display:flex;flex-wrap:wrap;justify-content:center;gap:.9rem;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;
+    padding:1rem 1.5rem;white-space:nowrap;
+    transition:background .2s,color .2s,border-color .2s;
+  }
+  .btn-primary{background:var(--ink);color:var(--paper);border:1px solid var(--ink)}
+  .btn-primary:hover{background:var(--copper);border-color:var(--copper);color:#fff}
+  .btn-ghost{border:1px solid rgba(17,17,17,.3);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--copper-ink);color:var(--copper-ink)}
+  .btn-lg{padding:1.15rem 2.1rem}
+
+  /* ================= SECTIONS (grammar: stacked blocks, split headings) */
+  .section{padding-block:clamp(4rem,9vw,8.5rem);scroll-margin-top:calc(var(--nav-h) + 1rem)}
+  .sec-head{
+    display:grid;grid-template-columns:1fr;align-items:end;gap:1.1rem;
+    margin-bottom:clamp(2.5rem,5vw,4.25rem);
+  }
+  .sec-head h2{
+    margin:.9rem 0 0;
+    font-family:var(--serif);font-weight:400;
+    font-size:clamp(2.25rem,5vw,3.5rem);
+    line-height:1.04;letter-spacing:-.01em;
+  }
+  .sec-meta{padding-bottom:.4rem}
+
+  /* ---- About */
+  .about-grid{display:grid;gap:clamp(1.75rem,3.5vw,3.5rem);max-width:1120px}
+  .about-grid .lead{
+    margin:0;
+    font-family:var(--serif);font-weight:400;
+    font-size:clamp(1.4rem,2.4vw,1.8rem);
+    line-height:1.42;letter-spacing:0;
+  }
+  .about-grid .p2{margin:0;font-size:1.0625rem;line-height:1.75;color:#3c3c38}
+
+  /* ---- Research themes: editorial index, no cards */
+  .theme-list{border-bottom:1px solid var(--hairline)}
+  .theme-row{
+    display:grid;
+    grid-template-columns:3rem minmax(0,1fr);
+    column-gap:1.25rem;row-gap:.5rem;
+    padding:1.6rem 0;
+    border-top:1px solid var(--hairline);
+  }
+  .t-idx{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;color:var(--copper-ink);padding-top:.55rem}
+  .t-title{
+    font-family:var(--serif);font-weight:400;
+    font-size:clamp(1.5rem,3.4vw,2.05rem);
+    line-height:1.1;
+    transition:transform .25s ease,color .25s ease;
+  }
+  .t-desc{grid-column:2;max-width:58ch;font-size:.95rem;line-height:1.65;color:var(--grey)}
+  .theme-row:hover .t-title{transform:translateX(8px);color:var(--copper-ink)}
+
+  /* ---- Speakers: monogram plates, 4 / 2 / 1 */
+  .spk-grid{display:grid;gap:2.25rem 1.75rem;grid-template-columns:1fr}
+  .spk-plate{
+    aspect-ratio:4/5;               /* fixed ratio — CLS-safe */
+    background:var(--ink);
+    position:relative;overflow:hidden;
+    display:grid;place-items:center;
+  }
+  .spk-plate::before{ /* film strata lines, lower third */
+    content:"";position:absolute;left:0;right:0;bottom:29%;height:7px;
+    border-top:1px solid rgba(247,246,242,.22);
+    border-bottom:1px solid rgba(247,246,242,.22);
+  }
+  .spk-plate::after{
+    content:"";position:absolute;left:0;right:0;bottom:26.5%;height:0;
+    border-top:2px solid rgba(180,95,58,.75);
+  }
+  .spk-initials{
+    font-family:var(--serif);
+    font-size:clamp(3.25rem,7vw,4.25rem);
+    line-height:1;color:var(--paper);letter-spacing:.03em;
+  }
+  .spk-tag{
+    position:absolute;top:.85rem;left:.9rem;
+    font-family:var(--mono);font-size:.75rem;letter-spacing:.2em;
+    color:rgba(247,246,242,.6);
+  }
+  .spk-name{margin:1.3rem 0 0;font-family:var(--serif);font-weight:400;font-size:1.45rem;line-height:1.15}
+  .spk-affil{
+    margin:.55rem 0 0;
+    font-family:var(--mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--grey);
+  }
+  .spk-talk{margin:.85rem 0 0;font-family:var(--serif);font-style:italic;font-size:1.05rem;line-height:1.45;color:#3c3c38}
+
+  /* ---- Program: tabs + hairline table → mobile cards */
+  .prog-tabs{display:flex;gap:1.75rem;border-bottom:1px solid var(--hairline);overflow-x:auto}
+  .prog-tab{
+    font-family:var(--mono);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--grey);padding:1rem 0;position:relative;white-space:nowrap;
+    transition:color .2s;
+  }
+  .prog-tab::after{
+    content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+    background:var(--copper);transform:scaleX(0);transform-origin:left;transition:transform .25s;
+  }
+  .prog-tab:hover{color:var(--ink)}
+  .prog-tab[aria-selected="true"]{color:var(--ink)}
+  .prog-tab[aria-selected="true"]::after{transform:scaleX(1)}
+  .prog-panel[hidden]{display:none}
+  .prog-head,.prog-row{
+    display:grid;
+    grid-template-columns:118px minmax(0,1fr) minmax(0,190px) 110px;
+    column-gap:clamp(1rem,2.5vw,2rem);
+    align-items:baseline;
+  }
+  .prog-head{
+    padding:1.1rem 0;border-bottom:1px solid var(--hairline);
+    font-family:var(--mono);font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--grey);
+  }
+  .prog-row{padding:1.4rem 0;border-bottom:1px solid var(--hairline-soft)}
+  .c-time{font-family:var(--mono);font-size:.85rem;letter-spacing:.04em;white-space:nowrap}
+  .is-keynote .c-time{color:var(--copper-ink)}
+  .c-sess{font-size:1.0625rem;font-weight:500;line-height:1.4}
+  .c-spk{font-size:.9375rem;color:var(--grey)}
+  .c-room{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)}
+  .prog-note{margin-top:1.4rem}
+
+  /* ---- Important dates: index rows */
+  .date-list{border-bottom:1px solid var(--hairline);max-width:1120px}
+  .date-row{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:.75rem 2rem;
+    padding:1.5rem 0;border-top:1px solid var(--hairline);
+  }
+  .d-name{font-family:var(--serif);font-weight:400;font-size:clamp(1.35rem,2.8vw,1.9rem);line-height:1.15}
+  .d-when{font-family:var(--mono);font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--copper-ink);white-space:nowrap}
+
+  /* ---- Venue */
+  .venue-grid{display:grid;gap:2.75rem;grid-template-columns:1fr}
+  .venue-name{margin:0;font-family:var(--serif);font-weight:400;font-size:clamp(1.5rem,3vw,2.1rem);line-height:1.15;max-width:22ch}
+  .venue-addr{margin:.9rem 0 0;font-size:.95rem;color:var(--grey);max-width:48ch}
+  .venue-sub{margin:2.25rem 0 0}
+  .transport{list-style:none;margin:.9rem 0 0;padding:0;border-bottom:1px solid var(--hairline-soft)}
+  .transport li{padding:.85rem 0;border-top:1px solid var(--hairline-soft);font-size:.95rem;line-height:1.5}
+  .transport .t-where{color:var(--grey)}
+  .hotels{margin:1.4rem 0 0;font-size:.9rem;color:var(--grey)}
+  .map-block{
+    border:1px solid var(--hairline);
+    background:#EFEDE6;
+    aspect-ratio:4/3;
+    position:relative;overflow:hidden;
+  }
+  .map-block svg{position:absolute;inset:0;width:100%;height:100%}
+  .map-caption{margin:.7rem 0 0}
+
+  /* ---- Registration: ruled columns, no card wall */
+  .reg-grid{display:grid;gap:2rem;grid-template-columns:1fr}
+  .tier{border-top:2px solid var(--ink);padding-top:1.3rem;transition:border-color .25s}
+  .tier:hover{border-top-color:var(--copper)}
+  .tier-name{font-family:var(--mono);font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--grey)}
+  .tier-price{margin:.8rem 0 .55rem;font-family:var(--serif);font-weight:400;font-size:clamp(2.3rem,3.5vw,3rem);line-height:1}
+  .tier-price small{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;color:var(--grey);margin-left:.4rem}
+  .tier-desc{margin:0;font-size:.875rem;line-height:1.65;color:var(--grey);max-width:34ch}
+  .tier-status{
+    margin-top:1.1rem;display:inline-flex;align-items:center;gap:.55rem;
+    font-family:var(--mono);font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;
+  }
+  .tier-status::before{content:"";width:6px;height:6px;background:currentColor;transform:rotate(45deg)}
+  .tier-status.avail{color:var(--copper-ink)}
+  .tier-status.invited{color:var(--grey)}
+  .reg-cta{margin-top:clamp(2.5rem,5vw,3.75rem);display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem 1.75rem}
+  .reg-note{margin:0}
+
+  /* ---- Sponsors: typographic wordmarks by tier */
+  .sp-rows{border-bottom:1px solid var(--hairline)}
+  .sp-row{
+    display:grid;grid-template-columns:1fr;gap:.8rem;
+    padding:1.9rem 0;border-top:1px solid var(--hairline);align-items:center;
+  }
+  .sp-tier{font-family:var(--mono);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--grey)}
+  .sp-marks{display:flex;flex-wrap:wrap;gap:1rem clamp(1.75rem,4vw,3.5rem);align-items:baseline}
+  .wm-1{font-family:var(--serif);font-size:clamp(1.75rem,3vw,2.25rem);line-height:1.1}
+  .wm-2{font-weight:700;font-size:1.25rem;letter-spacing:.07em;text-transform:uppercase}
+  .wm-3{font-family:var(--serif);font-style:italic;font-size:clamp(1.5rem,2.6vw,1.9rem);line-height:1.1}
+  .wm-4{font-weight:600;font-size:1.05rem;letter-spacing:.22em;text-transform:uppercase}
+  .wm-5{font-family:var(--mono);font-size:1rem;letter-spacing:.06em}
+  .sp-note{margin-top:1.6rem}
+
+  /* ================= FOOTER (grammar: brand/contact split + ruled bottom row) */
+  .footer{background:var(--ink);color:var(--paper)}
+  .foot-top{
+    display:grid;gap:2.75rem;
+    padding-block:clamp(3.5rem,7vw,5.5rem);
+  }
+  .f-brand .brand{font-size:2.25rem}
+  .f-brand p{margin:1.1rem 0 0;font-size:.95rem;line-height:1.7;color:rgba(247,246,242,.66);max-width:30ch}
+  .f-h{
+    margin:0 0 1.1rem;
+    font-family:var(--mono);font-weight:500;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;
+    color:rgba(247,246,242,.5);
+  }
+  .f-links{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+  .f-links a{font-size:.95rem;color:rgba(247,246,242,.82);transition:color .2s}
+  .f-links a:hover{color:var(--copper-lift)}
+  .f-contact p{margin:0 0 .9rem;font-size:.95rem;line-height:1.6;color:rgba(247,246,242,.82);overflow-wrap:anywhere}
+  .f-contact .f-dim{color:rgba(247,246,242,.5)}
+  .f-contact a:hover{color:var(--copper-lift)}
+  .foot-bottom{
+    border-top:1px solid var(--hairline-inverse);
+    padding:1.5rem 0 2.25rem;
+    display:flex;flex-wrap:wrap;gap:.75rem 2rem;justify-content:space-between;align-items:center;
+  }
+  .foot-bottom p{margin:0;font-family:var(--mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(247,246,242,.55)}
+
+  /* ================= REVEAL (fade/reveal only — motion serves hierarchy)
+     Content is visible by default; entering the viewport plays one fade-up.
+     No-JS and full-page rendering always see complete content. */
+  @media (prefers-reduced-motion:no-preference){
+    .js [data-reveal].rv-in{animation:fadeUp .7s ease both}
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(16px)}
+      to{opacity:1;transform:none}
+    }
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{transition:none!important;animation:none!important}
+  }
+
+  /* =============================================================
+     BREAKPOINT 1 — ≥480px  (large phones: hero sub-rules visible)
+     ============================================================= */
+  @media (min-width:480px){
+    .reg-grid{grid-template-columns:repeat(2,1fr)}
+  }
+
+  /* =============================================================
+     BREAKPOINT 2 — ≥768px  (tablet: 2-col speakers, program table
+     gains its header, drawer retires, nav links appear)
+     ============================================================= */
+  @media (min-width:768px){
+    :root{--nav-h:72px}
+    .spk-grid{grid-template-columns:repeat(2,1fr)}
+    .venue-grid{grid-template-columns:1.05fr .95fr;align-items:start}
+    .sp-row{grid-template-columns:180px minmax(0,1fr);column-gap:2.5rem}
+    .foot-top{grid-template-columns:1.35fr 1fr 1fr}
+    /* program stays table-shaped; cards only below 768 */
+  }
+
+  /* =============================================================
+     BREAKPOINT 3 — ≥1024px  (desktop: full nav, 4-col speakers,
+     4-col registration, two-column about)
+     ============================================================= */
+  @media (min-width:1024px){
+    .nav-links{display:flex;gap:clamp(1.4rem,2.2vw,2.1rem)}
+    .nav-links a{
+      font-size:.9rem;font-weight:500;letter-spacing:.01em;
+      position:relative;padding:.35rem 0;
+    }
+    .nav-links a::after{
+      content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;
+      background:var(--copper);transform:scaleX(0);transform-origin:left;transition:transform .22s;
+    }
+    .nav-links a:hover::after{transform:scaleX(1)}
+    .burger{display:none}
+    .about-grid{grid-template-columns:1.08fr .92fr}
+    .theme-row{grid-template-columns:4.5rem minmax(0,1.05fr) minmax(0,1fr);column-gap:2rem;align-items:start}
+    .t-idx{padding-top:.5rem}
+    .t-title{grid-column:2}
+    .t-desc{grid-column:3;padding-top:.4rem;max-width:none}
+    .spk-grid{grid-template-columns:repeat(4,1fr)}
+    .reg-grid{grid-template-columns:repeat(4,1fr);gap:2.25rem}
+    .sec-head{grid-template-columns:minmax(0,1fr) auto}
+    .hero{text-align:center}
+  }
+
+  /* =============================================================
+     BREAKPOINT 4 — ≥1440px  (wide: scale display + rhythm up)
+     ============================================================= */
+  @media (min-width:1440px){
+    body{font-size:17px}
+    .hero-title{font-size:clamp(3.4rem,12.6vw,12rem)}
+    .spk-name{font-size:1.55rem}
+    .section{padding-block:9.5rem}
+  }
+
+  /* =============================================================
+     BELOW 768 — mobile program: rows become grouped cards
+     ============================================================= */
+  @media (max-width:767.98px){
+    .prog-head{display:none}
+    .prog-row{
+      grid-template-columns:minmax(0,1fr) auto;
+      grid-template-areas:
+        "time room"
+        "sess sess"
+        "spk  spk";
+      row-gap:.5rem;
+      padding:1.3rem 0;
+    }
+    .c-time{grid-area:time}
+    .c-room{grid-area:room;justify-self:end}
+    .c-sess{grid-area:sess;font-size:1.0625rem}
+    .c-spk{grid-area:spk}
+  }
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<!-- ============ NAVIGATION ============ -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="PPS 2026 — Polymer Processing Symposium, back to top">PPS<span class="dot">·</span><span class="yr">26</span></a>
+    <div class="nav-right">
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#symposium">Symposium</a>
+        <a href="#themes">Themes</a>
+        <a href="#speakers">Speakers</a>
+        <a href="#program">Program</a>
+        <a href="#venue">Venue</a>
+      </nav>
+      <a class="nav-cta" href="#register">Register</a>
+      <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- mobile drawer -->
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu">
+  <button class="drawer-close" id="drawerClose">Close ×</button>
+  <nav aria-label="Mobile">
+    <a href="#symposium"><span class="ix">01</span>Symposium</a>
+    <a href="#themes"><span class="ix">02</span>Themes</a>
+    <a href="#speakers"><span class="ix">03</span>Speakers</a>
+    <a href="#program"><span class="ix">04</span>Program</a>
+    <a href="#venue"><span class="ix">06</span>Venue</a>
+    <a href="#register"><span class="ix">07</span>Register</a>
+  </nav>
+  <div class="drawer-foot">
+    <a class="nav-cta" href="#register">Register Now</a>
+    <span class="mono-meta">15—17 October 2026 · Hefei · China</span>
+  </div>
+</div>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="flowline" aria-hidden="true">
+        <span class="flow-tag">PPS26—00</span>
+      </div>
+      <h1 class="hero-title">
+        <span>Polymer</span>
+        <span>Processing</span>
+      </h1>
+      <p class="hero-sub">
+        <span class="rule" aria-hidden="true"></span>
+        <strong>Symposium 2026</strong>
+        <span class="rule" aria-hidden="true"></span>
+      </p>
+      <p class="hero-tagline">Materials · Processing · Manufacturing · Intelligence</p>
+      <p class="hero-meta">
+        <span>15—17 October 2026</span>
+        <span class="dia" aria-hidden="true"></span>
+        <span>Hefei · China</span>
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="#register">[&nbsp;Register&nbsp;Now&nbsp;]</a>
+        <a class="btn btn-ghost btn-lg" href="#program">[&nbsp;View&nbsp;Program&nbsp;]</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 01 ABOUT ============ -->
+  <section class="section" id="symposium">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—01 · Symposium</span>
+          <h2>About the Symposium</h2>
+        </div>
+        <span class="mono-meta sec-meta">Hefei · 15—17 Oct 2026</span>
+      </header>
+      <div class="about-grid" data-reveal>
+        <p class="lead">PPS 2026 is an international symposium dedicated to polymer processing — the science and engineering that turns polymer materials into real products. Over three days, researchers and engineers from academia and industry will gather in Hefei to exchange the latest advances across extrusion, molding, rheology, additive manufacturing and process simulation.</p>
+        <p class="p2">Polymer processing is entering a new era: materials, process engineering, computation and intelligent manufacturing are converging. PPS 2026 provides a forum for this convergence — where rheologists meet data scientists, where simulation meets the production line, and where fundamental insight becomes industrial practice.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 RESEARCH THEMES ============ -->
+  <section class="section" id="themes">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—02 · Research Themes</span>
+          <h2>Eight Tracks, One Process Line</h2>
+        </div>
+        <span class="mono-meta sec-meta">08 Research Tracks</span>
+      </header>
+      <div class="theme-list" data-reveal>
+        <article class="theme-row">
+          <span class="t-idx">01</span>
+          <h3 class="t-title">Extrusion</h3>
+          <p class="t-desc">Single- and twin-screw extrusion, reactive processing, compounding</p>
+        </article>
+        <article class="theme-row">
+          <span class="t-idx">02</span>
+          <h3 class="t-title">Injection Molding</h3>
+          <p class="t-desc">Precision molding, micro-injection, process control</p>
+        </article>
+        <article class="theme-row">
+          <span class="t-idx">03</span>
+          <h3 class="t-title">Film Processing</h3>
+          <p class="t-desc">Blown and cast film, flexible packaging, multilayer structures</p>
+        </article>
+        <article class="theme-row">
+          <span class="t-idx">04</span>
+          <h3 class="t-title">Fiber Spinning</h3>
+          <p class="t-desc">Melt spinning, nanofibers, structure formation in fibers</p>
+        </article>
+        <article class="theme-row">
+          <span class="t-idx">05</span>
+          <h3 class="t-title">Polymer Rheology</h3>
+          <p class="t-desc">Extensional rheology, viscoelasticity, flow characterization</p>
+        </article>
+        <article class="theme-row">
+          <span class="t-idx">06</span>
+          <h3 class="t-title">Additive Manufacturing</h3>
+          <p class="t-desc">3D printing polymers, sintering, printed functional devices</p>
+        </article>
+        <article class="theme-row">
+          <span class="t-idx">07</span>
+          <h3 class="t-title">Process Simulation</h3>
+          <p class="t-desc">Finite element flow modeling, numerical process design</p>
+        </article>
+        <article class="theme-row">
+          <span class="t-idx">08</span>
+          <h3 class="t-title">AI &amp; Digital Twins</h3>
+          <p class="t-desc">Machine learning for processing, virtual process lines</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 KEYNOTE SPEAKERS ============ -->
+  <section class="section" id="speakers">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—03 · Keynote Speakers</span>
+          <h2>Keynote Speakers</h2>
+        </div>
+        <span class="mono-meta sec-meta">04 Keynote Lectures</span>
+      </header>
+      <!-- Placeholder rule: monogram plates (initials), never real photos -->
+      <div class="spk-grid" data-reveal>
+        <figure class="spk-card" style="margin:0">
+          <div class="spk-plate" role="img" aria-label="Monogram placeholder for Prof. Elena Marchetti">
+            <span class="spk-tag">PPS26—K1</span>
+            <span class="spk-initials">EM</span>
+          </div>
+          <figcaption>
+            <h3 class="spk-name">Prof. Elena Marchetti</h3>
+            <p class="spk-affil">Politecnico di Torino · Italy</p>
+            <p class="spk-talk">“Reactive Extrusion: Where Materials Chemistry Meets Process Engineering”</p>
+          </figcaption>
+        </figure>
+        <figure class="spk-card" style="margin:0">
+          <div class="spk-plate" role="img" aria-label="Monogram placeholder for Prof. Hiroshi Tanaka">
+            <span class="spk-tag">PPS26—K2</span>
+            <span class="spk-initials">HT</span>
+          </div>
+          <figcaption>
+            <h3 class="spk-name">Prof. Hiroshi Tanaka</h3>
+            <p class="spk-affil">Tokyo Institute of Technology · Japan</p>
+            <p class="spk-talk">“Precision Injection Molding for Micro-Optical Components”</p>
+          </figcaption>
+        </figure>
+        <figure class="spk-card" style="margin:0">
+          <div class="spk-plate" role="img" aria-label="Monogram placeholder for Prof. Sarah Chen">
+            <span class="spk-tag">PPS26—K3</span>
+            <span class="spk-initials">SC</span>
+          </div>
+          <figcaption>
+            <h3 class="spk-name">Prof. Sarah Chen</h3>
+            <p class="spk-affil">Massachusetts Institute of Technology · USA</p>
+            <p class="spk-talk">“Machine Learning Models for Polymer Process Simulation”</p>
+          </figcaption>
+        </figure>
+        <figure class="spk-card" style="margin:0">
+          <div class="spk-plate" role="img" aria-label="Monogram placeholder for Prof. Lars Johansson">
+            <span class="spk-tag">PPS26—K4</span>
+            <span class="spk-initials">LJ</span>
+          </div>
+          <figcaption>
+            <h3 class="spk-name">Prof. Lars Johansson</h3>
+            <p class="spk-affil">KTH Royal Institute of Technology · Sweden</p>
+            <p class="spk-talk">“Fiber Spinning at the Nanoscale: Structure Control in Processing”</p>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 PROGRAM ============ -->
+  <section class="section" id="program">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—04 · Program</span>
+          <h2>Three Days on the Line</h2>
+        </div>
+        <span class="mono-meta sec-meta">15—17 Oct · All Halls</span>
+      </header>
+
+      <div class="prog-tabs" role="tablist" aria-label="Program days" data-reveal>
+        <button class="prog-tab" id="tab-d1" role="tab" aria-selected="true" aria-controls="panel-d1">Day 1 — 15 Oct</button>
+        <button class="prog-tab" id="tab-d2" role="tab" aria-selected="false" aria-controls="panel-d2" tabindex="-1">Day 2 — 16 Oct</button>
+        <button class="prog-tab" id="tab-d3" role="tab" aria-selected="false" aria-controls="panel-d3" tabindex="-1">Day 3 — 17 Oct</button>
+      </div>
+
+      <div class="prog-panel" id="panel-d1" role="tabpanel" aria-labelledby="tab-d1">
+        <div class="prog-head" aria-hidden="true">
+          <span>Time</span><span>Session</span><span>Speaker</span><span>Room</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">08:30–09:00</span>
+          <span class="c-sess" role="cell">Opening Ceremony</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Main Hall</span>
+        </div>
+        <div class="prog-row is-keynote" role="row">
+          <span class="c-time">09:00–10:00</span>
+          <span class="c-sess" role="cell">Keynote: Reactive Extrusion</span>
+          <span class="c-spk" role="cell">E. Marchetti</span>
+          <span class="c-room" role="cell">Main Hall</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">10:30–12:00</span>
+          <span class="c-sess" role="cell">Session A: Advances in Extrusion</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall A</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">13:30–15:00</span>
+          <span class="c-sess" role="cell">Session B: Rheology &amp; Characterization</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall A</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">15:30–17:00</span>
+          <span class="c-sess" role="cell">Session C: Polymer Processing Simulation</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall B</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">17:30–18:30</span>
+          <span class="c-sess" role="cell">Welcome Reception</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Lobby</span>
+        </div>
+      </div>
+
+      <div class="prog-panel" id="panel-d2" role="tabpanel" aria-labelledby="tab-d2" hidden>
+        <div class="prog-head" aria-hidden="true">
+          <span>Time</span><span>Session</span><span>Speaker</span><span>Room</span>
+        </div>
+        <div class="prog-row is-keynote" role="row">
+          <span class="c-time">09:00–10:00</span>
+          <span class="c-sess" role="cell">Keynote: Machine Learning for Process Simulation</span>
+          <span class="c-spk" role="cell">S. Chen</span>
+          <span class="c-room" role="cell">Main Hall</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">10:30–12:00</span>
+          <span class="c-sess" role="cell">Session D: Injection Molding</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall A</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">13:30–15:00</span>
+          <span class="c-sess" role="cell">Session E: Film Processing &amp; Flexible Packaging</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall B</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">15:30–17:00</span>
+          <span class="c-sess" role="cell">Session F: Additive Manufacturing</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall A</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">17:00–18:00</span>
+          <span class="c-sess" role="cell">Poster Session I</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Exhibition Area</span>
+        </div>
+      </div>
+
+      <div class="prog-panel" id="panel-d3" role="tabpanel" aria-labelledby="tab-d3" hidden>
+        <div class="prog-head" aria-hidden="true">
+          <span>Time</span><span>Session</span><span>Speaker</span><span>Room</span>
+        </div>
+        <div class="prog-row is-keynote" role="row">
+          <span class="c-time">09:00–10:00</span>
+          <span class="c-sess" role="cell">Keynote: Fiber Spinning at the Nanoscale</span>
+          <span class="c-spk" role="cell">L. Johansson</span>
+          <span class="c-room" role="cell">Main Hall</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">10:30–12:00</span>
+          <span class="c-sess" role="cell">Session G: AI &amp; Digital Twins</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall B</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">13:30–15:00</span>
+          <span class="c-sess" role="cell">Session H: Fiber Spinning &amp; Textile Materials</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Hall A</span>
+        </div>
+        <div class="prog-row" role="row">
+          <span class="c-time">15:30–16:30</span>
+          <span class="c-sess" role="cell">Closing Remarks &amp; Awards</span>
+          <span class="c-spk" role="cell">—</span>
+          <span class="c-room" role="cell">Main Hall</span>
+        </div>
+      </div>
+
+      <p class="mono-meta prog-note">Program subject to confirmation · Full session details with acceptance notices</p>
+    </div>
+  </section>
+
+  <!-- ============ 05 IMPORTANT DATES ============ -->
+  <section class="section" id="dates">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—05 · Important Dates</span>
+          <h2>Key Deadlines</h2>
+        </div>
+        <span class="mono-meta sec-meta">2026 Cycle</span>
+      </header>
+      <div class="date-list" data-reveal>
+        <div class="date-row">
+          <h3 class="d-name">Call for Abstracts</h3>
+          <span class="d-when">01 May 2026</span>
+        </div>
+        <div class="date-row">
+          <h3 class="d-name">Early Registration Deadline</h3>
+          <span class="d-when">01 Aug 2026</span>
+        </div>
+        <div class="date-row">
+          <h3 class="d-name">Regular Registration Deadline</h3>
+          <span class="d-when">01 Sep 2026</span>
+        </div>
+        <div class="date-row">
+          <h3 class="d-name">Symposium</h3>
+          <span class="d-when">15—17 Oct 2026</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 VENUE ============ -->
+  <section class="section" id="venue">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—06 · Venue</span>
+          <h2>Venue &amp; Access</h2>
+        </div>
+        <span class="mono-meta sec-meta">Hefei · Anhui · CN</span>
+      </header>
+      <div class="venue-grid" data-reveal>
+        <div>
+          <h3 class="venue-name">Hefei Binhu International Convention &amp; Exhibition Centre</h3>
+          <p class="venue-addr">Binhu International Convention &amp; Exhibition Centre, Hefei, Anhui Province, China</p>
+          <p class="mono-meta venue-sub">Getting There</p>
+          <ul class="transport">
+            <li>Hefei Xinqiao International Airport <span class="t-where">— approx. 40 min by car</span></li>
+            <li>Hefei South Railway Station (High-Speed) <span class="t-where">— approx. 25 min by car</span></li>
+            <li>Metro Line 1 <span class="t-where">— Binhu Convention Centre Station</span></li>
+          </ul>
+          <p class="hotels">Hotels: Partner hotel list to be announced.</p>
+        </div>
+        <div>
+          <!-- Honest placeholder: abstract CSS/SVG map, labeled as such. No fake map screenshots. -->
+          <div class="map-block" role="img" aria-label="Abstract map placeholder for the venue location in Hefei">
+            <svg viewBox="0 0 640 480" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs>
+                <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+                  <path d="M64 0H0V64" fill="none" stroke="rgba(17,17,17,.06)" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="640" height="480" fill="#EFEDE6"/>
+              <rect width="640" height="480" fill="url(#grid)"/>
+              <path d="M-20 360 C120 330 220 390 340 350 S580 300 660 330" fill="none" stroke="rgba(17,17,17,.14)" stroke-width="1.5"/>
+              <path d="M-20 150 C140 180 300 120 460 160 S600 190 660 170" fill="none" stroke="rgba(17,17,17,.10)" stroke-width="1.5"/>
+              <path d="M120 -20 C150 120 100 260 160 500" fill="none" stroke="rgba(17,17,17,.10)" stroke-width="1.5"/>
+              <path d="M480 -20 C450 140 520 300 470 500" fill="none" stroke="rgba(17,17,17,.14)" stroke-width="1.5"/>
+              <line x1="0" y1="392" x2="640" y2="392" stroke="rgba(17,17,17,.07)" stroke-width="1"/>
+              <line x1="0" y1="400" x2="640" y2="400" stroke="rgba(180,95,58,.35)" stroke-width="2"/>
+              <circle cx="340" cy="252" r="22" fill="none" stroke="rgba(180,95,58,.45)" stroke-width="1"/>
+              <circle cx="340" cy="252" r="6" fill="#B45F3A"/>
+              <text x="368" y="246" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="4" fill="#6B6B66">HEFEI</text>
+              <text x="368" y="266" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="#99492A">PPS26</text>
+            </svg>
+          </div>
+          <p class="mono-meta map-caption">Map — to be embedded</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 REGISTRATION ============ -->
+  <section class="section" id="register">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—07 · Registration</span>
+          <h2>Registration</h2>
+        </div>
+        <span class="mono-meta sec-meta">Prices in CNY · Sample data</span>
+      </header>
+      <!-- Placeholder rule: sample rates, honestly labeled -->
+      <div class="reg-grid" data-reveal>
+        <div class="tier">
+          <span class="tier-name">Student</span>
+          <p class="tier-price">¥1,600</p>
+          <p class="tier-desc">For undergraduate &amp; graduate students (valid ID required)</p>
+          <span class="tier-status avail">Available</span>
+        </div>
+        <div class="tier">
+          <span class="tier-name">Academic</span>
+          <p class="tier-price">¥2,400</p>
+          <p class="tier-desc">Faculty &amp; research staff of universities and institutes</p>
+          <span class="tier-status avail">Available</span>
+        </div>
+        <div class="tier">
+          <span class="tier-name">Industry</span>
+          <p class="tier-price">¥3,600</p>
+          <p class="tier-desc">Professionals &amp; engineers from industry</p>
+          <span class="tier-status avail">Available</span>
+        </div>
+        <div class="tier">
+          <span class="tier-name">Invited Speaker</span>
+          <p class="tier-price">¥0</p>
+          <p class="tier-desc">By invitation of the organising committee</p>
+          <span class="tier-status invited">On invitation</span>
+        </div>
+      </div>
+      <div class="reg-cta" data-reveal>
+        <a class="btn btn-primary btn-lg" href="#register">[&nbsp;Register&nbsp;Now&nbsp;]</a>
+        <p class="mono-meta reg-note">Prices in CNY. Sample data.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 08 SPONSORS ============ -->
+  <section class="section" id="sponsors">
+    <div class="wrap">
+      <div class="strata" aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <div>
+          <span class="batch">PPS26—08 · Sponsors</span>
+          <h2>Sponsors &amp; Partners</h2>
+        </div>
+        <span class="mono-meta sec-meta">2026 Partners</span>
+      </header>
+      <!-- Placeholder rule: fictional typographic wordmarks only — no real logos -->
+      <div class="sp-rows" data-reveal>
+        <div class="sp-row">
+          <span class="sp-tier">Platinum</span>
+          <div class="sp-marks"><span class="wm-1">PolyNova Materials</span></div>
+        </div>
+        <div class="sp-row">
+          <span class="sp-tier">Gold</span>
+          <div class="sp-marks">
+            <span class="wm-2">RheoTech Instruments</span>
+            <span class="wm-3">FilaForm Systems</span>
+          </div>
+        </div>
+        <div class="sp-row">
+          <span class="sp-tier">Silver</span>
+          <div class="sp-marks"><span class="wm-4">MesoScale Labs</span></div>
+        </div>
+        <div class="sp-row">
+          <span class="sp-tier">Academic Partner</span>
+          <div class="sp-marks"><span class="wm-5">Anhui Polymer Society</span></div>
+        </div>
+      </div>
+      <p class="mono-meta sp-note">All partner names shown are fictional placeholders for design review.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="f-brand">
+        <span class="brand">PPS<span class="dot">·</span><span class="yr">26</span></span>
+        <p>PPS 2026 — Polymer Processing Symposium<br>15—17 October 2026 · Hefei, China</p>
+      </div>
+      <div>
+        <h3 class="f-h">Navigate</h3>
+        <ul class="f-links">
+          <li><a href="#symposium">Symposium</a></li>
+          <li><a href="#themes">Themes</a></li>
+          <li><a href="#speakers">Speakers</a></li>
+          <li><a href="#program">Program</a></li>
+          <li><a href="#venue">Venue</a></li>
+          <li><a href="#register">Register</a></li>
+        </ul>
+      </div>
+      <div class="f-contact">
+        <h3 class="f-h">Contact</h3>
+        <p>Secretariat:<br><a href="mailto:secretariat@pps2026-conf.org">secretariat@pps2026-conf.org</a></p>
+        <p class="f-dim">Host organisation: to be confirmed</p>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <p>© 2026 PPS 2026 Organising Committee</p>
+      <p>Materials · Processing · Manufacturing · Intelligence</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---- mobile drawer ---- */
+  var burger = document.getElementById('burger');
+  var drawer = document.getElementById('drawer');
+  var drawerClose = document.getElementById('drawerClose');
+
+  function openDrawer(){
+    drawer.classList.add('open');
+    burger.setAttribute('aria-expanded','true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDrawer(){
+    drawer.classList.remove('open');
+    burger.setAttribute('aria-expanded','false');
+    document.body.style.overflow = '';
+  }
+  burger.addEventListener('click', openDrawer);
+  drawerClose.addEventListener('click', closeDrawer);
+  drawer.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeDrawer); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDrawer(); });
+
+  /* ---- program day tabs ---- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.prog-tab'));
+  function selectTab(tab){
+    tabs.forEach(function(t){
+      var on = (t === tab);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      var panel = document.getElementById(t.getAttribute('aria-controls'));
+      if(panel) panel.hidden = !on;
+    });
+  }
+  tabs.forEach(function(tab, i){
+    tab.addEventListener('click', function(){ selectTab(tab); });
+    tab.addEventListener('keydown', function(e){
+      var dir = (e.key === 'ArrowRight') ? 1 : (e.key === 'ArrowLeft') ? -1 : 0;
+      if(!dir) return;
+      e.preventDefault();
+      var next = tabs[(i + dir + tabs.length) % tabs.length];
+      selectTab(next);
+      next.focus();
+    });
+  });
+
+  /* ---- scroll reveal (fade/reveal only) ---- */
+  var revealEls = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          en.target.classList.add('rv-in');
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -6% 0px' });
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('rv-in'); });
+  }
+})();
+</script>
+</body>
+</html>

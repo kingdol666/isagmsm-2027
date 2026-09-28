@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ============================================================================
+  PPS 2026 — Polymer Processing Symposium · Landing page design comp
+  Direction A — "Neo-Brutalism collision feed" (roulette draw #2: style library No.2)
+  Academic brutalism: spec-sheet / bill-of-materials energy. NOT a Verge clone —
+  the mandated brand base (warm white / ink / grey / polymer copper) stays in charge;
+  ONE industrial auxiliary (safety ochre #E8A317) is allowed for plates & hovers.
+
+  ASSUMPTIONS:
+  - This is a single-file design comp; the real home will be rebuilt in Nuxt 4.
+  - Speaker portraits do not exist: initial-monogram plates, fixed aspect-ratio
+    (no CLS). PLACEHOLDER by design — never real photos.
+  - Venue map is an abstract CSS/SVG placeholder, honestly labeled
+    "MAP — TO BE EMBEDDED". No fake map screenshots.
+  - Registration prices, sponsors, venue name and secretariat address are the
+    spec's sample data and are labeled as such on the page.
+  - One auxiliary type added: Space Grotesk for batch codes / stamps / labels
+    (industrial part-number energy). Instrument Serif + Inter remain the leads.
+  - Copper is darkened one step (#96482A) ONLY where small text needs 4.5:1.
+
+  WHERE MY FORM COMES FROM THE CONTENT (spec §4):
+  An extrusion line is one continuous machine — so this page is one continuous
+  line of stations: full-bleed 3px rules weld the modules together (the barrel),
+  every section carries a machined batch code (PPS26—01 … PPS26—08), bundles of
+  parallel hairlines stand for film cross-sections (hero plate, tagline block,
+  map plate, footer edge), and the Important Dates strip reads as stations on
+  the process rail. Academic content, finished like a factory spec sheet.
+  ============================================================================
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPS 2026 — Polymer Processing Symposium · 15–17 October 2026 · Hefei, China</title>
+<meta name="description" content="PPS 2026 — international symposium on polymer processing. Materials · Processing · Manufacturing · Intelligence. 15–17 October 2026, Hefei, China.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   0. TOKENS
+   ========================================================== */
+:root{
+  --paper:#F7F6F2;         /* brand warm white */
+  --ink:#111111;           /* brand ink */
+  --grey:#6B6B66;          /* brand secondary grey (4.9:1 on paper) */
+  --copper:#B45F3A;        /* brand polymer copper — plates / large text */
+  --copper-deep:#96482A;   /* same hue, one step darker — small text only */
+  --safety:#E8A317;        /* the ONE industrial auxiliary (safety ochre) */
+  --paper75:rgba(247,246,242,.75);
+  --paper30:rgba(247,246,242,.3);
+  --bw:3px;                              /* brutal border width */
+  --sh-big:7px 7px 0 var(--ink);         /* hard offset shadows */
+  --sh:5px 5px 0 var(--ink);
+  --sh-s:4px 4px 0 var(--ink);
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --grot:'Space Grotesk','Inter',-apple-system,sans-serif;
+}
+
+/* ==========================================================
+   1. BASE
+   ========================================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:clip;scroll-behavior:smooth}
+body{
+  background:var(--paper);color:var(--ink);
+  font:400 16px/1.6 var(--sans);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+ul,ol{list-style:none}
+[hidden]{display:none!important}
+::selection{background:var(--safety);color:var(--ink)}
+:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
+
+.wrap{width:min(100% - 40px,1368px);margin-inline:auto}
+.sec{border-top:var(--bw) solid var(--ink);padding:clamp(44px,6vw,84px) 0 clamp(52px,7vw,96px);scroll-margin-top:96px}
+
+/* film-strata motif: bundle of parallel hairlines = film cross-section */
+.strata{
+  height:18px;min-width:48px;flex:1;max-width:180px;
+  background:repeating-linear-gradient(180deg,var(--ink) 0 2px,transparent 2px 8px);
+}
+.strata-light{background:repeating-linear-gradient(180deg,var(--paper) 0 2px,transparent 2px 8px)}
+
+/* batch-code chip */
+.chip{
+  display:inline-block;font:700 12px/1 var(--grot);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink);background:var(--paper);border:2px solid var(--ink);padding:5px 9px;
+}
+.chip-plate{background:var(--copper-deep);color:var(--paper);border-color:var(--ink)}
+.chip-safety{background:var(--safety)}
+.chip-ink{background:var(--ink);color:var(--paper)}
+
+/* brutal buttons */
+.btn{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;
+  font:700 15px/1.2 var(--grot);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;background:var(--paper);
+  border:var(--bw) solid var(--ink);box-shadow:var(--sh-s);padding:15px 18px;
+  transition:transform .1s linear,box-shadow .1s linear,background-color .1s linear;
+}
+.btn .arr{font-family:var(--grot);font-weight:700}
+.btn:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.btn-primary{background:var(--copper);font-size:19px;box-shadow:var(--sh)}
+.btn-primary:hover{background:var(--safety)}
+
+.skip{
+  position:absolute;left:-9999px;top:0;z-index:200;
+  background:var(--ink);color:var(--paper);font:700 14px var(--grot);
+  padding:12px 18px;border:var(--bw) solid var(--paper);
+}
+.skip:focus{left:12px;top:12px}
+
+/* ==========================================================
+   2. NAVIGATION — welded to the top, 3px rule
+   ========================================================== */
+.nav{
+  position:sticky;top:0;z-index:100;background:var(--paper);
+  border-bottom:var(--bw) solid var(--ink);
+}
+.nav-in{display:flex;align-items:center;gap:20px;min-height:70px}
+.brand{display:flex;align-items:baseline;gap:12px;text-decoration:none;margin-right:auto}
+.brand-mark{font:400 30px/1 var(--serif);letter-spacing:.01em}
+.brand-sub{font:500 11px/1.3 var(--grot);letter-spacing:.16em;text-transform:uppercase;color:var(--grey);max-width:150px}
+.nav-links{display:none;align-items:center;gap:2px}
+.nav-link{
+  font:500 13px/1 var(--grot);letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;padding:12px 13px;border:2px solid transparent;
+  transition:background-color .1s linear,border-color .1s linear;
+}
+.nav-link:hover{background:var(--safety);border-color:var(--ink)}
+.nav-cta{
+  display:none;font:700 13px/1 var(--grot);letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink);background:var(--copper);
+  border:var(--bw) solid var(--ink);box-shadow:var(--sh-s);padding:13px 18px;
+  transition:transform .1s linear,box-shadow .1s linear,background-color .1s linear;
+}
+.nav-cta:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink);background:var(--safety)}
+.nav-toggle{
+  display:grid;place-items:center;gap:4px;width:48px;height:48px;
+  border:var(--bw) solid var(--ink);background:var(--paper);box-shadow:var(--sh-s);
+  transition:transform .1s linear,box-shadow .1s linear;
+}
+.nav-toggle:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.nav-toggle .bar{display:block;width:20px;height:3px;background:var(--ink)}
+.nav-toggle .bar-mid{width:14px;background:var(--copper)}
+.nav-panel{display:none;border-top:var(--bw) solid var(--ink)}
+.nav.open .nav-panel{display:block}
+.nav-panel a{
+  display:flex;justify-content:space-between;align-items:center;
+  font:700 16px/1 var(--grot);letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;padding:17px 4px;border-bottom:2px solid var(--ink);
+}
+.nav-panel a .ix{font:500 12px var(--grot);color:var(--grey);letter-spacing:.14em}
+.nav-panel a:hover{background:var(--safety)}
+.nav-panel .btn{margin-top:16px}
+.nav.open .nav-toggle .bar-mid{background:var(--ink)}
+
+/* ==========================================================
+   3. HERO — asymmetric plate collage, blocks bite into each other
+   ========================================================== */
+.hero{padding:clamp(26px,5vw,60px) 0 clamp(48px,6vw,88px)}
+.hero-grid{display:grid;gap:16px}
+.hb{
+  border:var(--bw) solid var(--ink);background:var(--paper);
+  box-shadow:var(--sh);padding:22px;min-width:0;
+}
+.hb-title{padding:22px 22px 26px}
+.hb-top{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.hero-title{
+  font:400 clamp(48px,12.8vw,88px)/0.94 var(--serif);
+  letter-spacing:-.01em;text-transform:uppercase;
+}
+.hero-title span{display:block}
+.tbar{width:76px;height:6px;background:var(--copper);margin:20px 0 18px}
+.hero-stamp{
+  display:inline-block;font:700 clamp(16px,2.4vw,30px)/1 var(--grot);
+  letter-spacing:.18em;text-transform:uppercase;
+  background:var(--ink);color:var(--paper);padding:10px 16px;
+}
+.hb-date{background:var(--safety)}
+.hb-date p, .hb-loc p{
+  font:700 clamp(21px,2.4vw,30px)/1.15 var(--grot);
+  letter-spacing:.04em;text-transform:uppercase;
+}
+.hb-date .hb-cap, .hb-loc .hb-cap{
+  font:500 12px/1 var(--grot);letter-spacing:.18em;color:var(--ink);
+  border-bottom:2px solid var(--ink);display:inline-block;padding-bottom:6px;margin-bottom:12px;
+  text-transform:uppercase;
+}
+.hb-tag{background:var(--ink);border-color:var(--ink);padding:10px;display:flex}
+.tag-cells{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:2px;background:var(--paper30)}
+.tag-cell{
+  background:var(--ink);color:var(--paper);padding:16px 12px;
+  display:flex;align-items:center;
+  font:700 clamp(12px,1.4vw,15px)/1.2 var(--grot);letter-spacing:.14em;text-transform:uppercase;
+}
+.hb-cta{display:grid;gap:14px;align-content:start}
+
+/* ==========================================================
+   4. SECTION HEADERS — the machine barrel: code + strata + fraction
+   ========================================================== */
+.shead{padding-top:clamp(30px,4vw,48px);margin-bottom:clamp(24px,3.4vw,44px)}
+.shead-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.shead-frac{font:500 12px/1 var(--grot);letter-spacing:.18em;color:var(--grey);white-space:nowrap}
+.shead h2{font:400 clamp(34px,4.6vw,58px)/1.05 var(--serif);letter-spacing:-.005em}
+
+/* ==========================================================
+   5. ABOUT — split editorial plate
+   ========================================================== */
+.about-grid{display:grid;gap:26px}
+.about-copy{border-top:var(--bw) solid var(--ink);padding-top:22px}
+.about-copy p{font-size:17px;line-height:1.75;max-width:70ch}
+.about-copy p + p{margin-top:22px}
+.about-copy .lede{font-size:19px}
+.hl{font-style:normal;box-shadow:inset 0 -3px 0 var(--copper)}
+
+/* ==========================================================
+   6. THEMES — machined index table (spec sheet, not a card wall)
+   ========================================================== */
+.ix{border:var(--bw) solid var(--ink);background:var(--paper)}
+.ix-head{
+  display:none;grid-template-columns:88px 1.05fr 1fr;gap:18px;
+  background:var(--ink);color:var(--paper);
+  font:700 12px/1 var(--grot);letter-spacing:.18em;text-transform:uppercase;
+  padding:13px 20px;
+}
+.ix-row{
+  display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:baseline;
+  padding:20px;border-bottom:2px solid var(--ink);
+}
+.ix-row:last-child{border-bottom:none}
+.ix-no{font:700 30px/1 var(--grot);color:var(--copper-deep);grid-row:span 2}
+.ix-t{font:400 clamp(26px,3vw,32px)/1.1 var(--serif)}
+.ix-d{grid-column:2;font-size:15px;line-height:1.6;color:var(--grey);max-width:52ch}
+.ix-foot{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:10px 20px;border-top:var(--bw) solid var(--ink);
+  font:500 12px/1 var(--grot);letter-spacing:.16em;text-transform:uppercase;color:var(--grey);
+}
+
+/* ==========================================================
+   7. SPEAKERS — monogram plates, fixed aspect-ratio (no CLS)
+   ========================================================== */
+.sp-grid{display:grid;gap:22px}
+.sp-card{border:var(--bw) solid var(--ink);background:var(--paper);box-shadow:var(--sh);display:flex;flex-direction:column}
+.mono{
+  position:relative;aspect-ratio:1/1;background:var(--ink);
+  display:grid;place-items:center;border-bottom:var(--bw) solid var(--ink);
+  transition:background-color .12s linear;
+}
+.sp-card:hover .mono{background:var(--copper)}
+.mono b{font:400 clamp(64px,7vw,96px)/1 var(--serif);color:var(--paper)}
+.mono-tag{position:absolute;top:12px;left:12px}
+.mono-ix{position:absolute;bottom:12px;right:12px;font:700 12px/1 var(--grot);letter-spacing:.14em;color:var(--paper)}
+.sp-body{padding:18px 18px 22px;display:flex;flex-direction:column;gap:10px;flex:1}
+.sp-name{font:400 25px/1.15 var(--serif)}
+.sp-aff{font:500 12px/1.5 var(--grot);letter-spacing:.12em;text-transform:uppercase;color:var(--grey)}
+.sp-talk{
+  font:italic 400 17.5px/1.45 var(--serif);color:var(--copper-deep);
+  border-top:2px solid var(--ink);padding-top:12px;margin-top:auto;
+}
+
+/* ==========================================================
+   8. PROGRAM — tab plates + ruled session table
+   ========================================================== */
+.tabs{
+  display:grid;grid-template-columns:repeat(3,1fr);max-width:560px;
+  border:var(--bw) solid var(--ink);box-shadow:var(--sh-s);margin-bottom:26px;background:var(--paper);
+}
+.tab{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:13px 8px;border-right:var(--bw) solid var(--ink);
+  font:700 15px/1 var(--grot);letter-spacing:.08em;text-transform:uppercase;background:var(--paper);
+  transition:background-color .1s linear,color .1s linear;
+}
+.tab:last-child{border-right:none}
+.tab .tab-date{font:500 12px/1 var(--grot);letter-spacing:.12em;color:var(--grey)}
+.tab:hover{background:var(--safety)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.tab[aria-selected="true"] .tab-date{color:var(--paper75)}
+.ptable{border:var(--bw) solid var(--ink);background:var(--paper)}
+.p-head{display:none}
+.p-row{padding:16px;border-bottom:2px solid var(--ink)}
+.p-row:last-child{border-bottom:none}
+.p-row.is-key{background:rgba(232,163,23,.16)}
+.p-time{
+  display:inline-block;font:700 12px/1 var(--grot);letter-spacing:.1em;
+  background:var(--ink);color:var(--paper);padding:6px 9px;margin-bottom:10px;
+}
+.p-row.is-key .p-time{background:var(--copper-deep)}
+.p-sess{display:block;font:400 19px/1.3 var(--serif)}
+.p-speak,.p-room{display:inline-block;font:500 12px/1.6 var(--grot);letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-top:6px}
+.p-room::before{content:'·';margin:0 8px;color:var(--ink)}
+
+/* ==========================================================
+   9. IMPORTANT DATES — stations on the process rail
+   ========================================================== */
+.dst{display:grid}
+.d-item{position:relative;border-top:var(--bw) solid var(--ink);padding:20px 0 22px 30px}
+.d-node{
+  position:absolute;top:-10px;left:0;width:17px;height:17px;
+  background:var(--safety);border:var(--bw) solid var(--ink);
+}
+.d-item:last-child .d-node{background:var(--copper)}
+.d-code{font:500 12px/1 var(--grot);letter-spacing:.18em;color:var(--grey)}
+.d-label{font:400 25px/1.15 var(--serif);margin:8px 0 10px}
+.d-date{font:700 15px/1.3 var(--grot);letter-spacing:.1em;text-transform:uppercase;color:var(--copper-deep)}
+
+/* ==========================================================
+   10. VENUE — info plate + abstract map plate
+   ========================================================== */
+.venue-grid{display:grid;gap:26px}
+.plate{border:var(--bw) solid var(--ink);background:var(--paper);box-shadow:var(--sh)}
+.plate-pad{padding:22px}
+.v-name{font:400 clamp(27px,3vw,34px)/1.15 var(--serif);margin:14px 0 8px}
+.v-tbc{font:500 12px/1.5 var(--grot);letter-spacing:.12em;text-transform:uppercase;color:var(--copper-deep);margin-bottom:12px}
+.v-addr{font-size:15px;color:var(--grey);margin-bottom:18px}
+.tr{
+  display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
+  border-top:2px solid var(--ink);padding:13px 0;
+}
+.tr .chip{white-space:nowrap}
+.tr p{font-size:15px;line-height:1.55}
+.v-hotels{border-top:var(--bw) solid var(--ink);padding-top:14px;font-size:15px;color:var(--grey)}
+.map-plate{position:relative}
+.map-plate svg{width:100%;height:auto}
+.map-tag{
+  position:absolute;left:14px;bottom:14px;
+  font:700 12px/1 var(--grot);letter-spacing:.14em;text-transform:uppercase;
+  background:var(--paper);border:2px solid var(--ink);padding:7px 10px;
+}
+.map-ix{position:absolute;top:14px;right:14px}
+
+/* ==========================================================
+   11. REGISTRATION — four rate plates
+   ========================================================== */
+.reg-note{font:500 12px/1.6 var(--grot);letter-spacing:.12em;text-transform:uppercase;color:var(--grey);margin-bottom:20px}
+.reg-grid{display:grid;gap:20px}
+.reg-card{border:var(--bw) solid var(--ink);background:var(--paper);box-shadow:var(--sh);padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.reg-type{font:400 26px/1.1 var(--serif)}
+.reg-price{font:400 clamp(42px,4.4vw,54px)/1 var(--serif);letter-spacing:-.01em}
+.reg-desc{font-size:14px;line-height:1.6;color:var(--grey);flex:1}
+.reg-status{align-self:flex-start}
+.reg-card.is-inv{
+  background:var(--ink);color:var(--paper);
+}
+.reg-card.is-inv .reg-desc{color:var(--paper75)}
+.reg-card.is-inv .reg-status{background:var(--paper);color:var(--ink)}
+.reg-cta{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-top:28px}
+.reg-cta .btn{min-width:min(100%,320px)}
+.reg-cta-note{font-size:13px;color:var(--grey);max-width:34ch}
+
+/* ==========================================================
+   12. SPONSORS — typographic wordmark roster
+   ========================================================== */
+.sp-tier-row{display:grid;border-bottom:2px solid var(--ink);padding:18px 0}
+.sp-tier-row:first-of-type{border-top:var(--bw) solid var(--ink)}
+.sp-tier{margin-bottom:14px}
+.sp-cells{display:grid;gap:14px}
+.sp-cell{
+  border:2px solid var(--ink);background:var(--paper);padding:24px 16px;text-align:center;
+  font:700 clamp(19px,2.2vw,24px)/1.2 var(--grot);letter-spacing:.02em;text-transform:uppercase;
+  transition:background-color .1s linear;
+}
+.sp-cell:hover{background:var(--safety)}
+.sp-cell.is-platinum{font-size:clamp(24px,3vw,32px);box-shadow:var(--sh-s)}
+.sp-cell.is-platinum em{font-style:normal;color:var(--copper-deep)}
+.sp-cell.is-academic{font:italic 400 20px/1.3 var(--serif);text-transform:none}
+.sp-tier-label{font:700 12px/1 var(--grot);letter-spacing:.18em;text-transform:uppercase}
+.sp-tier-note{font:500 12px/1 var(--grot);letter-spacing:.1em;color:var(--grey);margin-left:10px;text-transform:uppercase}
+
+/* ==========================================================
+   13. FOOTER — the die block, ink plate
+   ========================================================== */
+.foot{background:var(--ink);color:var(--paper);border-top:var(--bw) solid var(--ink)}
+.foot-strata{height:14px;background:repeating-linear-gradient(180deg,var(--paper) 0 2px,transparent 2px 9px);opacity:.9}
+.foot-grid{display:grid;gap:30px;padding:clamp(36px,5vw,60px) 0 30px}
+.foot-brand .fb-mark{font:400 44px/1 var(--serif)}
+.foot-brand p{margin-top:10px;font-size:15px}
+.foot-brand .fb-line{font:500 13px/1.6 var(--grot);letter-spacing:.1em;text-transform:uppercase;color:var(--paper75)}
+.foot-h{font:700 12px/1 var(--grot);letter-spacing:.2em;text-transform:uppercase;color:var(--paper75);margin-bottom:14px}
+.foot-contact p{font-size:15px;line-height:1.7}
+.foot-contact a{color:var(--paper);text-decoration-color:var(--copper);text-decoration-thickness:2px;text-underline-offset:3px;overflow-wrap:anywhere}
+.foot-contact a:hover{background:var(--safety);color:var(--ink)}
+.foot-nav{display:flex;flex-wrap:wrap;gap:10px}
+.foot-nav a{
+  font:500 13px/1 var(--grot);letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+  border:2px solid var(--paper30);padding:10px 13px;
+  transition:background-color .1s linear,color .1s linear,border-color .1s linear;
+}
+.foot-nav a:hover{background:var(--safety);color:var(--ink);border-color:var(--ink)}
+.foot-bottom{
+  display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;
+  border-top:1px solid var(--paper30);padding:18px 0 26px;
+  font:500 12px/1.5 var(--grot);letter-spacing:.12em;text-transform:uppercase;color:var(--paper75);
+}
+
+/* ==========================================================
+   14. BREAKPOINTS
+   ========================================================== */
+@media (min-width:640px){
+  .tag-cells{grid-template-columns:repeat(4,1fr)}
+  .sp-grid{grid-template-columns:repeat(2,1fr)}
+  .reg-grid{grid-template-columns:repeat(2,1fr)}
+  .sp-cells{grid-template-columns:repeat(2,1fr)}
+  .sp-cells .sp-cell.is-platinum{grid-column:1/-1}
+}
+
+@media (min-width:768px){
+  .hero-grid{grid-template-columns:1fr 1fr}
+  .hb-title{grid-column:1/-1}
+  .hb-tag,.hb-cta{grid-column:1/-1}
+  .hb-cta{grid-template-columns:1fr 1fr}
+  /* themes: true 3-column index table */
+  .ix-head{display:grid}
+  .ix-row{grid-template-columns:88px 1.05fr 1fr;gap:18px;align-items:start;padding:22px 20px}
+  .ix-no{grid-row:auto}
+  .ix-d{grid-column:auto}
+  /* program: ruled table */
+  .p-head{
+    display:grid;grid-template-columns:120px 1fr 150px 120px;gap:16px;
+    background:var(--ink);color:var(--paper);padding:12px 16px;
+    font:700 12px/1 var(--grot);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .p-row{
+    display:grid;grid-template-columns:120px 1fr 150px 120px;gap:16px;align-items:baseline;
+    padding:15px 16px;
+  }
+  .p-time{margin-bottom:0;justify-self:start}
+  .p-sess{font-size:19px}
+  .p-speak,.p-room{margin-top:0}
+  .p-room::before{content:none}
+  /* dates: stations on one rail */
+  .dst{grid-template-columns:repeat(4,1fr);gap:22px}
+  .d-item{padding:20px 0 6px}
+  /* sponsors: tier label column */
+  .sp-tier-row{grid-template-columns:190px 1fr;gap:20px;align-items:start}
+  .sp-tier{margin-bottom:0}
+}
+
+@media (min-width:900px){
+  .p-head,.p-row{grid-template-columns:130px 1fr 170px 130px}
+}
+
+@media (min-width:1024px){
+  .nav-toggle{display:none}
+  .nav-links{display:flex}
+  .nav-cta{display:inline-block}
+  .nav-panel{display:none!important}
+  /* hero: 12-column plate collage, blocks interlock */
+  .hero-grid{grid-template-columns:repeat(12,1fr);gap:18px}
+  .hb{padding:26px}
+  .hb-title{grid-column:1/9;grid-row:1/3;padding:30px 34px 34px;display:flex;flex-direction:column}
+  .hero-title{font-size:clamp(88px,9.2vw,140px)}
+  .hb-title .tbar{margin-top:auto}
+  .hb-date{grid-column:9/13;grid-row:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}
+  .hb-loc{grid-column:9/13;grid-row:2;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}
+  .hb-tag{grid-column:1/9;grid-row:3}
+  .hb-cta{grid-column:9/13;grid-row:3;grid-template-columns:1fr;align-content:stretch}
+  .hb-cta .btn{flex:1}
+  /* about split */
+  .about-grid{grid-template-columns:4fr 8fr;gap:40px}
+  .about-copy{border-top:none;border-left:var(--bw) solid var(--ink);padding:6px 0 6px 34px}
+  /* speakers 4-up */
+  .sp-grid{grid-template-columns:repeat(4,1fr)}
+  /* venue split */
+  .venue-grid{grid-template-columns:7fr 5fr;align-items:stretch}
+  /* registration 4-up */
+  .reg-grid{grid-template-columns:repeat(4,1fr)}
+}
+
+@media (min-width:1440px){
+  body{font-size:17px}
+  .hero{padding-top:56px}
+}
+
+/* reduced motion: keep it raw and still */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ================= NAVIGATION ================= -->
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="PPS 2026 — back to top">
+      <span class="brand-mark">PPS·26</span>
+      <span class="brand-sub">Polymer Processing Symposium</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="nav-link" href="#symposium">Symposium</a>
+      <a class="nav-link" href="#themes">Themes</a>
+      <a class="nav-link" href="#speakers">Speakers</a>
+      <a class="nav-link" href="#program">Program</a>
+      <a class="nav-link" href="#venue">Venue</a>
+    </nav>
+    <a class="nav-cta" href="#register">Register</a>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navPanel" aria-label="Toggle menu">
+      <span class="bar"></span><span class="bar bar-mid"></span><span class="bar"></span>
+    </button>
+  </div>
+  <div class="nav-panel" id="navPanel">
+    <nav class="wrap" aria-label="Mobile">
+      <a href="#symposium">Symposium <span class="ix">PPS26—01</span></a>
+      <a href="#themes">Themes <span class="ix">PPS26—02</span></a>
+      <a href="#speakers">Speakers <span class="ix">PPS26—03</span></a>
+      <a href="#program">Program <span class="ix">PPS26—04</span></a>
+      <a href="#venue">Venue <span class="ix">PPS26—06</span></a>
+      <a class="btn btn-primary" href="#register"><span>Register Now</span><span class="arr" aria-hidden="true">→</span></a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div id="top"></div>
+
+<!-- ================= HERO — plate collage ================= -->
+<section class="hero" aria-label="PPS 2026 — Polymer Processing Symposium">
+  <div class="wrap hero-grid">
+    <div class="hb hb-title">
+      <div class="hb-top">
+        <span class="chip">PPS26—00</span>
+        <span class="strata" aria-hidden="true"></span>
+      </div>
+      <h1 class="hero-title"><span>Polymer</span><span>Processing</span></h1>
+      <div class="tbar" aria-hidden="true"></div>
+      <p class="hero-stamp">Symposium 2026</p>
+    </div>
+
+    <div class="hb hb-date">
+      <p class="hb-cap">Dates</p>
+      <p>15—17 October 2026</p>
+    </div>
+
+    <div class="hb hb-loc">
+      <p class="hb-cap">Location</p>
+      <p>Hefei · China</p>
+    </div>
+
+    <div class="hb hb-tag" role="presentation">
+      <div class="tag-cells">
+        <span class="tag-cell">Materials</span>
+        <span class="tag-cell">Processing</span>
+        <span class="tag-cell">Manufacturing</span>
+        <span class="tag-cell">Intelligence</span>
+      </div>
+    </div>
+
+    <div class="hb hb-cta">
+      <a class="btn btn-primary" href="#register"><span>Register Now</span><span class="arr" aria-hidden="true">→</span></a>
+      <a class="btn" href="#program"><span>View Program</span><span class="arr" aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section class="sec" id="symposium">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—01</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">01 / 08</span>
+      </div>
+      <h2>About the Symposium</h2>
+    </header>
+    <div class="about-grid">
+      <div>
+        <span class="chip">Materials · Processing · Manufacturing · Intelligence</span>
+      </div>
+      <div class="about-copy">
+        <p class="lede">PPS 2026 is an international symposium dedicated to polymer processing — the science and engineering that turns polymer materials into real products. Over three days, researchers and engineers from academia and industry will gather in Hefei to exchange the latest advances across extrusion, molding, rheology, additive manufacturing and process simulation.</p>
+        <p>Polymer processing is entering a new era: materials, process engineering, computation and intelligent manufacturing are converging. PPS 2026 provides a forum for this convergence — <em class="hl">where rheologists meet data scientists</em>, where simulation meets the production line, and where fundamental insight becomes industrial practice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESEARCH THEMES — machined index ================= -->
+<section class="sec" id="themes">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—02</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">02 / 08</span>
+      </div>
+      <h2>Research Themes</h2>
+    </header>
+
+    <div class="ix">
+      <div class="ix-head" aria-hidden="true">
+        <span>No.</span><span>Research Theme</span><span>Scope</span>
+      </div>
+
+      <div class="ix-row">
+        <span class="ix-no">01</span>
+        <h3 class="ix-t">Extrusion</h3>
+        <p class="ix-d">Single- and twin-screw extrusion, reactive processing, compounding</p>
+      </div>
+      <div class="ix-row">
+        <span class="ix-no">02</span>
+        <h3 class="ix-t">Injection Molding</h3>
+        <p class="ix-d">Precision molding, micro-injection, process control</p>
+      </div>
+      <div class="ix-row">
+        <span class="ix-no">03</span>
+        <h3 class="ix-t">Film Processing</h3>
+        <p class="ix-d">Blown and cast film, flexible packaging, multilayer structures</p>
+      </div>
+      <div class="ix-row">
+        <span class="ix-no">04</span>
+        <h3 class="ix-t">Fiber Spinning</h3>
+        <p class="ix-d">Melt spinning, nanofibers, structure formation in fibers</p>
+      </div>
+      <div class="ix-row">
+        <span class="ix-no">05</span>
+        <h3 class="ix-t">Polymer Rheology</h3>
+        <p class="ix-d">Extensional rheology, viscoelasticity, flow characterization</p>
+      </div>
+      <div class="ix-row">
+        <span class="ix-no">06</span>
+        <h3 class="ix-t">Additive Manufacturing</h3>
+        <p class="ix-d">3D printing polymers, sintering, printed functional devices</p>
+      </div>
+      <div class="ix-row">
+        <span class="ix-no">07</span>
+        <h3 class="ix-t">Process Simulation</h3>
+        <p class="ix-d">Finite element flow modeling, numerical process design</p>
+      </div>
+      <div class="ix-row">
+        <span class="ix-no">08</span>
+        <h3 class="ix-t">AI &amp; Digital Twins</h3>
+        <p class="ix-d">Machine learning for processing, virtual process lines</p>
+      </div>
+
+      <div class="ix-foot" aria-hidden="true">
+        <span>Index of tracks</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span>PPS26—T01…T08</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KEYNOTE SPEAKERS ================= -->
+<!-- PLACEHOLDER: monogram plates stand in for portraits (none exist). Fixed aspect-ratio prevents CLS. -->
+<section class="sec" id="speakers">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—03</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">03 / 08</span>
+      </div>
+      <h2>Keynote Speakers</h2>
+    </header>
+
+    <div class="sp-grid">
+      <article class="sp-card">
+        <div class="mono" aria-hidden="true">
+          <span class="chip chip-safety mono-tag">Keynote</span>
+          <b>EM</b>
+          <span class="mono-ix">K—01</span>
+        </div>
+        <div class="sp-body">
+          <h3 class="sp-name">Prof. Elena Marchetti</h3>
+          <p class="sp-aff">Politecnico di Torino · Italy</p>
+          <p class="sp-talk">“Reactive Extrusion: Where Materials Chemistry Meets Process Engineering”</p>
+        </div>
+      </article>
+
+      <article class="sp-card">
+        <div class="mono" aria-hidden="true">
+          <span class="chip chip-safety mono-tag">Keynote</span>
+          <b>HT</b>
+          <span class="mono-ix">K—02</span>
+        </div>
+        <div class="sp-body">
+          <h3 class="sp-name">Prof. Hiroshi Tanaka</h3>
+          <p class="sp-aff">Tokyo Institute of Technology · Japan</p>
+          <p class="sp-talk">“Precision Injection Molding for Micro-Optical Components”</p>
+        </div>
+      </article>
+
+      <article class="sp-card">
+        <div class="mono" aria-hidden="true">
+          <span class="chip chip-safety mono-tag">Keynote</span>
+          <b>SC</b>
+          <span class="mono-ix">K—03</span>
+        </div>
+        <div class="sp-body">
+          <h3 class="sp-name">Prof. Sarah Chen</h3>
+          <p class="sp-aff">Massachusetts Institute of Technology · USA</p>
+          <p class="sp-talk">“Machine Learning Models for Polymer Process Simulation”</p>
+        </div>
+      </article>
+
+      <article class="sp-card">
+        <div class="mono" aria-hidden="true">
+          <span class="chip chip-safety mono-tag">Keynote</span>
+          <b>LJ</b>
+          <span class="mono-ix">K—04</span>
+        </div>
+        <div class="sp-body">
+          <h3 class="sp-name">Prof. Lars Johansson</h3>
+          <p class="sp-aff">KTH Royal Institute of Technology · Sweden</p>
+          <p class="sp-talk">“Fiber Spinning at the Nanoscale: Structure Control in Processing”</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROGRAM ================= -->
+<section class="sec" id="program">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—04</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">04 / 08</span>
+      </div>
+      <h2>Program</h2>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Program days">
+      <button class="tab" role="tab" id="tab-d1" aria-controls="panel-d1" aria-selected="true">
+        <span>Day 1</span><span class="tab-date">15 Oct</span>
+      </button>
+      <button class="tab" role="tab" id="tab-d2" aria-controls="panel-d2" aria-selected="false" tabindex="-1">
+        <span>Day 2</span><span class="tab-date">16 Oct</span>
+      </button>
+      <button class="tab" role="tab" id="tab-d3" aria-controls="panel-d3" aria-selected="false" tabindex="-1">
+        <span>Day 3</span><span class="tab-date">17 Oct</span>
+      </button>
+    </div>
+
+    <div class="ptable" role="tabpanel" id="panel-d1" aria-labelledby="tab-d1">
+      <div class="p-head" aria-hidden="true"><span>Time</span><span>Session</span><span>Speaker</span><span>Room</span></div>
+      <div class="p-row"><span class="p-time">08:30–09:00</span><span class="p-sess">Opening Ceremony</span><span class="p-speak">—</span><span class="p-room">Main Hall</span></div>
+      <div class="p-row is-key"><span class="p-time">09:00–10:00</span><span class="p-sess">Keynote: Reactive Extrusion</span><span class="p-speak">E. Marchetti</span><span class="p-room">Main Hall</span></div>
+      <div class="p-row"><span class="p-time">10:30–12:00</span><span class="p-sess">Session A: Advances in Extrusion</span><span class="p-speak">—</span><span class="p-room">Hall A</span></div>
+      <div class="p-row"><span class="p-time">13:30–15:00</span><span class="p-sess">Session B: Rheology &amp; Characterization</span><span class="p-speak">—</span><span class="p-room">Hall A</span></div>
+      <div class="p-row"><span class="p-time">15:30–17:00</span><span class="p-sess">Session C: Polymer Processing Simulation</span><span class="p-speak">—</span><span class="p-room">Hall B</span></div>
+      <div class="p-row"><span class="p-time">17:30–18:30</span><span class="p-sess">Welcome Reception</span><span class="p-speak">—</span><span class="p-room">Lobby</span></div>
+    </div>
+
+    <div class="ptable" role="tabpanel" id="panel-d2" aria-labelledby="tab-d2" hidden>
+      <div class="p-head" aria-hidden="true"><span>Time</span><span>Session</span><span>Speaker</span><span>Room</span></div>
+      <div class="p-row is-key"><span class="p-time">09:00–10:00</span><span class="p-sess">Keynote: Machine Learning for Process Simulation</span><span class="p-speak">S. Chen</span><span class="p-room">Main Hall</span></div>
+      <div class="p-row"><span class="p-time">10:30–12:00</span><span class="p-sess">Session D: Injection Molding</span><span class="p-speak">—</span><span class="p-room">Hall A</span></div>
+      <div class="p-row"><span class="p-time">13:30–15:00</span><span class="p-sess">Session E: Film Processing &amp; Flexible Packaging</span><span class="p-speak">—</span><span class="p-room">Hall B</span></div>
+      <div class="p-row"><span class="p-time">15:30–17:00</span><span class="p-sess">Session F: Additive Manufacturing</span><span class="p-speak">—</span><span class="p-room">Hall A</span></div>
+      <div class="p-row"><span class="p-time">17:00–18:00</span><span class="p-sess">Poster Session I</span><span class="p-speak">—</span><span class="p-room">Exhibition Area</span></div>
+    </div>
+
+    <div class="ptable" role="tabpanel" id="panel-d3" aria-labelledby="tab-d3" hidden>
+      <div class="p-head" aria-hidden="true"><span>Time</span><span>Session</span><span>Speaker</span><span>Room</span></div>
+      <div class="p-row is-key"><span class="p-time">09:00–10:00</span><span class="p-sess">Keynote: Fiber Spinning at the Nanoscale</span><span class="p-speak">L. Johansson</span><span class="p-room">Main Hall</span></div>
+      <div class="p-row"><span class="p-time">10:30–12:00</span><span class="p-sess">Session G: AI &amp; Digital Twins</span><span class="p-speak">—</span><span class="p-room">Hall B</span></div>
+      <div class="p-row"><span class="p-time">13:30–15:00</span><span class="p-sess">Session H: Fiber Spinning &amp; Textile Materials</span><span class="p-speak">—</span><span class="p-room">Hall A</span></div>
+      <div class="p-row"><span class="p-time">15:30–16:30</span><span class="p-sess">Closing Remarks &amp; Awards</span><span class="p-speak">—</span><span class="p-room">Main Hall</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= IMPORTANT DATES — stations on the rail ================= -->
+<section class="sec" id="dates">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—05</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">05 / 08</span>
+      </div>
+      <h2>Important Dates</h2>
+    </header>
+
+    <ol class="dst">
+      <li class="d-item">
+        <span class="d-node" aria-hidden="true"></span>
+        <span class="d-code">DA—01</span>
+        <h3 class="d-label">Call for Abstracts</h3>
+        <p class="d-date">01 May 2026</p>
+      </li>
+      <li class="d-item">
+        <span class="d-node" aria-hidden="true"></span>
+        <span class="d-code">DA—02</span>
+        <h3 class="d-label">Early Registration Deadline</h3>
+        <p class="d-date">01 Aug 2026</p>
+      </li>
+      <li class="d-item">
+        <span class="d-node" aria-hidden="true"></span>
+        <span class="d-code">DA—03</span>
+        <h3 class="d-label">Regular Registration Deadline</h3>
+        <p class="d-date">01 Sep 2026</p>
+      </li>
+      <li class="d-item">
+        <span class="d-node" aria-hidden="true"></span>
+        <span class="d-code">DA—04</span>
+        <h3 class="d-label">Symposium</h3>
+        <p class="d-date">15—17 Oct 2026</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= VENUE ================= -->
+<!-- PLACEHOLDER: map is an abstract SVG plate, honestly labeled. Venue name is sample data (to be confirmed). -->
+<section class="sec" id="venue">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—06</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">06 / 08</span>
+      </div>
+      <h2>Venue</h2>
+    </header>
+
+    <div class="venue-grid">
+      <div class="plate plate-pad">
+        <span class="chip chip-ink">V—01 · Main Venue</span>
+        <h3 class="v-name">Hefei Binhu International Convention &amp; Exhibition Centre</h3>
+        <p class="v-tbc">Sample venue — details to be confirmed</p>
+        <p class="v-addr">Binhu International Convention &amp; Exhibition Centre, Hefei, Anhui Province, China</p>
+
+        <div class="tr">
+          <span class="chip">TR—01</span>
+          <p>Hefei Xinqiao International Airport — approx. 40 min by car</p>
+        </div>
+        <div class="tr">
+          <span class="chip">TR—02</span>
+          <p>Hefei South Railway Station (High-Speed) — approx. 25 min by car</p>
+        </div>
+        <div class="tr">
+          <span class="chip">TR—03</span>
+          <p>Metro Line 1 — Binhu Convention Centre Station</p>
+        </div>
+
+        <p class="v-hotels">Hotels: Partner hotel list to be announced.</p>
+      </div>
+
+      <div class="plate map-plate">
+        <svg viewBox="0 0 400 300" role="img" aria-label="Abstract placeholder map of the venue surroundings with route markers for airport, railway and metro">
+          <rect width="400" height="300" fill="#F7F6F2"/>
+          <g stroke="#111111" stroke-opacity=".12" stroke-width="1">
+            <path d="M0 62H400M0 132H400M0 208H400M72 0V300M164 0V300M262 0V300M342 0V300"/>
+          </g>
+          <g fill="none" stroke="#111111" stroke-opacity=".35" stroke-width="2">
+            <rect x="84" y="74" width="62" height="44"/>
+            <rect x="180" y="144" width="66" height="50"/>
+            <rect x="280" y="220" width="48" height="42"/>
+            <rect x="90" y="226" width="54" height="36"/>
+          </g>
+          <g stroke="#111111" stroke-width="2">
+            <line x1="296" y1="34" x2="384" y2="34"/>
+            <line x1="296" y1="42" x2="384" y2="42"/>
+            <line x1="296" y1="50" x2="384" y2="50"/>
+          </g>
+          <polyline points="42,56 42,132 164,132 164,196 250,196 250,170" fill="none" stroke="#B45F3A" stroke-width="6"/>
+          <rect x="33" y="47" width="18" height="18" fill="#E8A317" stroke="#111111" stroke-width="3"/>
+          <rect x="155" y="123" width="18" height="18" fill="#F7F6F2" stroke="#111111" stroke-width="3"/>
+          <rect x="241" y="161" width="20" height="20" fill="#B45F3A" stroke="#111111" stroke-width="3"/>
+          <g font-family="'Space Grotesk','Inter',sans-serif" font-size="12" font-weight="700" fill="#111111" letter-spacing="1">
+            <text x="60" y="52">AIRPORT</text>
+            <text x="182" y="118">METRO</text>
+            <text x="236" y="152">VENUE</text>
+            <text x="60" y="270">RAIL — HEFEI SOUTH</text>
+          </g>
+        </svg>
+        <span class="chip map-ix">V—01</span>
+        <span class="map-tag">Map — to be embedded</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REGISTRATION ================= -->
+<!-- PLACEHOLDER: all prices are sample data from the spec and are labeled as such. -->
+<section class="sec" id="register">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—07</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">07 / 08</span>
+      </div>
+      <h2>Registration</h2>
+    </header>
+
+    <p class="reg-note">Four rates · Prices in CNY</p>
+
+    <div class="reg-grid">
+      <article class="reg-card">
+        <h3 class="reg-type">Student</h3>
+        <p class="reg-price">¥1,600</p>
+        <p class="reg-desc">For undergraduate &amp; graduate students (valid ID required)</p>
+        <span class="chip chip-safety reg-status">Available</span>
+      </article>
+
+      <article class="reg-card">
+        <h3 class="reg-type">Academic</h3>
+        <p class="reg-price">¥2,400</p>
+        <p class="reg-desc">Faculty &amp; research staff of universities and institutes</p>
+        <span class="chip chip-safety reg-status">Available</span>
+      </article>
+
+      <article class="reg-card">
+        <h3 class="reg-type">Industry</h3>
+        <p class="reg-price">¥3,600</p>
+        <p class="reg-desc">Professionals &amp; engineers from industry</p>
+        <span class="chip chip-safety reg-status">Available</span>
+      </article>
+
+      <article class="reg-card is-inv">
+        <h3 class="reg-type">Invited Speaker</h3>
+        <p class="reg-price">¥0</p>
+        <p class="reg-desc">By invitation of the organising committee</p>
+        <span class="chip reg-status">On invitation</span>
+      </article>
+    </div>
+
+    <div class="reg-cta">
+      <!-- PLACEHOLDER: registration flow is out of scope for this comp -->
+      <a class="btn btn-primary" href="#register"><span>Register Now</span><span class="arr" aria-hidden="true">→</span></a>
+      <p class="reg-cta-note">Prices in CNY. Sample data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SPONSORS ================= -->
+<!-- PLACEHOLDER: all sponsor wordmarks are fictional per spec. Typographic wordmarks only — no drawn logos. -->
+<section class="sec" id="sponsors">
+  <div class="wrap">
+    <header class="shead">
+      <div class="shead-top">
+        <span class="chip chip-plate">PPS26—08</span>
+        <span class="strata" aria-hidden="true"></span>
+        <span class="shead-frac">08 / 08</span>
+      </div>
+      <h2>Sponsors</h2>
+    </header>
+
+    <div class="sp-tier-row">
+      <div class="sp-tier"><span class="sp-tier-label">Platinum</span><span class="sp-tier-note">SP—01</span></div>
+      <div class="sp-cells">
+        <div class="sp-cell is-platinum">Poly<em>Nova</em> Materials</div>
+      </div>
+    </div>
+
+    <div class="sp-tier-row">
+      <div class="sp-tier"><span class="sp-tier-label">Gold</span><span class="sp-tier-note">SP—02/03</span></div>
+      <div class="sp-cells">
+        <div class="sp-cell">RheoTech Instruments</div>
+        <div class="sp-cell">FilaForm Systems</div>
+      </div>
+    </div>
+
+    <div class="sp-tier-row">
+      <div class="sp-tier"><span class="sp-tier-label">Silver</span><span class="sp-tier-note">SP—04</span></div>
+      <div class="sp-cells">
+        <div class="sp-cell">MesoScale Labs</div>
+      </div>
+    </div>
+
+    <div class="sp-tier-row">
+      <div class="sp-tier"><span class="sp-tier-label">Academic Partner</span><span class="sp-tier-note">SP—05</span></div>
+      <div class="sp-cells">
+        <div class="sp-cell is-academic">Anhui Polymer Society</div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="foot">
+  <div class="foot-strata" aria-hidden="true"></div>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <p class="fb-mark">PPS·26</p>
+      <p>PPS 2026 — Polymer Processing Symposium</p>
+      <p class="fb-line">15—17 October 2026 · Hefei, China</p>
+    </div>
+    <div class="foot-contact">
+      <p class="foot-h">Contact</p>
+      <p>Secretariat: <a href="mailto:secretariat@pps2026-conf.org">secretariat@pps2026-conf.org</a></p>
+      <p>Host organisation: to be confirmed</p>
+    </div>
+    <nav aria-label="Footer">
+      <p class="foot-h">Index</p>
+      <div class="foot-nav">
+        <a href="#symposium">Symposium</a>
+        <a href="#themes">Themes</a>
+        <a href="#speakers">Speakers</a>
+        <a href="#program">Program</a>
+        <a href="#venue">Venue</a>
+        <a href="#register">Register</a>
+      </div>
+    </nav>
+  </div>
+  <div class="wrap foot-bottom">
+    <span>© 2026 PPS 2026 Organising Committee</span>
+    <span>PPS26—FIN · End of line</span>
+  </div>
+</footer>
+
+<script>
+/* ---------- mobile navigation ---------- */
+(function(){
+  var nav=document.getElementById('nav');
+  var btn=document.getElementById('navToggle');
+  btn.addEventListener('click',function(){
+    var open=nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded',open?'true':'false');
+  });
+  nav.querySelectorAll('.nav-panel a').forEach(function(a){
+    a.addEventListener('click',function(){
+      nav.classList.remove('open');
+      btn.setAttribute('aria-expanded','false');
+    });
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&nav.classList.contains('open')){
+      nav.classList.remove('open');
+      btn.setAttribute('aria-expanded','false');
+      btn.focus();
+    }
+  });
+})();
+
+/* ---------- program day tabs ---------- */
+(function(){
+  var lists=document.querySelectorAll('[role="tablist"]');
+  lists.forEach(function(list){
+    var tabs=Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+    function select(tab,focus){
+      tabs.forEach(function(t){
+        var on=(t===tab);
+        t.setAttribute('aria-selected',on?'true':'false');
+        t.tabIndex=on?0:-1;
+        var p=document.getElementById(t.getAttribute('aria-controls'));
+        if(p)p.hidden=!on;
+      });
+      if(focus)tab.focus();
+    }
+    tabs.forEach(function(t,i){
+      t.addEventListener('click',function(){select(t);});
+      t.addEventListener('keydown',function(e){
+        var n=null;
+        if(e.key==='ArrowRight')n=tabs[(i+1)%tabs.length];
+        if(e.key==='ArrowLeft')n=tabs[(i-1+tabs.length)%tabs.length];
+        if(n){e.preventDefault();select(n,true);}
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
