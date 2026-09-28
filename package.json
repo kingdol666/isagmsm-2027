@@ -19,6 +19,9 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
     "@nuxt/ui": "^4.11.2",
     "drizzle-orm": "^0.45.3",
     "html5-qrcode": "^2.3.8",
@@ -31,7 +34,6 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.17.0",
-    "@nuxt/fonts": "^0.14.0",
     "@nuxt/test-utils": "^4.3.2",
     "@playwright/test": "^1.63.0",
     "@types/pg": "^8.23.1",

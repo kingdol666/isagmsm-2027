@@ -19,3 +19,4 @@ test-results
 design-demos/node_modules
 design-demos/package-lock.json
 design-demos/package.json
+.mimosa/

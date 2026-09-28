@@ -1,10 +1,28 @@
 <script setup lang="ts">
+definePageMeta({ layout: 'site' })
+
+useSeoMeta({
+  title: 'PPS 2026 — Polymer Processing Symposium · Hefei, China',
+  description:
+    'PPS 2026 — International Symposium on Polymer Processing. Materials · Processing · Manufacturing · Intelligence. 15—17 October 2026, Hefei, China. Register now.',
+  ogTitle: 'PPS 2026 — Polymer Processing Symposium',
+  ogDescription:
+    'Materials · Processing · Manufacturing · Intelligence. 15—17 October 2026, Hefei, China.',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+})
 </script>
 
 <template>
-  <main class="wrap" style="padding-block: 120px">
-    <p class="sec-code">PPS26—00</p>
-    <h1 class="sec-title">Polymer Processing Symposium 2026</h1>
-    <p>Homepage sections land in Milestone 2.</p>
+  <main id="main">
+    <HomeHero />
+    <AboutSection />
+    <ThemesSection />
+    <SpeakersSection />
+    <ProgramSection />
+    <DatesSection />
+    <VenueSection />
+    <RegistrationSection />
+    <SponsorsSection />
   </main>
 </template>

@@ -1,7 +1,11 @@
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
 
-  modules: ['@nuxt/ui', '@nuxt/fonts', '@nuxt/eslint'],
+  modules: ['@nuxt/ui', '@nuxt/eslint'],
+
+  components: [
+    { path: '~/components', pathPrefix: false },
+  ],
 
   css: ['~/assets/css/main.css'],
 
@@ -18,14 +22,6 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { swr: 60 },
-  },
-
-  fonts: {
-    families: [
-      { name: 'Instrument Serif', provider: 'google', weights: [400], styles: ['normal', 'italic'] },
-      { name: 'Inter', provider: 'google', weights: [400, 500, 600] },
-      { name: 'IBM Plex Mono', provider: 'google', weights: [400, 500] },
-    ],
   },
 
   app: {

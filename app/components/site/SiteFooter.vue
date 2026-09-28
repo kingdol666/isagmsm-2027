@@ -1,0 +1,132 @@
+<script setup lang="ts">
+import { footerContent, siteMeta, siteNav } from '#shared/content/site'
+</script>
+
+<template>
+  <!-- COLOPHON — closes the page's continuous line. Sits inside the main
+       content column (see layouts/site.vue) so the fixed rail never covers it. -->
+  <footer id="colophon" class="colophon">
+    <div class="wrap">
+      <p class="f-mark">PPS 2026<span>Polymer Processing Symposium</span></p>
+      <div class="f-grid">
+        <div>
+          <p class="f-line">{{ footerContent.line }}</p>
+          <a class="f-mail" :href="`mailto:${siteMeta.email}`">{{ siteMeta.email }}</a>
+          <p class="f-host">{{ footerContent.hostNote }}</p>
+        </div>
+        <nav class="f-nav" aria-label="Footer navigation">
+          <a v-for="item in siteNav" :key="item.code" :href="item.href">{{ item.label }}</a>
+        </nav>
+      </div>
+      <!-- the strata close the line: five layers, the melt strand among them -->
+      <div class="f-strata strata" aria-hidden="true">
+        <span /><span /><span /><span /><span />
+      </div>
+      <p class="f-copy">{{ siteMeta.copyright }}</p>
+    </div>
+  </footer>
+</template>
+
+<style scoped>
+.colophon {
+  background: var(--ink);
+  color: var(--paper);
+  padding-block: clamp(64px, 9vh, 104px) 40px;
+}
+
+.f-mark {
+  font-family: var(--serif);
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
+  line-height: 1;
+  letter-spacing: -.01em;
+}
+
+.f-mark span {
+  display: block;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  margin-top: 16px;
+}
+
+.f-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+  margin-top: clamp(36px, 5vw, 56px);
+  padding-top: clamp(28px, 4vw, 40px);
+  border-top: 1px solid var(--paper-hl);
+}
+
+.f-line {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.f-mail {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: .04em;
+  color: var(--copper-light);
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s ease;
+  overflow-wrap: anywhere;
+}
+
+.f-mail:hover {
+  border-color: var(--copper-light);
+}
+
+.f-host {
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--paper-dim);
+}
+
+.f-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 22px;
+  align-content: start;
+}
+
+.f-nav a {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  padding: 6px 0;
+  transition: color .2s ease;
+}
+
+.f-nav a:hover {
+  color: var(--copper-light);
+}
+
+.f-strata {
+  color: var(--paper);
+  width: min(220px, 50%);
+  margin-top: clamp(40px, 6vw, 64px);
+}
+
+.f-copy {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--paper-dim);
+  margin-top: 18px;
+}
+
+@media (min-width: 768px) {
+  .f-grid {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  }
+}
+</style>
