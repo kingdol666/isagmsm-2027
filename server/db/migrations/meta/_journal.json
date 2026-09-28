@@ -43,6 +43,13 @@
       "when": 1790600975297,
       "tag": "0005_acoustic_living_mummy",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790605735175,
+      "tag": "0006_secret_george_stacy",
+      "breakpoints": true
     }
   ]
 }

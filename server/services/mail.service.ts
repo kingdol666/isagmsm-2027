@@ -1,9 +1,13 @@
-import type { Mailer } from './mail.types'
+import type { AbstractDecisionMail, Mailer } from './mail.types'
 import { createSmtpMailer, smtpConfigFromEnv } from './mail.smtp'
 
 class DevMailer implements Mailer {
   async sendVerificationCode(email: string, code: string, purpose: 'signup' | 'reset') {
     console.warn(`[mail:dev] ${purpose} code for ${email}: ${code} (valid 10 minutes)`)
+  }
+
+  async sendAbstractDecision(mail: AbstractDecisionMail) {
+    console.warn(`[mail:dev] abstract "${mail.title}" ${mail.action} for ${mail.email}: ${mail.comment}`)
   }
 }
 

@@ -1,0 +1,141 @@
+import type { DbExecutor } from '../db'
+import type { AbstractAuthor } from '../db/schema'
+import { abstractEvents, abstracts, users } from '../db/schema'
+import { and, desc, eq, sql } from 'drizzle-orm'
+
+export type { AbstractAuthor }
+
+export interface AbstractRow {
+  id: string
+  userId: string
+  title: string
+  topic: string
+  reportType: string
+  abstractText: string
+  submitterName: string
+  submitterAffiliation: string
+  authors: AbstractAuthor[]
+  status: string
+  version: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AbstractEventRow {
+  id: string
+  abstractId: string
+  kind: string
+  comment: string | null
+  actor: string
+  createdAt: Date
+}
+
+export async function insertAbstract(db: DbExecutor, values: {
+  userId: string
+  title: string
+  topic: string
+  reportType: string
+  abstractText: string
+  submitterName: string
+  submitterAffiliation: string
+  authors: AbstractAuthor[]
+}): Promise<AbstractRow> {
+  const rows = await db.insert(abstracts).values(values).returning()
+  return rows[0]!
+}
+
+/** 重投：覆盖稿件内容、版本 +1、状态回到 submitted。仅 returned 状态允许（服务层守卫）。 */
+export async function updateAbstractContent(db: DbExecutor, id: string, values: {
+  title: string
+  topic: string
+  reportType: string
+  abstractText: string
+  submitterName: string
+  submitterAffiliation: string
+  authors: AbstractAuthor[]
+}): Promise<AbstractRow | null> {
+  const rows = await db.update(abstracts).set({
+    ...values,
+    status: 'submitted',
+    version: sql`${abstracts.version} + 1`,
+    updatedAt: new Date(),
+  }).where(eq(abstracts.id, id)).returning()
+  return rows[0] ?? null
+}
+
+export async function findAbstractById(db: DbExecutor, id: string): Promise<AbstractRow | null> {
+  const rows = await db.select().from(abstracts).where(eq(abstracts.id, id)).limit(1)
+  return rows[0] ?? null
+}
+
+export async function listAbstractsByUser(db: DbExecutor, userId: string): Promise<AbstractRow[]> {
+  return db.select().from(abstracts).where(eq(abstracts.userId, userId)).orderBy(desc(abstracts.createdAt))
+}
+
+export async function listAllAbstracts(db: DbExecutor): Promise<Array<AbstractRow & { userEmail: string | null }>> {
+  return db
+    .select({
+      id: abstracts.id,
+      userId: abstracts.userId,
+      title: abstracts.title,
+      topic: abstracts.topic,
+      reportType: abstracts.reportType,
+      abstractText: abstracts.abstractText,
+      submitterName: abstracts.submitterName,
+      submitterAffiliation: abstracts.submitterAffiliation,
+      authors: abstracts.authors,
+      status: abstracts.status,
+      version: abstracts.version,
+      createdAt: abstracts.createdAt,
+      updatedAt: abstracts.updatedAt,
+      userEmail: users.email,
+    })
+    .from(abstracts)
+    .leftJoin(users, eq(abstracts.userId, users.id))
+    .orderBy(desc(abstracts.createdAt))
+}
+
+/** 审稿动作（admin）：更新状态并写入事件，同一事务由服务层用 db.transaction 包裹。 */
+export async function setAbstractStatus(db: DbExecutor, id: string, status: 'accepted' | 'returned'): Promise<AbstractRow | null> {
+  const rows = await db.update(abstracts).set({ status, updatedAt: new Date() }).where(eq(abstracts.id, id)).returning()
+  return rows[0] ?? null
+}
+
+export async function insertAbstractEvent(db: DbExecutor, values: {
+  abstractId: string
+  kind: 'submitted' | 'resubmitted' | 'accepted' | 'returned'
+  comment?: string | null
+  actor: string
+}): Promise<AbstractEventRow> {
+  const rows = await db.insert(abstractEvents).values({
+    abstractId: values.abstractId,
+    kind: values.kind,
+    comment: values.comment ?? null,
+    actor: values.actor,
+  }).returning()
+  return rows[0]!
+}
+
+export async function listEventsByAbstract(db: DbExecutor, abstractId: string): Promise<AbstractEventRow[]> {
+  return db
+    .select()
+    .from(abstractEvents)
+    .where(and(eq(abstractEvents.abstractId, abstractId)))
+    .orderBy(desc(abstractEvents.createdAt))
+}
+
+export async function listEventsByUser(db: DbExecutor, userId: string): Promise<Array<AbstractEventRow & { abstractId: string }>> {
+  return db
+    .select({
+      id: abstractEvents.id,
+      abstractId: abstractEvents.abstractId,
+      kind: abstractEvents.kind,
+      comment: abstractEvents.comment,
+      actor: abstractEvents.actor,
+      createdAt: abstractEvents.createdAt,
+    })
+    .from(abstractEvents)
+    .innerJoin(abstracts, eq(abstractEvents.abstractId, abstracts.id))
+    .where(eq(abstracts.userId, userId))
+    .orderBy(desc(abstractEvents.createdAt))
+}

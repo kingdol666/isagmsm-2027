@@ -29,6 +29,8 @@ User → Registration → Order → Payment → Credential → Check-in
 
 Five separate entities (never merged), mirroring the conference workflow. Money is stored as integer fen. Human-friendly ids (`ISAGMSM-000123`, `ISAGMSM-ORD-000123`) come from an atomic counter table (no raw SQL).
 
+The abstract-review chain runs in parallel: `User → Abstract → AbstractEvent` (状态机 `submitted → accepted | returned`，`returned` 可修改重投并版本 +1；`abstract_events` 是投稿人可见的历史记录，审稿结果邮件通知注册邮箱)。
+
 Key invariants:
 
 - Prices are computed server-side only (`RegistrationPricingService`: type price − early-bird discount).
@@ -67,6 +69,12 @@ GET  /api/credentials/:token/qr       credential QR (SVG, encodes verify URL)
 GET  /api/credentials/:token/pdf      printable PDF (pdf-lib, server-generated)
 POST /api/checkin/verify              staff: read-only token verification
 POST /api/checkin                     staff: confirm check-in (duplicate-safe)
+POST /api/abstracts                   submit an abstract (REQUIRES signed-in account; authors w/ affiliations)
+GET  /api/abstracts/mine              my abstracts + full review history
+POST /api/abstracts/:id/resubmit      revise & resubmit a RETURNED abstract (version + 1)
+GET  /api/admin/abstracts             admin: all abstracts (+ submitter email)
+GET  /api/admin/abstracts/:id/events  admin: one abstract's review history
+POST /api/admin/abstracts/:id/review  admin: accept | return (comment → emailed to the submitter)
 POST /api/admin/login|logout, GET /api/admin/me
 GET  /api/admin/dashboard|registrations|orders|payments|credentials|checkins
 ```

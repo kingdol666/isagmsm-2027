@@ -45,6 +45,56 @@ const profileBusy = ref(false)
 const registrations = ref<MyRegistration[]>([])
 const regsLoaded = ref(false)
 
+/* abstracts（我的投稿 + 历史记录） */
+interface MyAbstract {
+  id: string
+  title: string
+  topic: string
+  reportType: string
+  abstractText: string
+  submitterName: string
+  submitterAffiliation: string
+  authors: Array<{ name: string, affiliation: string }>
+  status: string
+  version: number
+  createdAt: string
+  events: Array<{ id: string, kind: string, comment: string | null, actor: string, createdAt: string }>
+}
+const abstracts = ref<MyAbstract[]>([])
+const abstractsLoaded = ref(false)
+const expandedAbstract = ref<string | null>(null)
+
+const abstractStatusZh: Record<string, string> = {
+  submitted: '待审',
+  accepted: '已接收',
+  returned: '已返稿',
+}
+
+const abstractEventZh: Record<string, string> = {
+  submitted: '投稿',
+  resubmitted: '修改重投',
+  accepted: '接收',
+  returned: '返稿',
+}
+
+const reportZh: Record<string, string> = {
+  oral: '口头报告',
+  poster: '墙报',
+  abstract_only: '仅提交摘要',
+}
+
+function absZh(value: string) {
+  return abstractStatusZh[value] ?? value
+}
+
+function toggleAbstract(id: string) {
+  expandedAbstract.value = expandedAbstract.value === id ? null : id
+}
+
+function fmtDate(value: string) {
+  return new Date(value).toLocaleString('zh-CN')
+}
+
 function yuan(fen: number) {
   return (fen / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })
 }
@@ -96,6 +146,13 @@ onMounted(async () => {
   }
   catch { /* list stays empty */ }
   regsLoaded.value = true
+
+  try {
+    const res = await $fetch<{ abstracts: MyAbstract[] }>('/api/abstracts/mine')
+    abstracts.value = res.abstracts
+  }
+  catch { /* list stays empty */ }
+  abstractsLoaded.value = true
 })
 
 async function saveProfile() {
@@ -175,6 +232,67 @@ async function saveProfile() {
         <a class="btn btn-solid" :href="`/api/credentials/${activeToken}/pdf`" download>下载 PDF 凭证</a>
         <NuxtLink class="btn btn-ghost" :to="`/credential/${activeToken}`">凭证详情 / 打印</NuxtLink>
       </div>
+    </section>
+
+    <!-- 我的投稿（含审稿结果与历史记录） -->
+    <section id="abstracts" class="section" aria-label="我的投稿">
+      <h2 class="s-title">我的投稿</h2>
+      <p v-if="abstractsLoaded && abstracts.length === 0" class="note mono">
+        还没有投稿记录。
+        <NuxtLink class="link" href="/submit">进入在线投稿 →</NuxtLink>
+      </p>
+      <p v-else-if="!abstractsLoaded" class="note mono">正在加载投稿记录…</p>
+
+      <ul v-else class="ab-list">
+        <li v-for="abs in abstracts" :key="abs.id" class="ab-item">
+          <div class="ab-head">
+            <button class="ab-toggle" type="button" :aria-expanded="expandedAbstract === abs.id" @click="toggleAbstract(abs.id)">
+              <span class="ab-title">{{ abs.title }}</span>
+              <span class="mono ab-meta">第 {{ abs.version }} 版 · {{ fmtDate(abs.createdAt) }}</span>
+            </button>
+            <div class="ab-badges">
+              <span class="badge">{{ reportZh[abs.reportType] ?? abs.reportType }}</span>
+              <span class="badge st" :class="{ ok: abs.status === 'accepted', rev: abs.status === 'returned' }">{{ absZh(abs.status) }}</span>
+            </div>
+          </div>
+
+          <dl class="ab-facts mono">
+            <div class="ab-fact"><dt>投稿人</dt><dd>{{ abs.submitterName }} · {{ abs.submitterAffiliation }}</dd></div>
+            <div class="ab-fact"><dt>作者</dt><dd>{{ abs.authors.map((a, i) => `${i + 1}. ${a.name}（${a.affiliation}）`).join('；') }}</dd></div>
+          </dl>
+
+          <!-- 最新审稿结果 -->
+          <p v-if="abs.status === 'returned'" class="ab-verdict returned">
+            <b class="mono">返稿意见</b>{{ abs.events.find(e => e.kind === 'returned')?.comment || '（无具体意见）' }}
+          </p>
+          <p v-else-if="abs.status === 'accepted'" class="ab-verdict accepted">
+            <b class="mono">审稿意见</b>{{ abs.events.find(e => e.kind === 'accepted')?.comment || '（无具体意见）' }}
+          </p>
+
+          <div class="ab-actions">
+            <NuxtLink v-if="abs.status === 'returned'" class="btn btn-solid" :to="`/submit?id=${abs.id}`">修改重投</NuxtLink>
+            <button class="btn btn-ghost" type="button" @click="toggleAbstract(abs.id)">
+              {{ expandedAbstract === abs.id ? '收起历史' : '历史记录' }}
+            </button>
+          </div>
+
+          <!-- 历史时间线 -->
+          <ol v-if="expandedAbstract === abs.id" class="ab-timeline">
+            <li v-for="ev in abs.events" :key="ev.id" class="ab-ev" :class="{ good: ev.kind === 'accepted', back: ev.kind === 'returned' }">
+              <div class="ev-row">
+                <span class="ev-kind mono">{{ abstractEventZh[ev.kind] ?? ev.kind }}</span>
+                <span class="ev-time mono">{{ fmtDate(ev.createdAt) }}</span>
+                <span class="ev-actor mono">{{ ev.actor }}</span>
+              </div>
+              <p v-if="ev.comment" class="ev-comment">{{ ev.comment }}</p>
+            </li>
+            <li class="ab-ev detail">
+              <div class="ev-row"><span class="ev-kind mono">摘要正文</span></div>
+              <p class="ev-comment pre">{{ abs.abstractText }}</p>
+            </li>
+          </ol>
+        </li>
+      </ul>
     </section>
 
     <!-- 我的报名 -->
@@ -554,10 +672,190 @@ async function saveProfile() {
 
 .link { color: var(--copper-deep); text-decoration: underline; }
 
+/* ---- 我的投稿 ---- */
+.ab-list {
+  border-bottom: 1px solid var(--ink);
+}
+
+.ab-item {
+  border-top: 1px solid var(--hairline);
+  padding: 18px 0;
+}
+
+.ab-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ab-toggle {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+}
+
+.ab-title {
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.ab-toggle:hover .ab-title {
+  color: var(--copper-deep);
+}
+
+.ab-meta {
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--grey);
+}
+
+.ab-badges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.badge.st.ok {
+  border-color: #2F6B3A;
+  color: #2F6B3A;
+}
+
+.badge.st.rev {
+  border-color: var(--copper-deep);
+  color: var(--copper-deep);
+}
+
+.ab-facts {
+  margin-top: 10px;
+}
+
+.ab-fact {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  padding: 4px 0;
+  align-items: baseline;
+}
+
+.ab-fact dt {
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--grey);
+}
+
+.ab-fact dd {
+  font-size: 12.5px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.ab-verdict {
+  margin-top: 12px;
+  border-left: 3px solid var(--copper-deep);
+  background: rgba(180, 95, 58, .06);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.ab-verdict.accepted {
+  border-left-color: #2F6B3A;
+  background: rgba(47, 107, 58, .06);
+}
+
+.ab-verdict b {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  color: var(--grey);
+  margin-bottom: 4px;
+}
+
+.ab-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.ab-timeline {
+  margin-top: 16px;
+  border-top: 1px solid var(--hairline);
+}
+
+.ab-ev {
+  padding: 12px 0 12px 16px;
+  border-top: 1px dashed var(--hairline-soft);
+  position: relative;
+}
+
+.ab-ev::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18px;
+  width: 7px;
+  height: 7px;
+  background: var(--grey);
+}
+
+.ab-ev.good::before {
+  background: #2F6B3A;
+}
+
+.ab-ev.back::before {
+  background: var(--copper);
+}
+
+.ev-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.ev-kind {
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.ev-time,
+.ev-actor {
+  font-size: 11px;
+  color: var(--grey);
+  letter-spacing: .05em;
+}
+
+.ev-comment {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--ink);
+}
+
+.ev-comment.pre {
+  white-space: pre-wrap;
+  color: var(--grey);
+}
+
 @media (min-width: 768px) {
   .grid { grid-template-columns: repeat(2, 1fr); }
   .cred-card { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .reg-row { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: center; }
   .reg-actions { grid-column: 1 / -1; }
+  .ab-head { align-items: baseline; }
 }
 </style>

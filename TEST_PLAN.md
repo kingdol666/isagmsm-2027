@@ -23,6 +23,7 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 - `pricing.service.test.ts` — early-bird discount windows (before/at/after the deadline), free tier, fen rounding.
 - `mock-provider.test.ts` — webhook signature: valid, wrong, tampered body, unknown result, malformed JSON.
 - `auth.service.test.ts` — sign-up with code (account created + verified), duplicate sign-up rejected, wrong codes and the 5-attempt burn, resend cooldown, login (ok / wrong password / unknown user), password reset (code works, old password dies, wrong codes rejected).
+- `abstract.service.test.ts` — 投稿状态机：submit + 事件记录、接收（附意见 + 邮件 spy）、已审结不可再审、返稿 → 重投版本 +1 → 再接收、他人重投 403、未返稿重投 409、返稿意见 ≥5 字校验。
 
 ## Integration coverage (`domain-chain.test.ts`)
 
@@ -43,6 +44,7 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 | `admin.spec.ts` | anonymous API 401, wrong admin password 401, dashboard counts + revenue, all five admin lists render, registrations table with per-row payment status + search filter, staff role separation (403 on admin APIs) |
 | `scanner.spec.ts` | staff login gate, unknown code → NOT RECOGNISED, valid credential (claim + admin approval fixture) → verify → confirm → duplicate blocked → record visible in admin check-ins |
 | `misc.spec.ts` | `/api/health` integrations report, styled 404 page, robots.txt + sitemap.xml, JSON-LD structured data + header nav, all seven conference pages render, profile save/persist, 390 px homepage zero overflow |
+| `abstract-flow.spec.ts` | 投稿送审闭环：在线投稿（动态添加作者行）→ 个人中心待审 + 历史 → 后台搜索/展开/返稿（意见必填）→ 投稿人看到返稿意见 → 修改重投（预填表单，版本 +1）→ 后台接收 → 投稿人看到已接收 + 完整历史（返稿/重投/接收） |
 
 Run against a dev server (`reuseExistingServer`); the suite sets `RATE_LIMIT_DISABLED=1` for the server it starts (test-only bypass, never active in production builds — see `server/utils/rate-limit.ts`).
 

@@ -55,7 +55,7 @@ Database (PostgreSQL 17, Docker, port 5433): `users, registration_types, registr
 
 Domain chain: `User → Registration → Order → Payment → Credential → Check-in` (five separate entities, never merged).
 
-APIs: `/api/registrations`, `/api/orders`, `/api/payments/*`, `/api/credentials/:token`, `/api/checkin/*`, `/api/program`, `/api/speakers`, `/api/registration-types`, `/api/admin/*` (see ARCHITECTURE.md).
+APIs: `/api/registrations`, `/api/orders`, `/api/payments/*`, `/api/credentials/:token`, `/api/checkin/*`, `/api/abstracts*`（投稿送审）, `/api/program`, `/api/speakers`, `/api/registration-types`, `/api/admin/*` (see ARCHITECTURE.md).
 
 ## 4. Payment strategy
 
@@ -65,10 +65,14 @@ Adapter pattern in `server/payments/`: `MockPaymentProvider` (complete, default 
 
 `/scan` is a standalone mobile-first staff app (camera QR scan + manual code entry → verify → confirm check-in; duplicate check-in is blocked by a unique constraint). It is designed so a future WeChat mini-program can reuse the exact same `/api/checkin/*` endpoints.
 
+## 5.5 Abstract review (投稿送审)
+
+Registered accounts submit abstracts at `/submit`（标题 / 主题方向 A–F / 报告类别 / 摘要正文 / 姓名 / 机构 / 作者列表——每位作者的姓名与机构均必填）。Admin reviews at `/admin/abstracts`: accept（附审稿意见）or return（返稿意见必填，≥5 字，邮件发送至投稿人注册邮箱）。Returned abstracts can be revised & resubmitted（版本 +1，回到待审）。`abstract_events` records the full history（投稿/重投/接收/返稿 + 意见），visible to the submitter at `/account#abstracts` and to admins inline.
+
 ## 6. Testing
 
-- Vitest unit: pricing, order/payment state machines, credential tokens, check-in rules, validation schemas.
-- Playwright E2E smoke (must always pass): homepage → register → order → mock pay → payment success → credential → QR verify → admin login → check-in → dashboard reflects it.
+- Vitest unit: pricing, order/payment state machines, credential tokens, check-in rules, abstract review state machine, validation schemas.
+- Playwright E2E smoke (must always pass): homepage → register → order → mock pay → payment success → credential → QR verify → admin login → check-in → dashboard reflects it; abstract: submit → return → resubmit → accept → history.
 
 Commands: `pnpm dev | build | lint | typecheck | test | test:e2e | db:migrate | db:seed`.
 

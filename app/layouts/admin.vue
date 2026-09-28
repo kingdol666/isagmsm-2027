@@ -6,6 +6,7 @@
         <NuxtLink to="/admin">Dashboard</NuxtLink>
         <NuxtLink to="/admin/approvals">缴费审批</NuxtLink>
         <NuxtLink to="/admin/participants">参会人员管理</NuxtLink>
+        <NuxtLink to="/admin/abstracts">稿件审稿</NuxtLink>
         <NuxtLink to="/admin/orders">Orders</NuxtLink>
         <NuxtLink to="/admin/payments">Payments</NuxtLink>
         <NuxtLink to="/admin/checkins">Check-ins</NuxtLink>

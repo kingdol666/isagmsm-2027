@@ -47,7 +47,9 @@ useSeoMeta({ title: '征文投稿' })
       <section class="block">
         <h2 class="b-title">投稿方式</h2>
         <div class="submit-box">
-          <p class="s-text">{{ abstractsContent.submit.channel }}</p>
+          <p class="s-text">推荐通过会议网站在线投稿（注册登录后填写稿件信息与作者列表，审稿结果将邮件通知）：</p>
+          <NuxtLink class="btn btn-solid" href="/submit">进入在线投稿</NuxtLink>
+          <p class="s-text alt">也可将摘要（Word 格式）发送至投稿邮箱，邮件标题注明「ISAGMSM投稿-姓名-主题方向」：</p>
           <a class="s-mail" :href="`mailto:${abstractsContent.submit.email}?subject=ISAGMSM%E6%8A%95%E7%A8%BF`">
             {{ abstractsContent.submit.email }}
           </a>

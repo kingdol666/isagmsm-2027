@@ -3,7 +3,7 @@
 > The 5th International Symposium for Advanced Gel Materials & Soft Matters
 > 2027年4月24—26日 · 合肥滨湖国际会展中心 · 中国
 
-Full-stack conference platform: public symposium website, email registration, orders, payments (mock + WeChat/Alipay adapters), electronic credentials with QR verification, on-site check-in scanner, and an admin dashboard.
+Full-stack conference platform: public symposium website, email registration, orders, payments (mock + WeChat/Alipay adapters), abstract submission & review (投稿送审，接收/返稿意见邮件通知), electronic credentials with QR verification, on-site check-in scanner, and an admin dashboard.
 
 Built with **Nuxt 4 · Vue 3 · TypeScript · Nitro · Nuxt UI 4 · Tailwind CSS 4 · Drizzle ORM · PostgreSQL · Vitest · Playwright**.
 
@@ -45,9 +45,10 @@ Services smoke script (no browser): `pnpm tsx --env-file=.env scripts/smoke-serv
 4. `/payment/:id` → mock QR + waiting state → `Open simulated cashier` → simulate payment.
 5. Polling flips the order to PAID → redirect to `/credential/:token` (the event pass, with QR + PDF download).
 6. `/verify/:token` — what the QR encodes; shows live validity.
-7. `/account` — your registrations with **payment status**, resume-payment links, credentials, and your participant profile.
-8. `/scan` — staff sign-in (`staff / pps26-staff`) → scan the QR with a phone camera (or manual entry) → confirm check-in; duplicates are blocked.
-9. `/admin` (`admin / pps26-admin`) — dashboard, registrations (**with per-row payment status**), orders, payments, credentials, check-ins.
+7. `/account` — your registrations with **payment status**, resume-payment links, credentials, **your abstract submissions with review results & history**, and your participant profile.
+8. `/submit` — 在线投稿（标题 / 主题方向 / 报告类别 / 摘要 / 姓名 / 机构 / 作者列表，每位作者机构必填）；返稿后可修改重投，审稿结果邮件通知。
+9. `/scan` — staff sign-in (`staff / pps26-staff`) → scan the QR with a phone camera (or manual entry) → confirm check-in; duplicates are blocked.
+10. `/admin` (`admin / pps26-admin`) — dashboard, registrations (**with per-row payment status**), 缴费审批, **稿件审稿（接收 / 返稿 + 意见邮件）**, orders, payments, credentials, check-ins.
 
 > Camera QR scanning requires a secure context (https, or localhost during development). On phones without camera access the manual-entry path works identically.
 > Forgot password? `/forgot-password` sends a reset code to the account email.

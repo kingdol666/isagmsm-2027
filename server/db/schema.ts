@@ -208,6 +208,41 @@ export const siteSettings = pgTable('site_settings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+/* ---- abstracts (投稿送审) ----
+ * status: submitted → accepted | returned; returned → (修改重投) → submitted
+ * authors: [{ name, affiliation }] — 每位作者机构必填（zod 层校验）
+ */
+export interface AbstractAuthor {
+  name: string
+  affiliation: string
+}
+
+export const abstracts = pgTable('abstracts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  title: varchar('title', { length: 300 }).notNull(),
+  topic: varchar('topic', { length: 10 }).notNull(), // 主题方向 A–F
+  reportType: varchar('report_type', { length: 20 }).notNull(), // oral | poster | abstract_only
+  abstractText: text('abstract_text').notNull(),
+  submitterName: varchar('submitter_name', { length: 120 }).notNull(),
+  submitterAffiliation: varchar('submitter_affiliation', { length: 300 }).notNull(),
+  authors: jsonb('authors').$type<AbstractAuthor[]>().notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('submitted'),
+  version: integer('version').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+/** 审稿事件流 = 投稿人可见的历史记录（投稿/重投/接收/返稿 + 意见）。 */
+export const abstractEvents = pgTable('abstract_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  abstractId: uuid('abstract_id').notNull().references(() => abstracts.id),
+  kind: varchar('kind', { length: 20 }).notNull(), // submitted | resubmitted | accepted | returned
+  comment: text('comment'),
+  actor: varchar('actor', { length: 200 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const adminUsers = pgTable('admin_users', {
   id: uuid('id').primaryKey().defaultRandom(),
   username: varchar('username', { length: 100 }).notNull().unique(),
@@ -216,7 +251,7 @@ export const adminUsers = pgTable('admin_users', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
-/** Atomic counters for human-friendly display ids (PPS26-000123). */
+/** Atomic counters for human-friendly display ids (ISAGMSM-000123). */
 export const counters = pgTable('counters', {
   key: varchar('key', { length: 50 }).primaryKey(),
   value: integer('value').notNull().default(0),
@@ -242,4 +277,13 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
 
 export const credentialsRelations = relations(credentials, ({ one }) => ({
   registration: one(registrations, { fields: [credentials.registrationId], references: [registrations.id] }),
+}))
+
+export const abstractsRelations = relations(abstracts, ({ one, many }) => ({
+  user: one(users, { fields: [abstracts.userId], references: [users.id] }),
+  events: many(abstractEvents),
+}))
+
+export const abstractEventsRelations = relations(abstractEvents, ({ one }) => ({
+  abstract: one(abstracts, { fields: [abstractEvents.abstractId], references: [abstracts.id] }),
 }))

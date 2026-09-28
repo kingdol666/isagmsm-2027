@@ -57,6 +57,8 @@ const initial = computed(() => {
         >
           <span class="mi-dot" aria-hidden="true" />我的会议凭证
         </NuxtLink>
+        <NuxtLink class="menu-item" role="menuitem" href="/submit" @click="closeMenu">在线投稿</NuxtLink>
+        <NuxtLink class="menu-item" role="menuitem" href="/account#abstracts" @click="closeMenu">我的投稿</NuxtLink>
         <NuxtLink class="menu-item" role="menuitem" href="/account" @click="closeMenu">个人中心</NuxtLink>
         <button class="menu-item as-button" role="menuitem" type="button" @click="signOut">退出登录</button>
       </div>
