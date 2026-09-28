@@ -13,6 +13,7 @@ interface Row {
     createdAt: string
   }
   type: { name: string }
+  order: { totalFen: number, status: string } | null
 }
 
 const search = ref('')
@@ -42,12 +43,13 @@ const totalPages = computed(() => Math.max(1, Math.ceil((data.value?.total ?? 0)
 
 const columns = [
   { key: 'displayId', label: 'ID', mono: true, width: '120px' },
-  { key: 'fullName', label: 'Name', width: '160px' },
+  { key: 'fullName', label: 'Name', width: '150px' },
   { key: 'email', label: 'Email' },
   { key: 'affiliation', label: 'Affiliation' },
-  { key: 'type', label: 'Type', width: '120px' },
-  { key: 'status', label: 'Status', width: '110px' },
-  { key: 'created', label: 'Created', mono: true, width: '120px' },
+  { key: 'type', label: 'Type', width: '110px' },
+  { key: 'status', label: 'Reg. status', width: '110px' },
+  { key: 'payment', label: 'Payment', width: '150px' },
+  { key: 'created', label: 'Created', mono: true, width: '100px' },
 ]
 </script>
 
@@ -88,6 +90,12 @@ const columns = [
         <span class="badge" :class="{ ok: (row.registration as Row['registration']).status === 'confirmed' }">
           {{ (row.registration as Row['registration']).status }}
         </span>
+      </template>
+      <template #payment="{ row }">
+        <span v-if="row.order" class="badge" :class="{ ok: (row.order as NonNullable<Row['order']>).status === 'paid' }">
+          {{ (row.order as NonNullable<Row['order']>).status }} · ¥{{ ((row.order as NonNullable<Row['order']>).totalFen / 100).toLocaleString('en-US') }}
+        </span>
+        <span v-else class="badge">no order</span>
       </template>
       <template #created="{ row }">
         {{ new Date((row.registration as Row['registration']).createdAt).toLocaleDateString('en-GB') }}

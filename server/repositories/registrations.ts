@@ -1,6 +1,6 @@
 import type { DbExecutor } from '../db'
-import { registrationTypes, registrations, users } from '../db/schema'
-import { and, count, desc, eq, ilike, or } from 'drizzle-orm'
+import { orders, registrationTypes, registrations, users } from '../db/schema'
+import { and, count, desc, eq, ilike, inArray, or } from 'drizzle-orm'
 
 export async function createRegistration(
   db: DbExecutor,
@@ -72,6 +72,12 @@ export async function countAll(db: DbExecutor) {
   return rows[0]?.value ?? 0
 }
 
+export interface RegistrationListRow {
+  registration: typeof registrations.$inferSelect
+  type: typeof registrationTypes.$inferSelect
+  order: typeof orders.$inferSelect | null
+}
+
 export async function listRegistrations(db: DbExecutor, query: RegistrationListQuery) {
   const page = Math.max(1, query.page ?? 1)
   const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 20))
@@ -100,5 +106,21 @@ export async function listRegistrations(db: DbExecutor, query: RegistrationListQ
     .offset((page - 1) * pageSize)
 
   const total = await db.select({ value: count() }).from(registrations).where(where)
-  return { rows, total: total[0]?.value ?? 0, page, pageSize }
+
+  // attach each registration's latest order (payment visibility for admins)
+  const ids = rows.map(r => r.registration.id)
+  const orderRows = ids.length
+    ? await db.select().from(orders).where(inArray(orders.registrationId, ids)).orderBy(desc(orders.createdAt))
+    : []
+  const latestOrder = new Map<string, typeof orders.$inferSelect>()
+  for (const order of orderRows) {
+    if (!latestOrder.has(order.registrationId)) latestOrder.set(order.registrationId, order)
+  }
+
+  const withOrders: RegistrationListRow[] = rows.map(row => ({
+    ...row,
+    order: latestOrder.get(row.registration.id) ?? null,
+  }))
+
+  return { rows: withOrders, total: total[0]?.value ?? 0, page, pageSize }
 }

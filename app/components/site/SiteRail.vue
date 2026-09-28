@@ -30,6 +30,9 @@ onMounted(() => {
       <span class="rail-mark">PPS<i>·</i>26</span>
       <span class="rail-full">Polymer Processing Symposium</span>
     </NuxtLink>
+    <div class="rail-auth">
+      <AuthChip />
+    </div>
     <nav class="rail-nav" aria-label="Section index">
       <a
         v-for="item in siteNav"
@@ -86,6 +89,22 @@ onMounted(() => {
   color: var(--grey);
   margin-top: 10px;
   line-height: 1.5;
+}
+
+.rail-auth {
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  padding: 12px 0;
+  margin-bottom: 26px;
+}
+
+.rail-auth :deep(.auth-chip) {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.rail-auth :deep(.chip-link.name) {
+  max-width: 120px;
 }
 
 .rail-nav {

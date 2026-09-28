@@ -2,7 +2,6 @@ import type { Db } from '../db'
 import { bumpCounter, formatDisplayId } from '../db/counters'
 import type { ParticipantInput } from '../../shared/schemas/registration'
 import { findTypeById } from '../repositories/registration-types'
-import { createUser, findUserByEmail } from '../repositories/users'
 import { createRegistration, findRegistrationDetail } from '../repositories/registrations'
 
 export class DomainError extends Error {
@@ -18,10 +17,14 @@ export interface RegistrationRecord {
   email: string
 }
 
-/** Email registration: upserts the user by email, creates the registration. */
+/**
+ * Conference registration for a signed-in account: attaches the registration
+ * to the user and locks the email to the account's verified address.
+ */
 export async function submitRegistration(
   db: Db,
   input: ParticipantInput,
+  user: { id: string, email: string, fullName: string | null },
 ): Promise<RegistrationRecord> {
   const type = await findTypeById(db, input.typeId)
   if (!type || !type.active) {
@@ -32,20 +35,15 @@ export async function submitRegistration(
   }
 
   return db.transaction(async (tx) => {
-    let user = await findUserByEmail(tx, input.email)
-    if (!user) {
-      user = await createUser(tx, { email: input.email, fullName: input.fullName })
-    }
-
     const seq = await bumpCounter(tx, 'registration')
     const registration = await createRegistration(tx, {
       userId: user.id,
       typeId: type.id,
       status: 'submitted',
       displayId: formatDisplayId(seq),
-      fullName: input.fullName,
+      fullName: input.fullName || user.fullName || input.englishName || user.email,
       englishName: input.englishName || null,
-      email: input.email,
+      email: user.email,
       phone: input.phone || null,
       affiliation: input.affiliation,
       department: input.department || null,

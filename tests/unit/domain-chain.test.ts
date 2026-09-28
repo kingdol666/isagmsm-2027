@@ -1,7 +1,7 @@
 import { createHmac } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createDb } from '../../server/db'
-import { registrationTypes } from '../../server/db/schema'
+import { registrationTypes, users } from '../../server/db/schema'
 import { submitRegistration } from '../../server/services/registration.service'
 import { createOrderForRegistration, markOrderPaidInTx } from '../../server/services/order.service'
 import { createPaymentForOrder, handlePaymentCallback } from '../../server/services/payment.service'
@@ -45,13 +45,19 @@ afterAll(async () => {
 async function registerAndOrder(tag: string) {
   const types = await listActiveTypes(db)
   const academic = types.find(t => t.code === 'academic')!
+  // registrations belong to signed-in accounts — create one per scenario
+  const [user] = await db.insert(users).values({
+    email: `test-${tag}-${runId}@example.test`,
+    fullName: `Test ${tag}`,
+    emailVerifiedAt: new Date(),
+  }).returning()
   const registration = await submitRegistration(db, {
     typeId: academic.id,
     fullName: `Test ${tag}`,
-    email: `test-${tag}-${runId}@example.test`,
+    email: user.email,
     affiliation: 'Vitest University',
     country: 'China',
-  })
+  }, { id: user.id, email: user.email, fullName: user.fullName })
   const order = await createOrderForRegistration(db, registration.id)
   return { registration, order, type: academic }
 }

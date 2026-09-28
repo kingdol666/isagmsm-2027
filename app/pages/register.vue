@@ -17,10 +17,28 @@ interface OrderCreated {
   order: { id: string, orderNo: string, totalFen: number, currency: string }
 }
 
-definePageMeta({ layout: 'flow' })
+definePageMeta({ layout: 'flow', middleware: 'auth' })
 useSeoMeta({ title: 'Register' })
 
+const { user } = useAuth()
+
 const { data: types, status: typesStatus, error: typesError } = await useFetch<RegistrationTypeApi[]>('/api/registration-types')
+
+/* prefill the form from the account profile */
+onMounted(async () => {
+  try {
+    const res = await $fetch<{ profile: Record<string, string> | null, email: string, fullName: string | null }>('/api/account/profile')
+    form.fullName = res.profile?.fullName ?? res.fullName ?? ''
+    form.englishName = res.profile?.englishName ?? ''
+    form.phone = res.profile?.phone ?? ''
+    form.affiliation = res.profile?.affiliation ?? ''
+    form.department = res.profile?.department ?? ''
+    form.position = res.profile?.position ?? ''
+    form.country = res.profile?.country ?? ''
+    form.dietary = res.profile?.dietary ?? ''
+  }
+  catch { /* profile stays empty — user fills manually */ }
+})
 
 const step = ref(0)
 const steps = ['Registration', 'Information', 'Confirmation']
@@ -54,7 +72,11 @@ function yuan(fen: number) {
 
 function validateStep2(): boolean {
   for (const key of Object.keys(fieldErrors)) fieldErrors[key] = ''
-  const result = participantSchema.safeParse({ ...form, typeId: selectedType.value?.id })
+  const result = participantSchema.safeParse({
+    ...form,
+    email: user.value?.email ?? '',
+    typeId: selectedType.value?.id,
+  })
   if (!result.success) {
     for (const issue of result.error.issues) {
       const key = issue.path.join('.') || 'form'
@@ -82,12 +104,16 @@ async function submit() {
   try {
     const created = await $fetch<OrderCreated>('/api/registrations', {
       method: 'POST',
-      body: { participant: { ...form, typeId: selectedType.value.id } },
+      body: { participant: { ...form, email: user.value?.email ?? '', typeId: selectedType.value.id } },
     })
     await navigateTo(`/payment/${created.order.id}`)
   }
   catch (error: unknown) {
-    const err = error as { data?: { message?: string, data?: { details?: Array<{ message: string }> } } }
+    const err = error as { data?: { message?: string, data?: { details?: Array<{ message: string }> }, statusCode?: number } }
+    if (err.data?.statusCode === 401) {
+      await navigateTo(`/login?redirect=${encodeURIComponent('/register')}`)
+      return
+    }
     submitError.value = err.data?.message ?? 'Submission failed. Please check your details and retry.'
   }
   finally {
@@ -152,11 +178,11 @@ async function submit() {
             <span class="f-label">English Name</span>
             <input v-model="form.englishName" type="text" name="englishName">
           </label>
-          <label class="field">
-            <span class="f-label">Email *</span>
-            <input v-model="form.email" type="email" name="email" autocomplete="email" inputmode="email">
-            <span v-if="fieldErrors.email" class="f-error">{{ fieldErrors.email }}</span>
-          </label>
+          <div class="field">
+            <span class="f-label">Email (account)</span>
+            <input type="email" :value="user?.email" disabled aria-label="Account email">
+            <span class="f-hint mono">Registration is tied to your signed-in account</span>
+          </div>
           <label class="field">
             <span class="f-label">Phone</span>
             <input v-model="form.phone" type="tel" name="phone" autocomplete="tel" inputmode="tel">
@@ -299,6 +325,17 @@ async function submit() {
 .field input:focus {
   outline: 2px solid var(--copper-deep);
   outline-offset: -1px;
+}
+
+.field input:disabled {
+  color: var(--grey);
+  background: var(--tint);
+}
+
+.f-hint {
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  color: var(--grey);
 }
 
 .f-error {

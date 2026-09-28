@@ -39,15 +39,18 @@ Services smoke script (no browser): `pnpm tsx --env-file=.env scripts/smoke-serv
 
 ## The demo chain
 
-1. Open `/` — the symposium homepage.
-2. `Register Now` → pick a type → fill participant info → confirm → order created.
-3. `/payment/:id` → mock QR + waiting state → `Open simulated cashier` → simulate payment.
-4. Polling flips the order to PAID → redirect to `/credential/:token` (the event pass, with QR + PDF download).
-5. `/verify/:token` — what the QR encodes; shows live validity.
-6. `/scan` — staff sign-in (`staff / pps26-staff`) → scan the QR with a phone camera (or manual entry) → confirm check-in; duplicates are blocked.
-7. `/admin` (`admin / pps26-admin`) — dashboard, registrations, orders, payments, credentials, check-ins.
+1. Open `/` — the symposium homepage. The rail (desktop) / top bar (mobile) shows **Sign in / Register**.
+2. `Register Now` → gated by the account wall → **sign up with an email verification code** (6-digit; dev mode surfaces the code on-screen and in the server log — production mails it via SMTP, see ARCHITECTURE.md).
+3. Complete the conference registration — the email is locked to your account, participant info pre-fills from your profile → order created.
+4. `/payment/:id` → mock QR + waiting state → `Open simulated cashier` → simulate payment.
+5. Polling flips the order to PAID → redirect to `/credential/:token` (the event pass, with QR + PDF download).
+6. `/verify/:token` — what the QR encodes; shows live validity.
+7. `/account` — your registrations with **payment status**, resume-payment links, credentials, and your participant profile.
+8. `/scan` — staff sign-in (`staff / pps26-staff`) → scan the QR with a phone camera (or manual entry) → confirm check-in; duplicates are blocked.
+9. `/admin` (`admin / pps26-admin`) — dashboard, registrations (**with per-row payment status**), orders, payments, credentials, check-ins.
 
 > Camera QR scanning requires a secure context (https, or localhost during development). On phones without camera access the manual-entry path works identically.
+> Forgot password? `/forgot-password` sends a reset code to the account email.
 
 ## Documentation
 

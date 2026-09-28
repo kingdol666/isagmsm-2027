@@ -22,6 +22,7 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 
 - `pricing.service.test.ts` — early-bird discount windows (before/at/after the deadline), free tier, fen rounding.
 - `mock-provider.test.ts` — webhook signature: valid, wrong, tampered body, unknown result, malformed JSON.
+- `auth.service.test.ts` — sign-up with code (account created + verified), duplicate sign-up rejected, wrong codes and the 5-attempt burn, resend cooldown, login (ok / wrong password / unknown user), password reset (code works, old password dies, wrong codes rejected).
 
 ## Integration coverage (`domain-chain.test.ts`)
 
@@ -35,9 +36,9 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 
 ## E2E coverage (`tests/e2e/full-flow.spec.ts`)
 
-**THE critical smoke test (PLAN §33):**
+**THE critical smoke test (PLAN §33, account edition):**
 
-homepage → `Register Now` → select Academic → fill participant info → confirm → order created → payment page (QR, waiting) → simulated cashier → successful payment → automatic redirect to the credential pass → verify page shows `Valid credential` → admin login → dashboard visible → `/scan` manual-entry check-in → `Confirm check-in` → success logged → `/admin/checkins` lists the participant.
+homepage → register gated by the account wall → email-code sign-up (dev code surfaced) → conference registration (email locked, profile prefilled) → order → payment page (QR, waiting) → simulated cashier → successful payment → automatic redirect to the credential pass → verify page shows `Valid credential` → `/account` shows the registration with paid status → admin login → dashboard visible → `/scan` manual-entry check-in → `Confirm check-in` → success logged → `/admin/registrations` lists the participant with `paid`.
 
 Plus: homepage renders at 390 px with zero horizontal overflow.
 

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { authenticateAdmin } from '../../repositories/admin-users'
-import { createSessionToken, setSessionCookie } from '../../utils/session'
+import { setAdminSessionCookie } from '../../utils/session'
 import { parseBody, sendDomainError } from '../../utils/validation'
 import { enforceRateLimit } from '../../utils/rate-limit'
 
@@ -18,9 +18,8 @@ export default defineEventHandler(async (event) => {
     if (!user) {
       throw createError({ statusCode: 401, statusMessage: 'Invalid username or password' })
     }
-    const config = useRuntimeConfig(event)
     const session = { userId: user.id, username: user.username, role: user.role as 'admin' | 'staff' }
-    setSessionCookie(event, createSessionToken(session, config.sessionSecret))
+    setAdminSessionCookie(event, session)
     return { user: session }
   }
   catch (error) {

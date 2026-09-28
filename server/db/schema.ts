@@ -23,8 +23,27 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 320 }).notNull().unique(),
   fullName: varchar('full_name', { length: 200 }),
+  /** scrypt password — null for seeded/demo users until they set one */
+  passwordHash: text('password_hash'),
+  emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+  /** account-level participant info used to prefill conference registrations */
+  profile: jsonb('profile'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
+
+/** Email verification codes (signup + password reset). One active per email+purpose. */
+export const emailVerifications = pgTable('email_verifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 320 }).notNull(),
+  purpose: varchar('purpose', { length: 20 }).notNull(), // signup | reset
+  codeHash: varchar('code_hash', { length: 64 }).notNull(), // sha256 hex
+  attempts: integer('attempts').notNull().default(0),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  consumedAt: timestamp('consumed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('email_verifications_email_purpose_uq').on(table.email, table.purpose),
+])
 
 export const registrationTypes = pgTable('registration_types', {
   id: uuid('id').primaryKey().defaultRandom(),

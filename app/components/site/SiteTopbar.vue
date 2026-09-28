@@ -24,6 +24,12 @@ onUnmounted(close)
   <header class="topbar">
     <NuxtLink class="topbar-brand" href="#symposium">PPS<i>·</i>26</NuxtLink>
     <span class="topbar-loc">HEFEI · 15—17 OCT 2026</span>
+    <ClientOnly>
+      <AuthChip class="topbar-auth" />
+      <template #fallback>
+        <span class="topbar-auth mono" style="color: var(--grey)">…</span>
+      </template>
+    </ClientOnly>
     <button
       class="menu-btn"
       type="button"
@@ -85,6 +91,10 @@ onUnmounted(close)
   font-size: 12px;
   letter-spacing: .1em;
   color: var(--grey);
+}
+
+.topbar-auth {
+  margin-left: auto;
 }
 
 .menu-btn {
@@ -165,9 +175,13 @@ onUnmounted(close)
   }
 }
 
+@media (max-width: 767px) {
+  .topbar-loc { display: none; } /* keep room for auth + menu */
+}
+
 @media (max-width: 419px) {
-  .topbar-loc {
-    display: none; /* keep the 375px bar uncluttered */
-  }
+  .topbar-auth :deep(.chip-link.name) { max-width: 70px; }
+  .topbar-auth :deep(.sep) { display: none; }
+  .topbar-auth :deep(.chip-link:not(.accent):not(.name):not(.as-button)) { display: none; }
 }
 </style>

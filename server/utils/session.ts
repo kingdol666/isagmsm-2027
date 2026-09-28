@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { H3Event } from 'h3'
 
-const COOKIE_NAME = 'pps_admin'
+const ADMIN_COOKIE = 'pps_admin'
+const USER_COOKIE = 'pps_user'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000 // 12h
 
 export interface AdminSession {
@@ -10,12 +11,18 @@ export interface AdminSession {
   role: 'admin' | 'staff'
 }
 
+export interface UserSession {
+  userId: string
+  email: string
+  role: 'participant'
+}
+
 function sign(payload: string, secret: string): string {
   return createHmac('sha256', secret).update(payload).digest('base64url')
 }
 
 /** Signed, stateless session token: base64(payload).base64(sig) */
-export function createSessionToken(session: AdminSession, secret: string): string {
+export function createSessionToken(session: AdminSession | UserSession, secret: string): string {
   const payload = Buffer.from(JSON.stringify({
     ...session,
     exp: Date.now() + SESSION_TTL_MS,
@@ -23,7 +30,7 @@ export function createSessionToken(session: AdminSession, secret: string): strin
   return `${payload}.${sign(payload, secret)}`
 }
 
-export function verifySessionToken(token: string | undefined, secret: string): AdminSession | null {
+export function verifySessionToken<T extends AdminSession | UserSession>(token: string | undefined, secret: string): T | null {
   if (!token) return null
   const [payload, signature] = token.split('.')
   if (!payload || !signature) return null
@@ -34,17 +41,17 @@ export function verifySessionToken(token: string | undefined, secret: string): A
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null
 
   try {
-    const data = JSON.parse(Buffer.from(payload, 'base64url').toString()) as AdminSession & { exp: number }
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString()) as T & { exp: number }
     if (!data.exp || data.exp < Date.now()) return null
-    return { userId: data.userId, username: data.username, role: data.role }
+    return data
   }
   catch {
     return null
   }
 }
 
-export function setSessionCookie(event: H3Event, token: string) {
-  setCookie(event, COOKIE_NAME, token, {
+function setSessionCookie(event: H3Event, name: string, token: string) {
+  setCookie(event, name, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -53,13 +60,24 @@ export function setSessionCookie(event: H3Event, token: string) {
   })
 }
 
-export function clearSessionCookie(event: H3Event) {
-  deleteCookie(event, COOKIE_NAME, { path: '/' })
+function clearSessionCookie(event: H3Event, name: string) {
+  deleteCookie(event, name, { path: '/' })
+}
+
+/* ---- admin/staff sessions ---- */
+
+export function setAdminSessionCookie(event: H3Event, session: AdminSession) {
+  const config = useRuntimeConfig(event)
+  setSessionCookie(event, ADMIN_COOKIE, createSessionToken(session, config.sessionSecret))
+}
+
+export function clearAdminSessionCookie(event: H3Event) {
+  clearSessionCookie(event, ADMIN_COOKIE)
 }
 
 export function getSession(event: H3Event): AdminSession | null {
   const config = useRuntimeConfig(event)
-  return verifySessionToken(getCookie(event, COOKIE_NAME), config.sessionSecret)
+  return verifySessionToken<AdminSession>(getCookie(event, ADMIN_COOKIE), config.sessionSecret)
 }
 
 export function requireSession(event: H3Event): AdminSession {
@@ -81,4 +99,28 @@ export function requireAdmin(event: H3Event): AdminSession {
 /** Staff OR admin — used by the check-in scanner endpoints. */
 export function requireStaff(event: H3Event): AdminSession {
   return requireSession(event)
+}
+
+/* ---- participant (account) sessions ---- */
+
+export function setUserSessionCookie(event: H3Event, session: UserSession) {
+  const config = useRuntimeConfig(event)
+  setSessionCookie(event, USER_COOKIE, createSessionToken(session, config.sessionSecret))
+}
+
+export function clearUserSessionCookie(event: H3Event) {
+  clearSessionCookie(event, USER_COOKIE)
+}
+
+export function getUserSession(event: H3Event): UserSession | null {
+  const config = useRuntimeConfig(event)
+  return verifySessionToken<UserSession>(getCookie(event, USER_COOKIE), config.sessionSecret)
+}
+
+export function requireUser(event: H3Event): UserSession {
+  const session = getUserSession(event)
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Please sign in to continue' })
+  }
+  return session
 }

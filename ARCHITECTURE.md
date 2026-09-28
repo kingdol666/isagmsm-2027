@@ -41,8 +41,17 @@ Key invariants:
 ## API surface
 
 ```
+POST /api/auth/send-code              6-digit email code (signup | reset; dev mode returns devCode)
+POST /api/auth/register               sign-up (email + code + password + name) → session
+POST /api/auth/login                  email + password → session
+POST /api/auth/logout                 clear participant session
+GET  /api/auth/me                     current account (or null)
+POST /api/auth/forgot-password        send reset code (never reveals account existence)
+POST /api/auth/reset-password         code + new password (signs out)
+GET/PUT /api/account/profile          participant profile (pre-fills registrations)
+GET  /api/account/registrations       my registrations + order/payment status + credential links
 GET  /api/registration-types          public type list (server-owned prices)
-POST /api/registrations               register + create order (zod-validated, rate-limited)
+POST /api/registrations               register for the conference (REQUIRES signed-in account)
 GET  /api/registrations/:id           registration detail
 POST /api/orders                      create order for a registration
 GET  /api/orders/:id                  order status (+ credential token once paid)
@@ -61,6 +70,15 @@ POST /api/checkin                     staff: confirm check-in (duplicate-safe)
 POST /api/admin/login|logout, GET /api/admin/me
 GET  /api/admin/dashboard|registrations|orders|payments|credentials|checkins
 ```
+
+## Accounts & sessions
+
+Two independent, stateless session kinds (HMAC-signed httpOnly cookies, 12 h):
+
+- `pps_admin` — organisers (`admin` / `staff` roles) for `/api/admin/**` + `/api/checkin/**`.
+- `pps_user` — participant accounts for `/api/account/**`; conference registration (`POST /api/registrations`) requires it and locks the registration email to the account.
+
+Email verification codes (`email_verifications`): 6 digits, SHA-256-hashed at rest, 10-minute expiry, max 5 wrong attempts (then burned), 60-second resend cooldown, one active code per (email, purpose). Delivery via `MailService`: dev transport logs + returns the code (`devCode`) so the flow is testable without SMTP; the SMTP transport activates with `MAIL_SMTP_*` env. Passwords: scrypt with per-user salt. Password reset never reveals whether an email exists.
 
 ## Rendering & performance
 

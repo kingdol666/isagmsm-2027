@@ -32,14 +32,20 @@ const types = await listActiveTypes(db)
 const academic = types.find(t => t.code === 'academic')!
 check('registration types seeded', types.length === 4 && !!academic)
 
-/* 1. register */
+/* 1. register (under an account, as the API now requires) */
+const { users } = await import('../server/db/schema')
+const [smokeUser] = await db.insert(users).values({
+  email,
+  fullName: 'Smoke Tester',
+  emailVerifiedAt: new Date(),
+}).returning()
 const registration = await submitRegistration(db, {
   typeId: academic.id,
   fullName: 'Smoke Tester',
   email,
   affiliation: 'Smoke University',
   country: 'China',
-})
+}, { id: smokeUser.id, email: smokeUser.email, fullName: smokeUser.fullName })
 check('registration created with display id', registration.displayId.startsWith('PPS26-'))
 
 /* 2. order (server-side pricing) */
@@ -95,13 +101,18 @@ check('verification now reports checked-in', afterCheckin.checkedInAt !== null)
 
 /* 8. amount tampering is rejected */
 const order2 = await (async () => {
+  const [tamperUser] = await db.insert(users).values({
+    email: `tamper-${Date.now()}@example.test`,
+    fullName: 'Tamper Tester',
+    emailVerifiedAt: new Date(),
+  }).returning()
   const reg2 = await submitRegistration(db, {
     typeId: academic.id,
     fullName: 'Tamper Tester',
-    email: `tamper-${Date.now()}@example.test`,
+    email: tamperUser.email,
     affiliation: 'Smoke University',
     country: 'China',
-  })
+  }, { id: tamperUser.id, email: tamperUser.email, fullName: tamperUser.fullName })
   return createOrderForRegistration(db, reg2.id)
 })()
 const payment2 = await createPaymentForOrder(db, order2.id, 'mock', SECRET)

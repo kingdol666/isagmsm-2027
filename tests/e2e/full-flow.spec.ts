@@ -1,26 +1,40 @@
 import { expect, test } from '@playwright/test'
 
 /**
- * THE critical smoke test (PLAN §33):
- * homepage → register (Academic) → order → mock payment → payment success →
- * credential → QR verification → admin login → scanner check-in →
- * dashboard reflects the check-in.
+ * THE critical smoke test — account edition:
+ * homepage → gated register → email-code sign-up → conference registration →
+ * order → mock payment (QR cashier) → credential → QR verification →
+ * account page shows paid → admin login → scanner check-in → dashboard reflects.
  */
-test('full registration → payment → credential → check-in chain', async ({ page }) => {
-  const email = `e2e-${Date.now()}@example.test`
-  const fullName = `E2E Runner ${Date.now() % 10000}`
+test('sign-up → register → pay → credential → check-in chain', async ({ page }) => {
+  const stamp = Date.now()
+  const email = `e2e-${stamp}@example.test`
+  const fullName = `E2E Account ${stamp % 10000}`
+  const password = `e2e-${stamp}-${Math.random().toString(36).slice(2, 8)}!A`
 
-  /* 1. homepage */
+  /* 1. homepage → register is gated by the account wall */
   await page.goto('/')
   await expect(page.locator('.hero-title')).toBeVisible()
-  await expect(page.locator('#registration')).toBeVisible()
-
-  /* 2. register */
   await page.click('.hero-cta >> text=Register Now')
-  await expect(page.locator('h1')).toContainText('Registration')
+  await page.waitForURL(/\/sign-up/, { timeout: 20_000 })
+  await page.waitForLoadState('networkidle')
 
-  // step 1 — choose Academic (click until the selection registers: guards
-  // against clicking before Nuxt hydration is complete)
+  /* 2. email-code sign-up */
+  await page.waitForLoadState('networkidle')
+  await page.fill('input[name="email"]', email)
+  await page.click('button:has-text("Send verification code")')
+  await expect(page.locator('.code-input')).toBeVisible({ timeout: 20_000 })
+  await expect(page.locator('.dev-code')).toBeVisible() // dev mode surfaces the code
+  const devCode = (await page.locator('.dev-code').textContent())?.match(/\d{6}/)?.[0]
+  expect(devCode).toMatch(/^\d{6}$/)
+
+  await page.fill('.code-input', devCode!)
+  await page.fill('input[name="fullName"]', fullName)
+  await page.fill('input[name="password"]', password)
+  await page.click('button:has-text("Create account")')
+  await page.waitForURL(/\/register/, { timeout: 20_000 })
+
+  /* 3. conference registration (email locked to the account) */
   await page.waitForLoadState('networkidle')
   for (let attempt = 0; attempt < 10; attempt++) {
     await page.click('.type-row:has-text("Academic")')
@@ -30,42 +44,50 @@ test('full registration → payment → credential → check-in chain', async ({
   await expect(page.locator('.type-row.selected')).toHaveCount(1)
   await page.click('button:has-text("Continue")')
 
-  // step 2 — participant information
-  await page.fill('input[name="fullName"]', fullName)
-  await page.fill('input[name="email"]', email)
+  // email shows locked; profile name prefilled from the account
+  await expect(page.locator('input[value*="@"]').first()).toBeDisabled()
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const current = await page.inputValue('input[name="fullName"]')
+    if (current) break
+    await page.fill('input[name="fullName"]', fullName)
+    await page.waitForTimeout(300)
+  }
   await page.fill('input[name="affiliation"]', 'E2E Institute of Polymers')
   await page.fill('input[name="country"]', 'China')
   await page.click('form button:has-text("Continue")')
-
-  // step 3 — confirm and create the order
   await page.click('button:has-text("Create order")')
   await page.waitForURL(/\/payment\//, { timeout: 20_000 })
 
-  /* 3. payment — auto-started mock payment with QR */
+  /* 4. payment — auto-started mock payment with QR */
   await expect(page.locator('.amount')).toBeVisible({ timeout: 20_000 })
   await expect(page.locator('img.qr')).toBeVisible()
 
-  /* 4. simulate scan → mock cashier → paid */
+  /* 5. simulate scan → mock cashier → paid */
   await page.click('text=Open simulated cashier')
   await page.waitForURL(/\/pay\/mock\//)
   await page.click('button:has-text("Simulate successful payment")')
   await expect(page.locator('.state.done')).toContainText('PAID')
 
-  /* 5. back to payment page → poll detects paid → credential */
+  /* 6. back to payment page → poll detects paid → credential */
   await page.goBack()
   await page.waitForURL(/\/credential\//, { timeout: 30_000 })
   await expect(page.locator('.pass')).toBeVisible()
   await expect(page.locator('.pass')).toContainText(fullName)
 
-  const credentialUrl = page.url()
-  const token = credentialUrl.split('/credential/')[1]!
+  const token = page.url().split('/credential/')[1]!
 
-  /* 6. QR verification page (what the QR encodes) */
+  /* 7. QR verification page */
   await page.goto(`/verify/${token}`)
   await expect(page.locator('.verdict.good')).toBeVisible()
   await expect(page.locator('.verdict')).toContainText('Valid credential')
 
-  /* 7. admin login + dashboard (retry until hydration-backed submit works) */
+  /* 8. account page shows the registration with paid status */
+  await page.goto('/account')
+  await page.waitForLoadState('networkidle')
+  await expect(page.locator('.reg-row .badge.ok').first()).toContainText('confirmed')
+  await expect(page.locator('.reg-row')).toContainText('paid')
+
+  /* 9. admin login + dashboard */
   await page.goto('/admin/login')
   await page.waitForLoadState('networkidle')
   for (let attempt = 0; attempt < 6 && page.url().includes('/admin/login'); attempt++) {
@@ -77,10 +99,9 @@ test('full registration → payment → credential → check-in chain', async ({
   await page.waitForURL(/\/admin$/, { timeout: 20_000 })
   await expect(page.locator('.stat-grid')).toBeVisible()
 
-  /* 8. staff scanner — manual entry path, confirm check-in */
+  /* 10. staff scanner — manual entry, confirm check-in */
   await page.goto('/scan')
   await page.waitForLoadState('networkidle')
-  // signed in as admin in this context — the scanner shows the reader/manual pane
   await expect(page.locator('#manual-token')).toBeVisible({ timeout: 30_000 })
   for (let attempt = 0; attempt < 6; attempt++) {
     await page.fill('#manual-token', token)
@@ -92,9 +113,10 @@ test('full registration → payment → credential → check-in chain', async ({
   await page.click('button:has-text("Confirm check-in")')
   await expect(page.locator('.log-row').first()).toContainText('checked in')
 
-  /* 9. dashboard reflects the check-in (participant listed) */
-  await page.goto('/admin/checkins')
+  /* 11. admin registrations table shows the participant + payment */
+  await page.goto('/admin/registrations')
   await expect(page.locator('.tbl')).toContainText(fullName)
+  await expect(page.locator('.tbl')).toContainText('paid')
 })
 
 test('homepage is responsive and sections render at mobile width', async ({ page }) => {

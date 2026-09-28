@@ -5,9 +5,17 @@ import { siteMeta } from '#shared/content/site'
 <template>
   <div class="flow">
     <header class="flow-bar">
-      <NuxtLink to="/" class="flow-brand">PPS<i>·</i>26</NuxtLink>
+      <NuxtLink class="flow-brand" href="/">PPS<i>·</i>26</NuxtLink>
       <span class="flow-note">Polymer Processing Symposium 2026</span>
-      <NuxtLink to="/" class="flow-home">← Symposium home</NuxtLink>
+      <div class="flow-right">
+        <ClientOnly>
+          <AuthChip />
+          <template #fallback>
+            <span class="mono" style="color: var(--hairline)">…</span>
+          </template>
+        </ClientOnly>
+        <NuxtLink class="flow-home" href="/">← Symposium home</NuxtLink>
+      </div>
     </header>
     <main class="flow-main wrap">
       <slot />
@@ -64,6 +72,13 @@ import { siteMeta } from '#shared/content/site'
 
 .flow-home:hover {
   color: var(--copper-deep);
+}
+
+.flow-right {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  margin-left: auto;
 }
 
 .flow-main {

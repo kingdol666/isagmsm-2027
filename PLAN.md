@@ -19,8 +19,9 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | M7 | Admin dashboard + standalone check-in scanner | ✅ Done |
 | M8 | Real payment adapters (WeChat Pay / Alipay, ready-for-keys) | ✅ Done |
 | M9 | Tests, polish, SEO, performance, docs | ✅ Done |
+| M10 | Accounts: header sign-in, email-code sign-up, forgot password, profile, account-gated registration, admin payment column | ✅ Done |
 
-All milestones verified: `pnpm lint` ✓ · `pnpm typecheck` ✓ · `pnpm test` (17) ✓ · `pnpm test:e2e` (2) ✓ · `pnpm build` ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
+All milestones verified: `pnpm lint` ✓ · `pnpm typecheck` ✓ · `pnpm test` (24) ✓ · `pnpm test:e2e` (2) ✓ · `pnpm build` ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
 
 ## 1. Hard constraints
 
