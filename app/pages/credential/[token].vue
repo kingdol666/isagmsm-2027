@@ -124,6 +124,7 @@ function printPage() {
   border: 1px solid var(--ink);
   background: var(--paper);
   max-width: 760px;
+  margin-inline: auto;
 }
 
 .pass-top {

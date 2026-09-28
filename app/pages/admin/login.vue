@@ -7,6 +7,7 @@ const username = ref('')
 const password = ref('')
 const error = ref('')
 const busy = ref(false)
+const isDev = import.meta.dev
 
 async function login() {
   busy.value = true
@@ -53,7 +54,7 @@ async function login() {
       </button>
     </form>
 
-    <p class="hint mono">Dev accounts — admin / pps26-admin · staff / pps26-staff</p>
+    <p v-if="isDev" class="hint mono">Dev accounts — admin / pps26-admin · staff / pps26-staff</p>
   </div>
 </template>
 

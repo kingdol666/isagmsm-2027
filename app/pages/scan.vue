@@ -10,6 +10,7 @@ useSeoMeta({
 
 /* ---------- auth ---------- */
 const authState = ref<'checking' | 'anon' | 'staff'>('checking')
+const isDev = import.meta.dev
 const authUser = ref<{ username: string, role: string } | null>(null)
 const loginUsername = ref('')
 const loginPassword = ref('')
@@ -247,7 +248,7 @@ onUnmounted(stopCamera)
           {{ loginBusy ? 'Signing in…' : 'Sign in' }}
         </button>
       </form>
-      <p class="hint mono">Dev accounts — admin / pps26-admin · staff / pps26-staff</p>
+      <p v-if="isDev" class="hint mono">Dev accounts — admin / pps26-admin · staff / pps26-staff</p>
     </section>
 
     <!-- staff: scanner -->

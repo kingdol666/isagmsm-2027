@@ -53,6 +53,10 @@ async function loadProviders() {
 async function loadOrder() {
   try {
     orderData.value = await $fetch<OrderView>(`/api/orders/${orderId.value}`)
+    // arriving at an already-paid order → straight to the credential
+    if (orderData.value.order.status === 'paid' && orderData.value.credentialToken) {
+      await navigateTo(`/credential/${orderData.value.credentialToken}`)
+    }
   }
   catch {
     loadError.value = 'Order not found.'

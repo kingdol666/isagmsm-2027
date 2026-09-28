@@ -11,7 +11,16 @@ interface Dashboard {
   revenueFen: number
 }
 
+interface CheckinRow {
+  id: string
+  method: string
+  checkedInAt: string
+  displayId: string
+  fullName: string
+}
+
 const { data, error } = await useFetch<Dashboard>('/api/admin/dashboard')
+const { data: checkinData } = await useFetch<{ rows: CheckinRow[] }>('/api/admin/checkins')
 
 watch(error, (err) => {
   if (err?.statusCode === 401) navigateTo('/admin/login')
@@ -42,12 +51,34 @@ const stats = computed(() => [
 
     <p v-if="error" class="state">{{ error.statusCode === 401 ? 'Session expired — redirecting…' : 'Failed to load dashboard.' }}</p>
 
-    <dl v-else class="stat-grid">
-      <div v-for="stat in stats" :key="stat.code" class="stat">
-        <dt><span class="s-code mono">{{ stat.code }}</span>{{ stat.label }}</dt>
-        <dd class="s-value">{{ stat.value }}</dd>
-      </div>
-    </dl>
+    <template v-else>
+      <dl class="stat-grid">
+        <div v-for="stat in stats" :key="stat.code" class="stat">
+          <dt><span class="s-code mono">{{ stat.code }}</span>{{ stat.label }}</dt>
+          <dd class="s-value">{{ stat.value }}</dd>
+        </div>
+      </dl>
+
+      <section class="recent" aria-label="Latest check-ins">
+        <header class="sec-head">
+          <div class="sec-meta">
+            <span class="sec-code">D—05 · ON SITE</span>
+            <span class="sec-tag">LATEST CHECK-INS</span>
+          </div>
+          <h2 class="recent-title">Latest check-ins</h2>
+        </header>
+        <ul class="recent-list">
+          <li v-for="row in (checkinData?.rows ?? []).slice(0, 6)" :key="row.id" class="recent-row">
+            <span class="mono r-time">{{ new Date(row.checkedInAt).toLocaleString('en-GB') }}</span>
+            <span class="r-name">{{ row.fullName }}</span>
+            <span class="mono r-id">{{ row.displayId }}</span>
+          </li>
+          <li v-if="!(checkinData?.rows ?? []).length" class="recent-row mono r-empty">
+            No check-ins yet — open /scan on a phone to start.
+          </li>
+        </ul>
+      </section>
+    </template>
   </div>
 </template>
 
@@ -92,6 +123,31 @@ const stats = computed(() => [
   color: var(--grey);
   padding: 14px 0;
 }
+
+.recent { margin-top: clamp(36px, 6vw, 64px); }
+
+.recent-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.05;
+}
+
+.recent-list { border-bottom: 1px solid var(--ink); }
+
+.recent-row {
+  display: grid;
+  grid-template-columns: 190px 1fr auto;
+  gap: 16px;
+  align-items: baseline;
+  border-top: 1px solid var(--hairline);
+  padding: 12px 0;
+  font-size: 14.5px;
+}
+
+.r-time { font-size: 12px; color: var(--grey); }
+.r-id { font-size: 12.5px; color: var(--grey); }
+.r-empty { color: var(--grey); font-size: 12.5px; }
 
 @media (min-width: 768px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); column-gap: 32px; }

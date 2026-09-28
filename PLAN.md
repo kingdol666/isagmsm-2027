@@ -10,15 +10,17 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | Milestone | Scope | Status |
 |---|---|---|
 | M0 | Project foundation (Nuxt 4, TS, tooling, DB container) | ✅ Done |
-| M1 | Visual system (Direction C, Swiss Grid) | ⏳ In progress |
-| M2 | Homepage (11 sections, Direction C port, footer fix) | ⏳ Pending |
-| M3 | Database (schema, migrations, seed, repositories, services) | ⏳ Pending |
-| M4 | Registration flow (email registration, form, order) | ⏳ Pending |
-| M5 | Mock payment (provider, cashier, webhook, state machine) | ⏳ Pending |
-| M6 | Credential (QR token, credential page, verify page, PDF) | ⏳ Pending |
-| M7 | Admin dashboard + standalone check-in scanner | ⏳ Pending |
-| M8 | Real payment adapters (WeChat Pay / Alipay, ready-for-keys) | ⏳ Pending |
-| M9 | Tests, polish, SEO, performance, docs | ⏳ Pending |
+| M1 | Visual system (Direction C, Swiss Grid) | ✅ Done |
+| M2 | Homepage (11 sections, Direction C port, footer fix) | ✅ Done |
+| M3 | Database (schema, migrations, seed, repositories, services) | ✅ Done |
+| M4 | Registration flow (email registration, form, order) | ✅ Done |
+| M5 | Mock payment (provider, cashier, webhook, state machine) | ✅ Done |
+| M6 | Credential (QR token, credential page, verify page, PDF) | ✅ Done |
+| M7 | Admin dashboard + standalone check-in scanner | ✅ Done |
+| M8 | Real payment adapters (WeChat Pay / Alipay, ready-for-keys) | ✅ Done |
+| M9 | Tests, polish, SEO, performance, docs | ✅ Done |
+
+All milestones verified: `pnpm lint` ✓ · `pnpm typecheck` ✓ · `pnpm test` (17) ✓ · `pnpm test:e2e` (2) ✓ · `pnpm build` ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
 
 ## 1. Hard constraints
 

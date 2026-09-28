@@ -1,12 +1,58 @@
-# README
+# PPS 2026 — Polymer Processing Symposium
 
-PPS 2026 — Polymer Processing Symposium full-stack site. Docs: PLAN.md / ARCHITECTURE.md / PAYMENT.md / TEST_PLAN.md (finalized in M9).
+> Materials · Processing · Manufacturing · Intelligence
+> 15—17 October 2026 · Hefei · China
+
+Full-stack conference platform: public symposium website, email registration, orders, payments (mock + WeChat/Alipay adapters), electronic credentials with QR verification, on-site check-in scanner, and an admin dashboard.
+
+Built with **Nuxt 4 · Vue 3 · TypeScript · Nitro · Nuxt UI 4 · Tailwind CSS 4 · Drizzle ORM · PostgreSQL · Vitest · Playwright**.
+
+Visual identity: **Direction C — "The Grid as Instrument"** (Swiss International Style after Josef Müller-Brockmann), selected from three design drafts (`design-demos/`). See `PLAN.md` for the design system.
 
 ## Quick start
 
 ```bash
 pnpm install
-docker compose up -d      # PostgreSQL 17 on :5433
-pnpm db:migrate && pnpm db:seed
-pnpm dev
+docker compose up -d          # PostgreSQL 17 on localhost:5433
+pnpm db:migrate               # create schema
+pnpm db:seed                  # demo data (speakers, program, participants, admin accounts)
+pnpm dev                      # http://localhost:3000
 ```
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `pnpm dev` | Dev server (http://localhost:3000) |
+| `pnpm build` | Production build (`.output/`) |
+| `pnpm preview` | Preview the production build |
+| `pnpm lint` | ESLint |
+| `pnpm typecheck` | `nuxt typecheck` (vue-tsc) |
+| `pnpm test` | Vitest unit + integration tests (test DB `pps2026_test`) |
+| `pnpm test:e2e` | Playwright end-to-end suite (reuses a running dev server) |
+| `pnpm db:generate` | Generate a Drizzle migration from `server/db/schema.ts` |
+| `pnpm db:migrate` | Apply migrations |
+| `pnpm db:seed` | Seed demo data (dev only — wipes business tables) |
+| `pnpm db:studio` | Drizzle Studio |
+
+Services smoke script (no browser): `pnpm tsx --env-file=.env scripts/smoke-services.ts`.
+
+## The demo chain
+
+1. Open `/` — the symposium homepage.
+2. `Register Now` → pick a type → fill participant info → confirm → order created.
+3. `/payment/:id` → mock QR + waiting state → `Open simulated cashier` → simulate payment.
+4. Polling flips the order to PAID → redirect to `/credential/:token` (the event pass, with QR + PDF download).
+5. `/verify/:token` — what the QR encodes; shows live validity.
+6. `/scan` — staff sign-in (`staff / pps26-staff`) → scan the QR with a phone camera (or manual entry) → confirm check-in; duplicates are blocked.
+7. `/admin` (`admin / pps26-admin`) — dashboard, registrations, orders, payments, credentials, check-ins.
+
+> Camera QR scanning requires a secure context (https, or localhost during development). On phones without camera access the manual-entry path works identically.
+
+## Documentation
+
+- `PLAN.md` — milestones, design system, definition of done
+- `ARCHITECTURE.md` — frontend/server/database/payment/credential/admin structure
+- `PAYMENT.md` — payment architecture, adapters, environment variables, production checklist
+- `TEST_PLAN.md` — unit + E2E coverage
+- `AGENTS.md` — engineering rules for this repository
