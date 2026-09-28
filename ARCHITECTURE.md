@@ -27,7 +27,7 @@ tests/                    unit/ (Vitest) · e2e/ (Playwright)
 User → Registration → Order → Payment → Credential → Check-in
 ```
 
-Five separate entities (never merged), mirroring the conference workflow. Money is stored as integer fen. Human-friendly ids (`PPS26-000123`, `PPS26-ORD-000123`) come from an atomic counter table (no raw SQL).
+Five separate entities (never merged), mirroring the conference workflow. Money is stored as integer fen. Human-friendly ids (`ISAGMSM-000123`, `ISAGMSM-ORD-000123`) come from an atomic counter table (no raw SQL).
 
 Key invariants:
 

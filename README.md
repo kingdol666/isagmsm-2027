@@ -1,7 +1,7 @@
-# PPS 2026 — Polymer Processing Symposium
+# ISAGMSM 2027 — 第五届先进凝胶材料与软物质国际学术研讨会
 
-> Materials · Processing · Manufacturing · Intelligence
-> 15—17 October 2026 · Hefei · China
+> The 5th International Symposium for Advanced Gel Materials & Soft Matters
+> 2027年4月24—26日 · 合肥滨湖国际会展中心 · 中国
 
 Full-stack conference platform: public symposium website, email registration, orders, payments (mock + WeChat/Alipay adapters), electronic credentials with QR verification, on-site check-in scanner, and an admin dashboard.
 

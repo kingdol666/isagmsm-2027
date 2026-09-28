@@ -7,7 +7,7 @@ useSeoMeta({
   title: `${siteMeta.fullNameZh} · ${siteMeta.dates} · ${siteMeta.location}`,
   description:
     `${siteMeta.fullNameEn}（${siteMeta.fullNameZh}），${siteMeta.dates}，${siteMeta.location}。围绕凝胶材料设计合成、软物质物理、智能响应体系、生物医用转化与产业化交流最新进展。`,
-  ogTitle: `ISAGMSM 2026 — ${siteMeta.fullNameZh}`,
+  ogTitle: `ISAGMSM 2027 — ${siteMeta.fullNameZh}`,
   ogDescription: `${siteMeta.dates} · ${siteMeta.location} · 立即报名`,
   ogType: 'website',
   twitterCard: 'summary_large_image',
@@ -23,8 +23,8 @@ useHead({
         name: siteMeta.fullNameEn,
         alternateName: siteMeta.fullNameZh,
         description: '第五届先进凝胶材料与软物质国际学术研讨会',
-        startDate: '2026-04-24',
-        endDate: '2026-04-26',
+        startDate: '2027-04-24',
+        endDate: '2027-04-26',
         eventStatus: 'https://schema.org/EventScheduled',
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         location: {

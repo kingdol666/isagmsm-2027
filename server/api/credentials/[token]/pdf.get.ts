@@ -39,9 +39,9 @@ export default defineEventHandler(async (event) => {
     page.drawText(value, { x, y, size, font, color })
 
   /* header */
-  text('PPS 2026', 48, 780, 34, serif)
-  text('POLYMER PROCESSING SYMPOSIUM', 48, 762, 10, sansBold, grey)
-  text('15—17 OCTOBER 2026 · HEFEI · CHINA', 48, 748, 9, mono, grey)
+  text('ISAGMSM 2027', 48, 780, 34, serif)
+  text('ADVANCED GEL MATERIALS & SOFT MATTERS', 48, 762, 10, sansBold, grey)
+  text('24—26 APRIL 2027 · HEFEI · CHINA', 48, 748, 9, mono, grey)
 
   /* the melt line */
   page.drawLine({
@@ -111,7 +111,7 @@ export default defineEventHandler(async (event) => {
     grey,
   )
 
-  text('Issued by the PPS 2026 Organising Committee (sample credential)', 48, 300, 8, serifItalic, grey)
+  text('Issued by the ISAGMSM 2027 Organising Committee (sample credential)', 48, 300, 8, serifItalic, grey)
   text('This pass is personal and non-transferable. Please present the QR code at check-in.', 48, 288, 8, serifItalic, grey)
 
   /* strata footer: five film layers, one copper */
@@ -124,11 +124,11 @@ export default defineEventHandler(async (event) => {
       opacity: i === 2 ? 1 : 0.22,
     })
   }
-  text('© 2026 PPS 2026 ORGANISING COMMITTEE', 48, 64, 8, mono, grey)
+  text('© 2027 ISAGMSM 2027 ORGANISING COMMITTEE', 48, 64, 8, mono, grey)
 
   const bytes = await pdf.save()
   setHeader(event, 'content-type', 'application/pdf')
-  setHeader(event, 'content-disposition', `attachment; filename="PPS2026-${view.registration.displayId}.pdf"`)
+  setHeader(event, 'content-disposition', `attachment; filename="ISAGMSM2027-${view.registration.displayId}.pdf"`)
   return bytes
 })
 

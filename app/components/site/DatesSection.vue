@@ -16,7 +16,7 @@ import { datesContent, siteMeta } from '#shared/content/site'
       <!-- 征稿 CTA -->
       <div class="cfp">
         <p class="cfp-text">
-          <b>征稿启事</b> — 欢迎围绕六大研究方向投稿，摘要提交截止 2026年3月25日。
+          <b>征稿启事</b> — 欢迎围绕六大研究方向投稿，摘要提交截止 2027年3月25日。
         </p>
         <a
           class="btn btn-ghost"

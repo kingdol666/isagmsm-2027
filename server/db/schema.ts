@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 /*
- * PPS 2026 domain chain (each stage is its OWN entity, never merged):
+ * ISAGMSM 2027 domain chain (each stage is its OWN entity, never merged):
  *   User → Registration → Order → Payment → Credential → Check-in
  *
  * Money is stored as integer fen (1 CNY = 100 fen) to avoid float errors.

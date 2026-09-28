@@ -14,6 +14,7 @@ test-results
 .blob
 .vercel
 .netlify
+.tmp
 
 # design exploration workspace (temporary tooling)
 design-demos/node_modules

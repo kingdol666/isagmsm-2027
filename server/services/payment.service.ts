@@ -40,7 +40,7 @@ export async function createPaymentForOrder(db: Db, orderId: string, providerNam
     paymentId,
     orderNo: order.orderNo,
     amountFen: order.totalFen,
-    description: `PPS 2026 registration ${order.orderNo}`,
+    description: `ISAGMSM 2027 registration ${order.orderNo}`,
   })
 
   const payment = await createPayment(db, {

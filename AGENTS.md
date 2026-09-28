@@ -4,7 +4,7 @@
 
 This repository is the full-stack website and registration platform for:
 
-Polymer Processing Symposium 2026 (PPS 2026).
+The 5th International Symposium for Advanced Gel Materials & Soft Matters (ISAGMSM 2027 / 第五届先进凝胶材料与软物质国际学术研讨会).
 
 ## Primary Goal
 
@@ -73,7 +73,7 @@ https://ecsymposium.com/
 
 Do not copy the reference website.
 
-PPS 2026 must have its own visual identity.
+ISAGMSM 2027 must have its own visual identity.
 
 Preferred characteristics:
 

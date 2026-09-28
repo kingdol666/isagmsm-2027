@@ -1,7 +1,8 @@
 import { createHmac } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { eq } from 'drizzle-orm'
 import { createDb } from '../../server/db'
-import { registrationTypes, users } from '../../server/db/schema'
+import { registrationTypes, siteSettings, users } from '../../server/db/schema'
 import { submitRegistration } from '../../server/services/registration.service'
 import { createOrderForRegistration, markOrderPaidInTx } from '../../server/services/order.service'
 import { createPaymentForOrder, handlePaymentCallback } from '../../server/services/payment.service'
@@ -35,6 +36,12 @@ beforeAll(async () => {
       { code: 'student', name: 'Student', priceFen: 160000, description: 'Students', availability: 'available', sortOrder: 1 },
       { code: 'academic', name: 'Academic', priceFen: 240000, description: 'Academic', availability: 'available', sortOrder: 2 },
     ])
+  }
+  // pin the early-bird deadline to the past so full-price assertions hold
+  // regardless of the wall clock (ISAGMSM 2027 early-bird runs to 2027-03-25)
+  const pinned = await db.select().from(siteSettings).where(eq(siteSettings.key, 'early_bird_deadline'))
+  if (pinned.length === 0) {
+    await db.insert(siteSettings).values({ key: 'early_bird_deadline', value: '2020-01-01T00:00:00+08:00' })
   }
 })
 

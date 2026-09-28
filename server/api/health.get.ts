@@ -10,7 +10,7 @@ export default defineEventHandler(() => {
   const mail = getMailer(process.env)
   return {
     status: 'ok',
-    event: 'PPS 2026',
+    event: 'ISAGMSM 2027',
     integrations: {
       payments: providers.filter(p => p.available).map(p => p.name),
       mail: mail.smtpConfigured ? 'smtp' : 'dev',

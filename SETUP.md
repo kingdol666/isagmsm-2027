@@ -68,7 +68,7 @@ bank: {
   bank: '开户银行（如：中国银行合肥滨湖支行）',
   accountNumber: '银行账号',
   remarkFormat: '参会ID-姓名',
-  deadline: '银行转账截止：2026年4月15日',
+  deadline: '银行转账截止：2027年4月15日',
 },
 ```
 

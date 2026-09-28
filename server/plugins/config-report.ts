@@ -13,7 +13,7 @@ export default defineNitroPlugin(() => {
   const usingDevAdminPasswords = !process.env.ADMIN_PASSWORD
 
   const lines = [
-    '── PPS 2026 configuration report ─────────────────────────────',
+    '── ISAGMSM 2027 configuration report ──────────────────────────',
     `  payments : ${active.join(', ')}${active.length === 1 ? '   (WeChat/Alipay activate via WECHAT_* / ALIPAY_* env — see PAYMENT.md)' : ''}`,
     `  mail     : ${mail.smtpConfigured ? 'SMTP delivery active' : 'DEV MODE — codes are logged and returned as devCode (set MAIL_SMTP_* to send real email)'}`,
     `  database : ${config.databaseUrl ? 'configured' : 'MISSING — set DATABASE_URL'}`,

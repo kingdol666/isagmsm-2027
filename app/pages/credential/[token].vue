@@ -51,10 +51,10 @@ function printPage() {
       </header>
 
       <!-- the pass -->
-      <article class="pass" aria-label="ISAGMSM 2026 会议凭证">
+      <article class="pass" aria-label="ISAGMSM 2027 会议凭证">
         <header class="pass-top">
           <div>
-            <p class="pass-mark">ISAGMSM<i>·</i>26</p>
+            <p class="pass-mark">ISAGMSM<i>·</i>27</p>
             <p class="pass-event">第五届先进凝胶材料与软物质国际学术研讨会</p>
           </div>
           <p class="pass-status" :class="{ ok: credential.status === 'active' }">
@@ -102,7 +102,7 @@ function printPage() {
 
         <footer class="pass-foot">
           <div class="strata" aria-hidden="true"><span /><span /><span /><span /><span /></div>
-          <p class="mono pass-note">15—17 OCTOBER 2026 · HEFEI · CHINA · PERSONAL &amp; NON-TRANSFERABLE</p>
+          <p class="mono pass-note">24—26 APRIL 2027 · HEFEI · CHINA · PERSONAL &amp; NON-TRANSFERABLE</p>
         </footer>
       </article>
 

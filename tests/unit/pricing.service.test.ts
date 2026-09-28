@@ -5,7 +5,7 @@ describe('computePrice (RegistrationPricingService)', () => {
   const input = { priceFen: 240000, currency: 'CNY' }
 
   it('charges full price after the early-bird deadline', () => {
-    const result = computePrice(input, { now: new Date('2026-09-20T00:00:00+08:00') })
+    const result = computePrice(input, { now: new Date('2027-05-20T00:00:00+08:00') })
     expect(result.subtotalFen).toBe(240000)
     expect(result.discountFen).toBe(0)
     expect(result.totalFen).toBe(240000)
@@ -20,8 +20,8 @@ describe('computePrice (RegistrationPricingService)', () => {
   })
 
   it('deadline boundary: discount until end of deadline day', () => {
-    const atDeadline = computePrice(input, { now: new Date('2026-08-01T23:59:59+08:00') })
-    const afterDeadline = computePrice(input, { now: new Date('2026-08-02T00:00:00+08:00') })
+    const atDeadline = computePrice(input, { now: new Date('2027-03-25T23:59:59+08:00') })
+    const afterDeadline = computePrice(input, { now: new Date('2027-03-26T00:00:00+08:00') })
     expect(atDeadline.discountReason).toBe('early_bird')
     expect(afterDeadline.discountReason).toBeNull()
   })

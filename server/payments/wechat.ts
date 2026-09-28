@@ -66,7 +66,7 @@ export function createWechatProvider(config: WechatConfig): PaymentProvider {
         'content-type': 'application/json',
         accept: 'application/json',
         authorization: authorizationHeader(method, urlPath, bodyText),
-        'user-agent': 'pps2026-payment-adapter',
+        'user-agent': 'isagmsm2027-payment-adapter',
       },
       body: method === 'POST' ? bodyText : undefined,
     })

@@ -8,7 +8,7 @@ export interface SmtpConfig {
   secure: boolean // true for 465, false for 587/25
   user: string
   pass: string
-  from: string // e.g. "PPS 2026 <no-reply@pps2026-conf.org>"
+  from: string // e.g. "ISAGMSM 会议 <no-reply@isagmsm.org>"
 }
 
 export function smtpConfigFromEnv(env: Record<string, string | undefined>): SmtpConfig | null {
@@ -28,25 +28,25 @@ export function smtpConfigFromEnv(env: Record<string, string | undefined>): Smtp
 }
 
 const SUBJECTS: Record<'signup' | 'reset', string> = {
-  signup: 'PPS 2026 — your verification code',
-  reset: 'PPS 2026 — your password reset code',
+  signup: 'ISAGMSM 2027 — 邮箱验证码',
+  reset: 'ISAGMSM 2027 — 重置密码验证码',
 }
 
 function mailHtml(purpose: 'signup' | 'reset', code: string): string {
-  const action = purpose === 'signup' ? 'complete your registration' : 'reset your password'
+  const action = purpose === 'signup' ? '完成注册' : '重置密码'
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#F7F6F2;font-family:Helvetica,Arial,sans-serif;">
+<html><body style="margin:0;padding:0;background:#F7F6F2;font-family:'PingFang SC','Microsoft YaHei',Helvetica,Arial,sans-serif;">
   <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
-    <p style="font-size:26px;color:#111111;margin:0 0 4px;">PPS<i style="color:#9A4E2E;font-style:normal;">·</i>26</p>
-    <p style="font-size:11px;letter-spacing:.14em;color:#6B6B66;text-transform:uppercase;margin:0 0 28px;">Polymer Processing Symposium 2026</p>
+    <p style="font-size:26px;color:#111111;margin:0 0 4px;">ISAGMSM<i style="color:#9A4E2E;font-style:normal;">·</i>27</p>
+    <p style="font-size:11px;letter-spacing:.14em;color:#6B6B66;margin:0 0 28px;">第五届先进凝胶材料与软物质国际学术研讨会 · 2027年4月24—26日 · 合肥</p>
     <div style="border-top:1px solid #111111;padding-top:16px;">
       <p style="font-size:14px;color:#111111;line-height:1.6;margin:0 0 18px;">
-        Your verification code to ${action}:
+        您用于${action}的验证码：
       </p>
       <p style="font-size:34px;letter-spacing:.3em;color:#9A4E2E;font-family:Courier,monospace;margin:0 0 18px;">${code}</p>
       <p style="font-size:13px;color:#6B6B66;line-height:1.7;margin:0;">
-        The code is valid for 10 minutes. If you did not request it, you can safely ignore this email.<br><br>
-        © 2026 PPS 2026 Organising Committee
+        验证码 10 分钟内有效。如非本人操作，请忽略本邮件。<br><br>
+        © 2027 ISAGMSM 组织委员会
       </p>
     </div>
   </div>
@@ -67,7 +67,7 @@ export function createSmtpMailer(config: SmtpConfig): Mailer {
         from: config.from,
         to: email,
         subject: SUBJECTS[purpose],
-        text: `Your PPS 2026 verification code is ${code}. It is valid for 10 minutes.`,
+        text: `您的 ISAGMSM 2027 验证码是 ${code}，10 分钟内有效。`,
         html: mailHtml(purpose, code),
       }
       await transporter.sendMail(message)

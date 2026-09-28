@@ -48,44 +48,44 @@ const TYPES = [
 ]
 
 const SPEAKERS = [
-  { slug: 'marchetti', code: 'K—01', name: 'Prof. Elena Marchetti', affiliation: 'Politecnico di Torino, Italy', talk: 'Reactive Extrusion: Where Materials Chemistry Meets Process Engineering', monogram: 'EM', sortOrder: 1 },
-  { slug: 'tanaka', code: 'K—02', name: 'Prof. Hiroshi Tanaka', affiliation: 'Tokyo Institute of Technology, Japan', talk: 'Precision Injection Molding for Micro-Optical Components', monogram: 'HT', sortOrder: 2 },
-  { slug: 'chen', code: 'K—03', name: 'Prof. Sarah Chen', affiliation: 'Massachusetts Institute of Technology, USA', talk: 'Machine Learning Models for Polymer Process Simulation', monogram: 'SC', sortOrder: 3 },
-  { slug: 'johansson', code: 'K—04', name: 'Prof. Lars Johansson', affiliation: 'KTH Royal Institute of Technology, Sweden', talk: 'Fiber Spinning at the Nanoscale: Structure Control in Processing', monogram: 'LJ', sortOrder: 4 },
-  { slug: 'okonkwo', code: 'I—05', name: 'Dr. Amara Okonkwo', affiliation: 'University of Manchester, UK', talk: 'Twin-Screw Compounding of Bio-Based Polyamides', monogram: 'AO', sortOrder: 5 },
-  { slug: 'li-wei', code: 'I—06', name: 'Prof. Li Wei', affiliation: 'University of Science and Technology of China', talk: 'In-Mold Rheology Control for Structural Foam', monogram: 'LW', sortOrder: 6 },
-  { slug: 'muller', code: 'I—07', name: 'Dr. Stefan Müller', affiliation: 'RWTH Aachen, Germany', talk: 'Digital Twins for Extrusion Lines: From Model to Plant Floor', monogram: 'SM', sortOrder: 7 },
-  { slug: 'park', code: 'I—08', name: 'Prof. Ji-Hyun Park', affiliation: 'KAIST, South Korea', talk: 'Multilayer Film Processing for High-Barrier Packaging', monogram: 'JP', sortOrder: 8 },
-  { slug: 'rossi', code: 'I—09', name: 'Dr. Marco Rossi', affiliation: 'Fraunhofer LBF, Germany', talk: 'Extensional Rheology in Industrial Film Casting', monogram: 'MR', sortOrder: 9 },
-  { slug: 'nakamura', code: 'I—10', name: 'Prof. Yuki Nakamura', affiliation: 'Kyoto University, Japan', talk: 'Powder Bed Sintering of Semicrystalline Polymers', monogram: 'YN', sortOrder: 10 },
+  { slug: 'marchetti', code: 'K—01', name: 'Prof. Elena Marchetti', affiliation: 'Politecnico di Torino, Italy', talk: 'Double-Network Ionogels: Interfacial Toughening Strategies', monogram: 'EM', sortOrder: 1 },
+  { slug: 'tanaka', code: 'K—02', name: 'Prof. Hiroshi Tanaka', affiliation: 'Tokyo Institute of Technology, Japan', talk: 'Sliding-Ring Networks in Biomimetic Hydrogels', monogram: 'HT', sortOrder: 2 },
+  { slug: 'chen', code: 'K—03', name: 'Prof. Sarah Chen', affiliation: 'Massachusetts Institute of Technology, USA', talk: 'Machine Learning for Gel Network Design', monogram: 'SC', sortOrder: 3 },
+  { slug: 'johansson', code: 'K—04', name: 'Prof. Lars Johansson', affiliation: 'KTH Royal Institute of Technology, Sweden', talk: 'Stimuli-Responsive Gels: From Actuation to Soft Robotics', monogram: 'LJ', sortOrder: 4 },
+  { slug: 'okonkwo', code: 'I—05', name: 'Dr. Amara Okonkwo', affiliation: 'University of Manchester, UK', talk: 'Hydrogel Scaffolds for Wound Healing and Drug Delivery', monogram: 'AO', sortOrder: 5 },
+  { slug: 'li-wei', code: 'I—06', name: 'Prof. Li Wei', affiliation: 'University of Science and Technology of China', talk: 'Aerogels for Flexible Electronics and Energy Storage', monogram: 'LW', sortOrder: 6 },
+  { slug: 'muller', code: 'I—07', name: 'Dr. Stefan Müller', affiliation: 'RWTH Aachen, Germany', talk: 'Rheology and Network Dynamics of Physical Gels', monogram: 'SM', sortOrder: 7 },
+  { slug: 'park', code: 'I—08', name: 'Prof. Ji-Hyun Park', affiliation: 'KAIST, South Korea', talk: 'Bioprinted Hydrogels for Tissue Engineering', monogram: 'JP', sortOrder: 8 },
+  { slug: 'rossi', code: 'I—09', name: 'Dr. Marco Rossi', affiliation: 'Fraunhofer LBF, Germany', talk: 'Scale-Up Engineering of Smart Gel Manufacturing', monogram: 'MR', sortOrder: 9 },
+  { slug: 'nakamura', code: 'I—10', name: 'Prof. Yuki Nakamura', affiliation: 'Kyoto University, Japan', talk: 'Self-Assembly and Interfacial Science of Soft Matters', monogram: 'YN', sortOrder: 10 },
 ]
 
 const SESSIONS = [
-  { dayNo: 1, label: 'Day 1 — 15 Oct', date: 'Day 1 · 15 October 2026', sortOrder: 1 },
-  { dayNo: 2, label: 'Day 2 — 16 Oct', date: 'Day 2 · 16 October 2026', sortOrder: 2 },
-  { dayNo: 3, label: 'Day 3 — 17 Oct', date: 'Day 3 · 17 October 2026', sortOrder: 3 },
+  { dayNo: 1, label: 'Day 1 — 24 Apr', date: 'Day 1 · 24 April 2027', sortOrder: 1 },
+  { dayNo: 2, label: 'Day 2 — 25 Apr', date: 'Day 2 · 25 April 2027', sortOrder: 2 },
+  { dayNo: 3, label: 'Day 3 — 26 Apr', date: 'Day 3 · 26 April 2027', sortOrder: 3 },
 ]
 
 const ITEMS: Record<number, Array<[string, string, string | null, string, boolean?]>> = {
   1: [
     ['08:30–09:00', 'Opening Ceremony', null, 'Main Hall'],
-    ['09:00–10:00', 'Keynote: Reactive Extrusion', 'E. Marchetti', 'Main Hall', true],
-    ['10:30–12:00', 'Session A: Advances in Extrusion', null, 'Hall A'],
-    ['13:30–15:00', 'Session B: Rheology & Characterization', null, 'Hall A'],
-    ['15:30–17:00', 'Session C: Polymer Processing Simulation', null, 'Hall B'],
+    ['09:00–10:00', 'Keynote: Double-Network Ionogels', 'E. Marchetti', 'Main Hall', true],
+    ['10:30–12:00', 'Session A: Gel Design & Synthesis', null, 'Hall A'],
+    ['13:30–15:00', 'Session B: Soft Matter Physics & Rheology', null, 'Hall A'],
+    ['15:30–17:00', 'Session C: Stimuli-Responsive Gels', null, 'Hall B'],
     ['17:30–18:30', 'Welcome Reception', null, 'Lobby'],
   ],
   2: [
-    ['09:00–10:00', 'Keynote: Machine Learning for Process Simulation', 'S. Chen', 'Main Hall', true],
-    ['10:30–12:00', 'Session D: Injection Molding', null, 'Hall A'],
-    ['13:30–15:00', 'Session E: Film Processing & Flexible Packaging', null, 'Hall B'],
-    ['15:30–17:00', 'Session F: Additive Manufacturing', null, 'Hall A'],
+    ['09:00–10:00', 'Keynote: Machine Learning for Gel Network Design', 'S. Chen', 'Main Hall', true],
+    ['10:30–12:00', 'Session D: Biomedical Gel Materials', null, 'Hall A'],
+    ['13:30–15:00', 'Session E: Characterization & Modeling', null, 'Hall B'],
+    ['15:30–17:00', 'Session F: Hydrogels for Tissue Engineering', null, 'Hall A'],
     ['17:00–18:00', 'Poster Session I', null, 'Exhibition Area'],
   ],
   3: [
-    ['09:00–10:00', 'Keynote: Fiber Spinning at the Nanoscale', 'L. Johansson', 'Main Hall', true],
-    ['10:30–12:00', 'Session G: AI & Digital Twins', null, 'Hall B'],
-    ['13:30–15:00', 'Session H: Fiber Spinning & Textile Materials', null, 'Hall A'],
+    ['09:00–10:00', 'Keynote: Stimuli-Responsive Gels in Soft Robotics', 'L. Johansson', 'Main Hall', true],
+    ['10:30–12:00', 'Session G: Aerogels & Flexible Electronics', null, 'Hall B'],
+    ['13:30–15:00', 'Session H: Industrialization & Applications', null, 'Hall A'],
     ['15:30–16:30', 'Closing Remarks & Awards', null, 'Main Hall'],
   ],
 }
@@ -148,9 +148,9 @@ async function seed() {
 
   /* settings */
   await db.insert(siteSettings).values([
-    { key: 'early_bird_deadline', value: '2026-08-01T23:59:59+08:00' },
-    { key: 'regular_registration_deadline', value: '2026-09-01T23:59:59+08:00' },
-    { key: 'call_for_abstracts_open', value: '2026-05-01T00:00:00+08:00' },
+    { key: 'early_bird_deadline', value: '2027-03-25T23:59:59+08:00' },
+    { key: 'regular_registration_deadline', value: '2027-04-15T23:59:59+08:00' },
+    { key: 'call_for_abstracts_open', value: '2026-12-01T00:00:00+08:00' },
   ])
 
   /* admin users (dev defaults — set ADMIN_PASSWORD in real deployments) */
@@ -172,7 +172,7 @@ async function seed() {
         userId: user.id,
         typeId: type.id,
         status: p.outcome === 'paid' ? 'confirmed' : 'submitted',
-        displayId: `PPS26-${String(regSeq).padStart(6, '0')}`,
+        displayId: `ISAGMSM-${String(regSeq).padStart(6, '0')}`,
         fullName: p.fullName,
         email: p.email,
         affiliation: p.affiliation,
@@ -182,10 +182,10 @@ async function seed() {
 
     if (p.outcome === 'confirmed_no_order') continue
 
-    const breakdown = computePrice({ priceFen: type.priceFen, currency: type.currency }, { now: new Date('2026-09-20T00:00:00+08:00') })
+    const breakdown = computePrice({ priceFen: type.priceFen, currency: type.currency }, { now: new Date('2027-05-20T00:00:00+08:00') })
     const order = (await db.insert(orders).values({
       registrationId: registration.id,
-      orderNo: `PPS26-ORD-${String(regSeq).padStart(6, '0')}`,
+      orderNo: `ISAGMSM-ORD-${String(regSeq).padStart(6, '0')}`,
       subtotalFen: breakdown.subtotalFen,
       discountFen: breakdown.discountFen,
       totalFen: breakdown.totalFen,

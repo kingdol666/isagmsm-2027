@@ -1,7 +1,7 @@
-# PPS 2026 — Polymer Processing Symposium · Development Plan
+# ISAGMSM 2027 — 第五届先进凝胶材料与软物质国际学术研讨会 · Development Plan
 
-> Polymer Processing — Materials · Processing · Manufacturing · Intelligence
-> 15—17 October 2026 · Hefei · China
+> The 5th International Symposium for Advanced Gel Materials & Soft Matters
+> 2027年4月24—26日 · 合肥滨湖国际会展中心 · 中国
 
 Full-stack symposium website: public site + registration + orders + payments + electronic credentials + QR verification + on-site check-in + admin dashboard.
 
@@ -38,7 +38,7 @@ Swiss International Style after Josef Müller-Brockmann, selected by the user fr
 
 - Tokens: paper `#F7F6F2`, ink `#111111`, grey `#6B6B66`, copper `#B45F3A` (+ lightness variants `#9A4E2E` / `#D9885F`), hairlines ink @ 18%.
 - Type: Instrument Serif (display) · Inter (body) · IBM Plex Mono (codes/labels), self-hosted via `@nuxt/fonts`.
-- Motifs: the continuous extrusion line (left index rail hairline), film cross-section strata (five hairlines, one copper "melt"), industrial batch codes `PPS26—xx`, FIG.-numbered abstract graphics.
+- Motifs: the continuous baseline (left index rail hairline), film cross-section strata (five hairlines, one copper "melt"), industrial batch codes `ISAGMSM—xx`, FIG.-numbered abstract graphics.
 - Known fix applied during port: the desktop index rail is `position:fixed`; the footer (colophon) must live **inside the main content column** (`margin-left: var(--rail-w)`) so the rail never covers it.
 - Forbidden: purple gradients, glassmorphism, neon, AI-glow, SaaS card walls, particles, decorative animation. Animation budget: hover, tabs, scroll-spy only.
 

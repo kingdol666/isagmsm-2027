@@ -19,7 +19,7 @@ function handleError() {
       <p class="err-body">
         {{
           is404
-            ? 'The page you requested does not exist on the ISAGMSM 2026 line.'
+            ? 'The page you requested does not exist on the ISAGMSM 2027 line.'
             : (error.message || 'An unexpected error occurred. Our secretariat has been notified.')
         }}
       </p>

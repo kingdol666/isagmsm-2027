@@ -18,20 +18,25 @@ import type {
 
 export const siteMeta = {
   shortName: 'ISAGMSM',
-  name: 'ISAGMSM 2026',
+  name: 'ISAGMSM 2027',
   fullNameZh: '第五届先进凝胶材料与软物质国际学术研讨会',
   fullNameEn: 'The 5th International Symposium for Advanced Gel Materials & Soft Matters',
   theme: '凝胶赋能 · 软物智造',
-  dates: '2026年4月24—26日',
-  datesShort: '2026·4·24-26',
+  dates: '2027年4月24—26日',
+  datesShort: '2027·4·24-26',
   location: '中国 · 合肥',
+  /* 参会地址（会场已拟定，正式确认以第二轮通知为准） */
+  venue: '合肥滨湖国际会展中心',
+  venueEn: 'Hefei Binhu International Convention & Exhibition Centre',
+  venueAddress: '安徽省合肥市包河区锦绣大道 3899 号（庐州大道与锦绣大道交口）',
+  venueNote: '会场以第二轮通知为准',
   email: 'isagmsm@conference.example.org',
   abstractsEmail: 'abstracts@conference.example.org',
-  copyright: '© 2026 ISAGMSM 组织委员会',
+  copyright: '© 2027 ISAGMSM 组织委员会',
   /* 重要日期横幅（header 下方，参照学术会议官网形态） */
   bannerDates: [
-    '会前缴费优惠期至2026年3月25日',
-    '征稿截止2026年3月25日',
+    '会前缴费优惠期至2027年3月25日',
+    '征稿截止2027年3月25日',
   ],
 } as const
 
@@ -46,7 +51,7 @@ export const siteNav: SiteNavItem[] = [
 ]
 
 export const aboutContent = {
-  code: 'PPS26—01',
+  code: 'ISAGMSM—01',
   tag: '会议简介',
   title: '会议简介',
   facts: [
@@ -55,7 +60,7 @@ export const aboutContent = {
     { label: '形式', value: '大会报告 · 分会报告 · 墙报' },
   ],
   paragraphs: [
-    '先进凝胶材料与软物质是材料科学与生命健康交叉领域最活跃的研究前沿之一。第五届先进凝胶材料与软物质国际学术研讨会（ISAGMSM 2026）将围绕凝胶材料的设计合成、软物质物理、智能响应体系、生物医用转化与规模产业化等方向，汇集国内外高校、科研院所与产业界的专家学者，交流最新研究进展。',
+    '先进凝胶材料与软物质是材料科学与生命健康交叉领域最活跃的研究前沿之一。第五届先进凝胶材料与软物质国际学术研讨会（ISAGMSM 2027）将围绕凝胶材料的设计合成、软物质物理、智能响应体系、生物医用转化与规模产业化等方向，汇集国内外高校、科研院所与产业界的专家学者，交流最新研究进展。',
     '会议同期设置大会报告、分会报告与墙报交流，并为青年学者与研究生提供展示平台。我们期待与您在合肥相聚，共同探讨凝胶与软物质领域的未来。',
     '（会议简介为示例文案，请组委会审定后替换。）',
   ],
@@ -155,10 +160,10 @@ export const datesContent: { code: string; tag: string; title: string; items: Im
   tag: '时间节点',
   title: '重要日期',
   items: [
-    { label: '征稿截止', date: '2026年3月25日' },
-    { label: '征文录用通知', date: '2026年4月5日' },
-    { label: '会前缴费优惠截止', date: '2026年3月25日' },
-    { label: '研讨会', date: '2026年4月24—26日', hot: true },
+    { label: '征稿截止', date: '2027年3月25日' },
+    { label: '征文录用通知', date: '2027年4月5日' },
+    { label: '会前缴费优惠截止', date: '2027年3月25日' },
+    { label: '研讨会', date: '2027年4月24—26日', hot: true },
   ]
 }
 
@@ -221,12 +226,12 @@ export const abstractsContent = {
     '摘要篇幅不超过一页 A4 纸，中英文均可，按会议模板书写（模板见下载专区）',
     '投稿时需选择主题方向与报告类别（口头报告 / 墙报 / 仅提交摘要），最终类别由学术委员会审议确定',
     '墙报建议尺寸 90cm（宽）× 120cm（高），请自行彩打并带至现场',
-    '投稿截止 2026年3月25日；录用通知将于 2026年4月5日前发送至投稿邮箱',
+    '投稿截止 2027年3月25日；录用通知将于 2027年4月5日前发送至投稿邮箱',
   ],
   submit: {
     channel: '请将摘要（Word 格式）发送至投稿邮箱，邮件标题注明「ISAGMSM投稿-姓名-主题方向」',
     email: 'abstracts@conference.example.org',
-    deadline: '2026年3月25日',
+    deadline: '2027年3月25日',
   },
   contact: '征文联系人：会议秘书处（abstracts@conference.example.org · 电话待公布）',
 } as const
@@ -239,7 +244,7 @@ export const registrationInfoContent = {
   /* 注册费表（示例价格，请组委会确认后替换） */
   feeTable: {
     note: '注册费包括会议费、资料费等（不含住宿）',
-    headers: ['类别', '会前缴费（2026/3/25 前）', '会后缴费'],
+    headers: ['类别', '会前缴费（2027/3/25 前）', '会后缴费'],
     rows: [
       ['正式代表', '¥2,000', '¥2,400'],
       ['学生代表（凭证件）', '¥1,200', '¥1,600'],
@@ -256,10 +261,10 @@ export const registrationInfoContent = {
     bank: '（开户银行 — 待组委会确认）',
     accountNumber: '（银行账号 — 待组委会确认）',
     remarkFormat: '参会ID-姓名',
-    deadline: '银行转账截止：2026年4月15日',
+    deadline: '银行转账截止：2027年4月15日',
   },
   invoice: '发票说明：审批通过后由会务组统一开具，会议现场凭参会 ID 领取。',
-  notice: '多人合并转账请附参会人员名单（参会 ID、姓名、金额）；退费申请请于 2026年4月10日前联系会务组，逾期不办理。',
+  notice: '多人合并转账请附参会人员名单（参会 ID、姓名、金额）；退费申请请于 2027年4月10日前联系会务组，逾期不办理。',
 } as const
 
 /* 会场交通（示例信息基于合肥会场，请组委会确认后替换） */
@@ -267,13 +272,14 @@ export const transportationContent: { code: string; tag: string; title: string; 
   code: 'ISAGMSM—09',
   tag: '会场交通',
   title: '会场交通',
-  venueName: '合肥 · 会议酒店（具体会场待确认）',
-  reportPoint: '报到签到处：会议主酒店大堂（以第二轮通知为准）',
+  venueName: '合肥滨湖国际会展中心',
+  reportPoint: '报到签到处：会展中心登录厅（以第二轮通知为准）',
   transit: [
-    { code: '机场', name: '合肥新桥国际机场', detail: '距会议酒店约 55 公里，车程 1 小时；机场大巴 / 出租车', lng: 116.6455, lat: 31.9835 },
-    { code: '高铁', name: '合肥南站', detail: '距会议酒店约 13 公里，打车约 20 分钟；地铁 1 号线约 40 分钟', lng: 117.3124, lat: 31.7897 },
-    { code: '火车', name: '合肥火车站', detail: '距会议酒店约 22 公里，打车约 35 分钟；地铁 1 号线约 1 小时', lng: 117.3109, lat: 31.9075 },
-    { code: '地铁', name: '地铁 1 号线 · 万达城站', detail: '1 号口出，步行至会议酒店', lng: 117.2897, lat: 31.7165 },
+    { code: '会场', name: '合肥滨湖国际会展中心', detail: '包河区锦绣大道 3899 号 · 庐州大道与锦绣大道交口', lng: 117.2952, lat: 31.7213 },
+    { code: '地铁', name: '地铁 1 号线 · 滨湖会展中心站', detail: '直达会场，沿锦绣大道步行约 240 米', lng: 117.2938, lat: 31.7205 },
+    { code: '高铁', name: '合肥南站', detail: '距会场约 10 公里，打车约 20 分钟；地铁 1 号线直达「滨湖会展中心站」', lng: 117.3124, lat: 31.7897 },
+    { code: '火车', name: '合肥火车站', detail: '距会场约 20 公里，地铁 1 号线直达，约 40 分钟', lng: 117.3109, lat: 31.9075 },
+    { code: '机场', name: '合肥新桥国际机场', detail: '距会场约 50 公里，车程 1 小时；机场大巴 / 出租车', lng: 116.6455, lat: 31.9835 },
   ],
   mapLabel: 'Map — to be embedded',
 }
@@ -294,10 +300,10 @@ export const hotelsContent = {
       stars: '五钻',
       price: '¥350 / 间夜（含早）',
       address: '合肥市包河区（详细地址待确认）',
-      intro: '会议主会场所在酒店，紧邻会议报告厅，步行即达。',
-      /* 高德坐标（lng, lat）— 示例坐标，请用 https://lbs.amap.com/tools/picker 校准 */
-      lng: 117.2897,
-      lat: 31.7165,
+      intro: '紧邻合肥滨湖国际会展中心，步行即达主会场。',
+      /* 坐标（lng, lat）— 示例坐标，请用坐标拾取器校准 */
+      lng: 117.2901,
+      lat: 31.7182,
     },
     {
       name: '协作酒店 A（示例）',
@@ -305,8 +311,8 @@ export const hotelsContent = {
       price: '¥350 / 间夜（含早）',
       address: '合肥市包河区（详细地址待确认）',
       intro: '距主会场步行约 5 分钟，豪华客房与套房。',
-      lng: 117.2872,
-      lat: 31.7148,
+      lng: 117.2989,
+      lat: 31.7238,
     },
     {
       name: '协作酒店 B（示例）',
@@ -314,8 +320,8 @@ export const hotelsContent = {
       price: '¥260 / 间夜（含早）',
       address: '合肥市包河区（详细地址待确认）',
       intro: '距主会场车程约 5 分钟，现代客房，性价比之选。',
-      lng: 117.2941,
-      lat: 31.7106,
+      lng: 117.2862,
+      lat: 31.7261,
     },
   ],
 } as const
@@ -371,6 +377,6 @@ export const registrationContent = {
 } as const
 
 export const footerContent = {
-  line: '2026年4月24—26日 · 中国合肥',
+  line: '2027年4月24—26日 · 中国合肥',
   hostNote: 'Host organisation: to be confirmed',
 } as const

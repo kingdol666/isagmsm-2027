@@ -136,7 +136,7 @@ async function saveProfile() {
       <div class="ecard" :class="{ revoked: activeCredential.credentialStatus === 'revoked' }">
         <div class="ecard-main">
           <div class="ec-top">
-            <p class="ec-mark">ISAGMSM<i>·</i>26</p>
+            <p class="ec-mark">ISAGMSM<i>·</i>27</p>
             <span class="ec-badge mono" :class="{ off: activeCredential.credentialStatus !== 'active' }">
               {{ activeCredential.credentialStatus === 'active' ? '有效凭证' : '已撤销' }}
             </span>
@@ -151,7 +151,7 @@ async function saveProfile() {
           <p class="ec-aff">{{ activeCredential.affiliation }}</p>
           <dl class="ec-facts">
             <div class="ec-fact"><dt>会员类型</dt><dd>{{ activeCredential.typeName }}</dd></div>
-            <div class="ec-fact"><dt>有效期</dt><dd>2026年4月24—26日</dd></div>
+            <div class="ec-fact"><dt>有效期</dt><dd>2027年4月24—26日</dd></div>
             <div class="ec-fact"><dt>地点</dt><dd>中国 · 合肥</dd></div>
           </dl>
         </div>
@@ -211,7 +211,7 @@ async function saveProfile() {
       </ul>
       <p v-else-if="regsLoaded" class="note mono">
         还没有报名记录。
-        <NuxtLink class="link" href="/register">立即报名 ISAGMSM 2026 →</NuxtLink>
+        <NuxtLink class="link" href="/register">立即报名 ISAGMSM 2027 →</NuxtLink>
       </p>
       <p v-else class="note mono">正在加载报名记录…</p>
     </section>

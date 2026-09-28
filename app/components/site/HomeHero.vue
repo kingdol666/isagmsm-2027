@@ -4,7 +4,7 @@ import { siteMeta } from '#shared/content/site'
 
 <template>
   <!-- 00 · HERO — the poster -->
-  <section id="home" class="hero" aria-label="ISAGMSM 2026 — 第五届先进凝胶材料与软物质国际学术研讨会">
+  <section id="home" class="hero" aria-label="ISAGMSM 2027 — 第五届先进凝胶材料与软物质国际学术研讨会">
     <div class="hero-grid-bg" aria-hidden="true" />
     <div class="wrap hero-inner">
       <div class="hero-copy">
@@ -13,12 +13,21 @@ import { siteMeta } from '#shared/content/site'
           <span class="t1">先进凝胶材料</span>
           <span class="t2">与软物质</span>
         </h1>
-        <p class="hero-sub">国际学术研讨会 · 2026</p>
+        <p class="hero-sub">国际学术研讨会 · 2027</p>
         <p class="hero-en">{{ siteMeta.fullNameEn }}</p>
-        <p class="hero-when">
-          <span class="d">{{ siteMeta.dates }}</span>
-          <span class="l">{{ siteMeta.location }}</span>
-        </p>
+        <dl class="hero-meta">
+          <div class="meta-cell">
+            <dt class="mono">会议时间 / DATES</dt>
+            <dd>{{ siteMeta.dates }}</dd>
+          </div>
+          <div class="meta-cell">
+            <dt class="mono">参会地址 / VENUE</dt>
+            <dd>
+              {{ siteMeta.venue }}
+              <small class="venue-note mono">{{ siteMeta.venueAddress }} · {{ siteMeta.venueNote }}</small>
+            </dd>
+          </div>
+        </dl>
         <div class="hero-cta">
           <NuxtLink class="btn btn-solid" href="/register">立即报名</NuxtLink>
           <NuxtLink class="btn btn-ghost" href="/abstracts">征文投稿</NuxtLink>
@@ -138,23 +147,42 @@ import { siteMeta } from '#shared/content/site'
   max-width: 34em;
 }
 
-.hero-when {
+.hero-meta {
   margin-top: clamp(18px, 3vh, 28px);
-  display: flex;
-  gap: 26px;
-  flex-wrap: wrap;
-  font-family: var(--mono);
-  font-size: 13.5px;
-  letter-spacing: .12em;
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 1px solid var(--ink);
 }
 
-.hero-when .d {
+.meta-cell {
+  padding: 13px 0 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.meta-cell dt {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .16em;
+  color: var(--copper-deep);
+  margin-bottom: 6px;
+}
+
+.meta-cell dd {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: .06em;
   color: var(--ink);
   font-weight: 500;
+  line-height: 1.55;
 }
 
-.hero-when .l {
+.venue-note {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .08em;
   color: var(--grey);
+  font-weight: 400;
+  margin-top: 3px;
 }
 
 .hero-cta {
@@ -202,6 +230,23 @@ import { siteMeta } from '#shared/content/site'
     grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
     column-gap: clamp(32px, 4vw, 72px);
     align-items: center;
+  }
+
+  .hero-meta {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+
+  .meta-cell + .meta-cell {
+    padding-left: 22px;
+    border-left: 1px solid var(--hairline);
+  }
+
+  .meta-cell:last-child {
+    border-bottom: none;
+  }
+
+  .meta-cell:first-child {
+    border-bottom: none;
   }
 
   .hero-fig {
