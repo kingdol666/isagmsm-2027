@@ -9,10 +9,14 @@ class DevMailer implements Mailer {
 
 /**
  * MailService transport selection:
- *  - MAIL_SMTP_HOST/USER/PASS/FROM set → real SMTP delivery (nodemailer)
- *  - otherwise → dev transport (logs the code; APIs surface it as devCode)
+ *  - MAIL_DRIVER=test            → DevMailer + devCode（自动化测试专用，生产禁用）
+ *  - MAIL_SMTP_* 配置齐全        → 真实 SMTP 发信（nodemailer），无 devCode
+ *  - 否则                        → DevMailer（日志 + devCode，本地演示）
  */
 export function getMailer(env: Record<string, string | undefined>): { mailer: Mailer, devMode: boolean, smtpConfigured: boolean } {
+  if (env.MAIL_DRIVER === 'test') {
+    return { mailer: new DevMailer(), devMode: true, smtpConfigured: false }
+  }
   const smtpConfig = smtpConfigFromEnv(env)
   if (smtpConfig) {
     return { mailer: createSmtpMailer(smtpConfig), devMode: false, smtpConfigured: true }

@@ -10,6 +10,8 @@ interface MyRegistration {
   status: string
   createdAt: string
   typeName: string
+  affiliation: string
+  credentialStatus: string | null
   order: { id: string, orderNo: string, totalFen: number, currency: string, status: string } | null
   credentialToken: string | null
 }
@@ -20,6 +22,7 @@ const { user } = useAuth()
 const activeCredential = computed(() => {
   return registrations.value.find(r => r.credentialToken && r.status === 'confirmed') ?? null
 })
+const activeToken = computed(() => activeCredential.value?.credentialToken ?? null)
 
 /* profile */
 const profileForm = reactive({
@@ -127,26 +130,47 @@ async function saveProfile() {
       <h1 class="sec-title">我的<em>参会</em></h1>
     </header>
 
-    <!-- 会议凭证卡：QR + token 直达 -->
-    <section v-if="activeCredential?.credentialToken" class="cred-card" aria-label="会议凭证">
-      <div class="cred-info">
-        <p class="cc-label mono">会议凭证 · 现场签到二维码</p>
-        <p class="cc-name">{{ activeCredential.typeName }} · {{ user?.fullName || profileForm.fullName }}</p>
-        <p class="cc-id mono">{{ activeCredential.displayId }}</p>
-        <div class="cc-actions">
-          <a class="btn btn-solid" :href="`/api/credentials/${activeCredential.credentialToken}/pdf`" download>下载 PDF 凭证</a>
-          <NuxtLink class="btn btn-ghost" :to="`/credential/${activeCredential.credentialToken}`">凭证详情</NuxtLink>
+    <!-- 电子会议卡：深色徽章设计，含会员ID/姓名/机构/QR/token -->
+    <section v-if="activeCredential" class="ecard-section" aria-label="电子会议卡">
+      <div class="ecard" :class="{ revoked: activeCredential.credentialStatus === 'revoked' }">
+        <div class="ecard-main">
+          <div class="ec-top">
+            <p class="ec-mark">ISAGMSM<i>·</i>26</p>
+            <span class="ec-badge mono" :class="{ off: activeCredential.credentialStatus !== 'active' }">
+              {{ activeCredential.credentialStatus === 'active' ? '有效凭证' : '已撤销' }}
+            </span>
+          </div>
+          <p class="ec-conf mono">第五届先进凝胶材料与软物质国际学术研讨会</p>
+          <p class="ec-label mono">电子会员证 · 会员 ID</p>
+          <p class="ec-id mono">{{ activeCredential.displayId }}</p>
+          <p class="ec-name">{{ user?.fullName || profileForm.fullName || activeCredential.typeName }}</p>
+          <p class="ec-aff">{{ activeCredential.affiliation }}</p>
+          <dl class="ec-facts">
+            <div class="ec-fact"><dt>会员类型</dt><dd>{{ activeCredential.typeName }}</dd></div>
+            <div class="ec-fact"><dt>有效期</dt><dd>2026年4月24—26日</dd></div>
+            <div class="ec-fact"><dt>地点</dt><dd>中国 · 合肥</dd></div>
+          </dl>
         </div>
+        <div class="ec-qr-side">
+          <figure class="ec-qr">
+            <img
+              :src="`/api/credentials/${activeToken}/qr`"
+              alt="会议签到二维码"
+              width="150"
+              height="150"
+            >
+          </figure>
+          <p class="ec-token mono" :title="activeToken ?? ''">
+            TOKEN {{ activeToken?.slice(0, 14) }}…
+          </p>
+        </div>
+        <!-- 凝胶层线收底 -->
+        <div class="ec-strata strata" aria-hidden="true"><span /><span /><span /><span /><span /></div>
       </div>
-      <figure class="cred-qr">
-        <img
-          :src="`/api/credentials/${activeCredential.credentialToken}/qr`"
-          alt="会议签到二维码"
-          width="168"
-          height="168"
-        >
-        <figcaption class="mono cc-token">TOKEN: {{ activeCredential.credentialToken.slice(0, 18) }}…</figcaption>
-      </figure>
+      <div class="ecard-actions">
+        <a class="btn btn-solid" :href="`/api/credentials/${activeToken}/pdf`" download>下载 PDF 凭证</a>
+        <NuxtLink class="btn btn-ghost" :to="`/credential/${activeToken}`">凭证详情 / 打印</NuxtLink>
+      </div>
     </section>
 
     <!-- 我的报名 -->
@@ -249,56 +273,189 @@ async function saveProfile() {
   margin-bottom: 18px;
 }
 
-/* credential card */
-.cred-card {
+/* 电子会议卡 */
+.ecard-section { margin-top: clamp(30px, 5vw, 48px); }
+
+.ecard {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 26px;
+  background: var(--ink);
+  color: var(--paper);
   border: 1px solid var(--ink);
-  padding: clamp(20px, 3vw, 30px);
-  background: linear-gradient(rgba(180, 95, 58, .04), rgba(180, 95, 58, .04)), var(--paper);
+  box-shadow: 6px 6px 0 rgba(180, 95, 58, .35);
+  padding: clamp(22px, 3.5vw, 34px);
+  overflow: hidden;
 }
 
-.cc-label {
+.ecard::before {
+  /* 凝胶流动弧线（贴合会议视觉母题） */
+  content: "";
+  position: absolute;
+  right: -140px;
+  top: -140px;
+  width: 340px;
+  height: 340px;
+  border: 1px solid var(--copper-light);
+  border-radius: 50%;
+  opacity: .35;
+  pointer-events: none;
+}
+
+.ecard::after {
+  content: "";
+  position: absolute;
+  right: -80px;
+  top: -110px;
+  width: 260px;
+  height: 260px;
+  border: 1px solid var(--paper-hl);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ec-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.ec-mark {
+  font-family: var(--serif);
+  font-size: 26px;
+  letter-spacing: .02em;
+}
+
+.ec-mark i {
+  font-style: normal;
+  color: var(--copper-light);
+}
+
+.ec-badge {
+  font-size: 11px;
+  letter-spacing: .12em;
+  border: 1px solid var(--copper-light);
+  color: var(--copper-light);
+  padding: 5px 10px;
+}
+
+.ec-badge.off {
+  border-color: var(--paper-dim);
+  color: var(--paper-dim);
+}
+
+.ec-conf {
   font-size: 11.5px;
-  letter-spacing: .16em;
-  color: var(--copper-deep);
+  letter-spacing: .1em;
+  color: var(--paper-dim);
+  margin-top: 8px;
 }
 
-.cc-name {
-  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
-  font-weight: 600;
-  margin-top: 10px;
+.ec-label {
+  font-size: 11px;
+  letter-spacing: .18em;
+  color: var(--paper-dim);
+  margin-top: 20px;
 }
 
-.cc-id {
-  font-size: 15px;
-  color: var(--grey);
+.ec-id {
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  letter-spacing: .12em;
+  color: var(--copper-light);
   margin-top: 6px;
-  letter-spacing: .08em;
 }
 
-.cc-actions {
+.ec-name {
+  font-family: var(--serif);
+  font-size: clamp(1.7rem, 3.6vw, 2.4rem);
+  line-height: 1.1;
+  margin-top: 12px;
+}
+
+.ec-aff {
+  font-size: 14px;
+  color: var(--paper-dim);
+  margin-top: 6px;
+}
+
+.ec-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px 30px;
   margin-top: 18px;
 }
 
-.cred-qr {
-  justify-self: start;
-  border: 1px solid var(--ink);
-  padding: 10px;
-  background: var(--paper);
+.ec-fact dt {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  color: var(--paper-dim);
+  text-transform: uppercase;
 }
 
-.cred-qr img { width: 168px; height: 168px; display: block; }
+.ec-fact dd {
+  font-size: 14px;
+  margin-top: 3px;
+}
 
-.cc-token {
-  font-size: 10px;
-  color: var(--grey);
-  margin-top: 8px;
-  text-align: center;
+.ec-qr-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  align-self: center;
+}
+
+.ec-qr {
+  background: var(--paper);
+  padding: 9px;
+  border: 1px solid var(--copper-light);
+}
+
+.ec-qr img {
+  width: 150px;
+  height: 150px;
+  display: block;
+}
+
+.ec-token {
+  font-size: 9.5px;
+  letter-spacing: .06em;
+  color: var(--paper-dim);
+  max-width: 168px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ec-strata {
+  grid-column: 1 / -1;
+  color: var(--paper);
+  width: min(240px, 60%);
+  margin-top: 6px;
+}
+
+.ecard.revoked .ec-qr {
+  opacity: .25;
+}
+
+.ecard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (min-width: 700px) {
+  .ecard { grid-template-columns: minmax(0, 1fr) auto; }
+}
+
+@media (max-width: 699px) {
+  .ecard { grid-template-columns: 1fr; }
+  .ec-qr-side { align-items: flex-start; }
 }
 
 /* registrations */

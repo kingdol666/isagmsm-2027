@@ -17,7 +17,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file=.env server/db/seed/index.ts",
     "db:studio": "drizzle-kit studio",
-    "dev:e2e": "cross-env RATE_LIMIT_DISABLED=1 nuxt dev"
+    "dev:e2e": "cross-env RATE_LIMIT_DISABLED=1 MAIL_DRIVER=test nuxt dev"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
