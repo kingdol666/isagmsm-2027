@@ -40,7 +40,7 @@ const state = computed(() => {
     <header class="sec-head">
       <div class="sec-meta">
         <span class="sec-code">CREDENTIAL VERIFICATION</span>
-        <span class="sec-tag">PPS 2026</span>
+        <span class="sec-tag">ISAGMSM 2026</span>
       </div>
       <h1 class="sec-title">Verification <em>result</em></h1>
     </header>
@@ -49,7 +49,7 @@ const state = computed(() => {
 
     <section v-else-if="state === 'not_found'" class="verdict bad" aria-live="polite">
       <p class="v-title">Not found</p>
-      <p class="v-body">This credential link or QR content does not match any PPS 2026 registration. Check the code and try again.</p>
+      <p class="v-body">This credential link or QR content does not match any ISAGMSM 2026 registration. Check the code and try again.</p>
     </section>
 
     <section v-else-if="state === 'revoked'" class="verdict bad" aria-live="polite">
@@ -74,7 +74,7 @@ const state = computed(() => {
           </dd>
         </div>
       </dl>
-      <p class="v-note">Verified live against the PPS 2026 registration system.</p>
+      <p class="v-note">Verified live against the ISAGMSM 2026 registration system.</p>
     </section>
   </div>
 </template>

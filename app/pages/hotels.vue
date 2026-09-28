@@ -34,6 +34,11 @@ useSeoMeta({ title: '酒店预定' })
       </section>
 
       <section class="block">
+        <h2 class="b-title">酒店位置地图</h2>
+        <AMapHotels :hotels="info.hotels" />
+      </section>
+
+      <section class="block">
         <h2 class="b-title">预订方式</h2>
         <div class="booking-box">
           <p class="b-channel">{{ info.booking.channel }}</p>

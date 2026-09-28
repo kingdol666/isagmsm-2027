@@ -86,8 +86,8 @@ test('sign-up → register → bank-transfer claim → approve → credential �
   /* 6. participant opens their credential from /account */
   await page.goto(`${base}/account`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
-  await expect(page.locator('.reg-row')).toContainText('paid')
-  await page.locator('.reg-actions a:has-text("View credential")').first().click()
+  await expect(page.locator('.reg-row')).toContainText('已缴费')
+  await page.locator('.reg-actions a:has-text("查看凭证")').first().click()
   await page.waitForURL(/\/credential\//, { timeout: 20_000 })
   await expect(page.locator('.pass')).toBeVisible()
   await expect(page.locator('.pass')).toContainText(fullName)
@@ -109,14 +109,14 @@ test('sign-up → register → bank-transfer claim → approve → credential �
     if (await page.locator('.kicker.good, .kicker.bad').count() > 0) break
     await page.waitForTimeout(800)
   }
-  await expect(page.locator('.kicker.good')).toContainText('VALID CREDENTIAL')
-  await page.click('button:has-text("Confirm check-in")')
+  await expect(page.locator('.kicker.good')).toContainText('凭证有效')
+  await page.click('button:has-text("确认签到")')
   await expect(page.locator('.log-row').first()).toContainText('checked in')
 
-  /* 9. admin registrations table shows the participant + payment */
-  await page.goto(`${base}/admin/registrations`, { waitUntil: 'networkidle' })
+  /* 9. admin participants management shows the participant + payment */
+  await page.goto(`${base}/admin/participants`, { waitUntil: 'networkidle' })
   await expect(page.locator('.tbl')).toContainText(fullName)
-  await expect(page.locator('.tbl')).toContainText('paid')
+  await expect(page.locator('.tbl')).toContainText('已缴费')
 })
 
 test('homepage is responsive and sections render at mobile width', async ({ page }) => {

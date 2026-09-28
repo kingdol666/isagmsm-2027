@@ -14,7 +14,7 @@ async function staffLogin(page: import('@playwright/test').Page) {
   await expect(page.locator('input[name="username"]')).toBeVisible({ timeout: 20_000 })
   await page.fill('input[name="username"]', 'staff')
   await page.fill('input[name="password"]', 'pps26-staff')
-  await page.click('button:has-text("Sign in")')
+  await page.click('button:has-text("登录")')
   await expect(page.locator('#manual-token')).toBeVisible({ timeout: 30_000 })
 }
 
@@ -77,7 +77,7 @@ test('unknown manual codes are rejected with NOT RECOGNISED', async ({ page }) =
   await staffLogin(page)
   await page.fill('#manual-token', `totally-unknown-token-${Date.now()}-${'x'.repeat(40)}`)
   await page.click('.manual button[type="submit"]')
-  await expect(page.locator('.kicker.bad')).toContainText('NOT RECOGNISED')
+  await expect(page.locator('.kicker.bad')).toContainText('未识别')
 })
 
 test('valid credential: verify → confirm check-in → duplicate blocked', async ({ page }) => {
@@ -86,17 +86,17 @@ test('valid credential: verify → confirm check-in → duplicate blocked', asyn
 
   await page.fill('#manual-token', token)
   await page.click('.manual button[type="submit"]')
-  await expect(page.locator('.kicker.good')).toContainText('VALID CREDENTIAL')
+  await expect(page.locator('.kicker.good')).toContainText('凭证有效')
   await expect(page.locator('.p-name')).toContainText('Scan Tester')
 
-  await page.click('button:has-text("Confirm check-in")')
+  await page.click('button:has-text("确认签到")')
   await expect(page.locator('.log-row').first()).toContainText('checked in')
 
   // scanning the same credential again reports ALREADY CHECKED IN
-  await page.click('button:has-text("Scan next")')
+  await page.click('button:has-text("扫下一个")')
   await page.fill('#manual-token', token)
   await page.click('.manual button[type="submit"]')
-  await expect(page.locator('.kicker.bad')).toContainText('ALREADY CHECKED IN')
+  await expect(page.locator('.kicker.bad')).toContainText('已签到')
 })
 
 test('confirming on the scanner is reflected in the admin check-ins list', async ({ page }) => {
@@ -105,7 +105,7 @@ test('confirming on the scanner is reflected in the admin check-ins list', async
   await page.fill('#manual-token', token)
   await page.click('.manual button[type="submit"]')
   await expect(page.locator('.kicker.good')).toBeVisible()
-  await page.click('button:has-text("Confirm check-in")')
+  await page.click('button:has-text("确认签到")')
   await expect(page.locator('.log-row').first()).toContainText('checked in')
 
   // admin-level verification: the check-in lands in the admin check-ins list

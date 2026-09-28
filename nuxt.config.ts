@@ -17,6 +17,8 @@ export default defineNuxtConfig({
     mockPaymentSecret: 'dev-only-mock-secret',
     public: {
       siteUrl: 'http://localhost:3000',
+      amapKey: '',
+      amapSecurityKey: '',
     },
   },
 

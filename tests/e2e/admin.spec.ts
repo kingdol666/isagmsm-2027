@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test'
 import { base, createAccountViaApi, uniqueEmail } from './helpers'
 
 /**
- * ADMIN BACKEND — guards, dashboard, lists with payment visibility,
- * role separation (staff may scan but not administer).
+ * ADMIN BACKEND — guards, dashboard, participants management with payment
+ * visibility, role separation (staff may scan but not administer).
  */
 
 test('admin APIs reject anonymous callers; admin login works', async ({ request }) => {
@@ -30,20 +30,17 @@ test('dashboard shows live counts and revenue', async ({ page }) => {
   const revenue = await page.locator('.stat').nth(3).textContent()
   expect(revenue).toContain('¥')
 
-  // the five lists render their tables
-  for (const path of ['registrations', 'orders', 'payments', 'credentials', 'checkins']) {
+  for (const path of ['participants', 'approvals', 'orders', 'payments', 'checkins']) {
     await page.goto(`${base}/admin/${path}`, { waitUntil: 'networkidle' })
-    await expect(page.locator('.tbl')).toBeVisible()
+    await expect(page.locator('main').locator('visible=true').first()).toBeVisible()
   }
 })
 
-test('registrations table exposes per-row payment status; search filters', async ({ page }) => {
-  // fixture: one account with a paid chain via the UI-less API path;
-  // the name embeds a run-unique tag so the search assertion is deterministic
-  const runTag = `av${Date.now().toString(36)}`
+test('participants table exposes payment status, search filters, credential actions', async ({ page }) => {
+  const runTag = `pv${Date.now().toString(36)}`
   const email = uniqueEmail('adminview')
   const password = `adminview-${Date.now()}-pass!`
-  const fullName = `Admin View ${runTag}`
+  const fullName = `参会管理 ${runTag}`
   await createAccountViaApi(page.context(), email, password, fullName)
 
   const types = await page.context().request.get(`${base}/api/registration-types`).then(r => r.json())
@@ -53,19 +50,12 @@ test('registrations table exposes per-row payment status; search filters', async
   })
   expect(created.status()).toBe(201)
   const { order } = await created.json() as { order: { id: string } }
-  // bank-transfer claim + admin approval issues the credential
+
+  // participant submits bank-transfer claim
   const claim = await page.context().request.post(`${base}/api/orders/${order.id}/claim`, {
-    data: { reference: 'E2E-ADMIN-REF' },
+    data: { reference: `E2E-${runTag}` },
   })
   expect(claim.status()).toBe(200)
-  const adminLogin = await page.context().request.post(`${base}/api/admin/login`, {
-    data: { username: 'admin', password: 'pps26-admin' },
-  })
-  expect(adminLogin.status()).toBe(200)
-  const review = await page.context().request.post(`${base}/api/admin/orders/${order.id}/review`, {
-    data: { action: 'approve' },
-  })
-  expect(review.status()).toBe(200)
 
   await page.goto(`${base}/admin/login`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
@@ -77,8 +67,7 @@ test('registrations table exposes per-row payment status; search filters', async
   }
   await page.waitForURL(/\/admin$/)
 
-  await page.goto(`${base}/admin/registrations`, { waitUntil: 'networkidle' })
-  // wait for hydration before interacting with the search input
+  await page.goto(`${base}/admin/participants`, { waitUntil: 'networkidle' })
   await page.waitForFunction(() => Boolean(document.querySelector('#__nuxt')?.__vue_app__))
   for (let attempt = 0; attempt < 6; attempt++) {
     await page.fill('.filter-input', runTag)
@@ -88,8 +77,14 @@ test('registrations table exposes per-row payment status; search filters', async
   }
   await expect(page.locator('.tbl tbody tr')).toHaveCount(1, { timeout: 10_000 })
   await expect(page.locator('.tbl')).toContainText(fullName)
-  await expect(page.locator('.tbl')).toContainText('paid')
-  await expect(page.locator('.tbl')).toContainText('confirmed')
+  // reviewing claim is visible with the 收款确认 action
+  await expect(page.locator('.tbl')).toContainText('审核中')
+
+  // admin confirms payment → order paid + credential issued automatically
+  await page.locator('.op.primary:has-text("收款确认")').first().click()
+  await expect(page.locator('.msg')).toContainText('凭证已下发', { timeout: 15_000 })
+  await expect(page.locator('.tbl')).toContainText('已缴费')
+  await expect(page.locator('.tbl')).toContainText('有效')
 })
 
 test('staff accounts can open the scanner but not the admin area', async ({ page }) => {
@@ -103,7 +98,6 @@ test('staff accounts can open the scanner but not the admin area', async ({ page
   }
   await page.waitForURL(/\/admin$/)
 
-  // staff hitting the dashboard API gets 403 (role guard)
   const dash = await page.context().request.get(`${base}/api/admin/dashboard`)
   expect(dash.status()).toBe(403)
 })

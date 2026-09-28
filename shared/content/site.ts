@@ -295,6 +295,9 @@ export const hotelsContent = {
       price: '¥350 / 间夜（含早）',
       address: '合肥市包河区（详细地址待确认）',
       intro: '会议主会场所在酒店，紧邻会议报告厅，步行即达。',
+      /* 高德坐标（lng, lat）— 示例坐标，请用 https://lbs.amap.com/tools/picker 校准 */
+      lng: 117.2897,
+      lat: 31.7165,
     },
     {
       name: '协作酒店 A（示例）',
@@ -302,6 +305,8 @@ export const hotelsContent = {
       price: '¥350 / 间夜（含早）',
       address: '合肥市包河区（详细地址待确认）',
       intro: '距主会场步行约 5 分钟，豪华客房与套房。',
+      lng: 117.2872,
+      lat: 31.7148,
     },
     {
       name: '协作酒店 B（示例）',
@@ -309,6 +314,8 @@ export const hotelsContent = {
       price: '¥260 / 间夜（含早）',
       address: '合肥市包河区（详细地址待确认）',
       intro: '距主会场车程约 5 分钟，现代客房，性价比之选。',
+      lng: 117.2941,
+      lat: 31.7106,
     },
   ],
 } as const

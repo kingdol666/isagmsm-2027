@@ -19,13 +19,13 @@ function handleError() {
       <p class="err-body">
         {{
           is404
-            ? 'The page you requested does not exist on the PPS 2026 line.'
+            ? 'The page you requested does not exist on the ISAGMSM 2026 line.'
             : (error.message || 'An unexpected error occurred. Our secretariat has been notified.')
         }}
       </p>
       <div class="err-actions">
         <button class="btn btn-solid" type="button" @click="handleError">Back to the symposium</button>
-        <a class="btn btn-ghost" href="mailto:secretariat@pps2026-conf.org">Contact secretariat</a>
+        <a class="btn btn-ghost" href="mailto:isagmsm@conference.example.org">Contact secretariat</a>
       </div>
       <div class="strata err-strata" aria-hidden="true"><span /><span /><span /><span /><span /></div>
     </div>

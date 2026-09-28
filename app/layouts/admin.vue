@@ -1,14 +1,13 @@
 <template>
   <div class="admin">
     <header class="admin-bar">
-      <NuxtLink to="/admin" class="a-brand">PPS<i>·</i>26 <span>ADMIN</span></NuxtLink>
+      <NuxtLink to="/admin" class="a-brand">ISAGMSM <span>ADMIN</span></NuxtLink>
       <nav class="a-nav" aria-label="Admin sections">
         <NuxtLink to="/admin">Dashboard</NuxtLink>
         <NuxtLink to="/admin/approvals">缴费审批</NuxtLink>
-        <NuxtLink to="/admin/registrations">Registrations</NuxtLink>
+        <NuxtLink to="/admin/participants">参会人员管理</NuxtLink>
         <NuxtLink to="/admin/orders">Orders</NuxtLink>
         <NuxtLink to="/admin/payments">Payments</NuxtLink>
-        <NuxtLink to="/admin/credentials">Credentials</NuxtLink>
         <NuxtLink to="/admin/checkins">Check-ins</NuxtLink>
       </nav>
       <button class="a-scan" type="button" @click="navigateTo('/scan')">Scan app</button>

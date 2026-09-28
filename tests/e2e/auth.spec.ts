@@ -64,9 +64,10 @@ test('sign out returns to anonymous state', async ({ page }) => {
 
   await page.goto(base, { waitUntil: 'networkidle' })
   await expect(page.locator('.h-auth .chip-link.name')).toContainText('Sign Out Tester')
-  await page.click('.h-auth button:has-text("Sign out")')
+  await page.click('.h-auth .avatar-btn') // opens the dropdown
+  await page.click('.menu button:has-text("退出登录")')
   await page.waitForURL(base + '/')
-  await expect(page.locator('.h-auth .chip-link.accent')).toContainText('Register')
+  await expect(page.locator('.h-auth .chip-link.accent')).toContainText('注册')
 })
 
 test('forgot-password: reset code sets a new password and old one stops working', async ({ page }) => {

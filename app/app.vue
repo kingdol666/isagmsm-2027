@@ -1,7 +1,7 @@
 <script setup lang="ts">
 useHead({
   titleTemplate: (chunk?: string) =>
-    chunk ? `${chunk} · PPS 2026` : 'PPS 2026 — Polymer Processing Symposium · Hefei, China',
+    chunk ? `${chunk} · ISAGMSM 2026` : 'ISAGMSM — 第五届先进凝胶材料与软物质国际学术研讨会',
   link: [
     { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
   ],

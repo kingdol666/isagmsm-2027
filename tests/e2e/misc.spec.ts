@@ -66,14 +66,14 @@ test('account profile saves and persists across reloads', async ({ page }) => {
 
   await page.goto(`${base}/account`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
-  await expect(page.locator('.s-title', { hasText: 'Participant profile' })).toBeVisible()
+  await expect(page.locator('.s-title', { hasText: '参会人资料' })).toBeVisible()
   await page.waitForTimeout(600)
 
   await page.locator('.grid .field').nth(0).locator('input').fill('Profile Tester Updated')
   await page.locator('.grid .field').nth(3).locator('input').fill('Germany')
   await page.locator('.grid .field').nth(4).locator('input').fill('TU München')
-  await page.click('button:has-text("Save profile")')
-  await expect(page.locator('.msg.ok')).toContainText('Profile saved')
+  await page.click('button:has-text("保存资料")')
+  await expect(page.locator('.msg.ok')).toContainText('资料已保存')
 
   await page.reload({ waitUntil: 'networkidle' })
   await page.waitForTimeout(800)

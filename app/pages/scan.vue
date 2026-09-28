@@ -3,8 +3,8 @@ import type { Html5Qrcode } from 'html5-qrcode'
 
 definePageMeta({ layout: 'bare' })
 useSeoMeta({
-  title: 'PPS 2026 · Check-in Scanner',
-  description: 'Staff check-in scanner for PPS 2026 credentials.',
+  title: 'ISAGMSM · 签到核验端',
+  description: 'ISAGMSM 现场签到核验端。',
   robots: 'noindex, nofollow',
 })
 
@@ -171,8 +171,8 @@ async function startCamera() {
   catch (err: unknown) {
     cameraAvailable.value = false
     cameraError.value = err instanceof Error
-      ? `Camera unavailable (${err.message.slice(0, 60)}). Use manual entry below.`
-      : 'Camera unavailable. Use manual entry below.'
+      ? `摄像头不可用 (${err.message.slice(0, 60)}). 请使用手动输入。`
+      : '摄像头不可用. 请使用手动输入。'
     mode.value = 'idle'
   }
 }
@@ -221,9 +221,9 @@ onUnmounted(stopCamera)
   <div class="scan">
     <!-- header -->
     <header class="s-bar">
-      <span class="s-brand">PPS<i>·</i>26 <span class="s-app">SCAN</span></span>
+      <span class="s-brand">ISAGMSM <span class="s-app">SCAN</span></span>
       <span v-if="authUser" class="s-user mono">{{ authUser.username }} · {{ authUser.role }}</span>
-      <button v-if="authState === 'staff'" class="s-exit mono" type="button" @click="logout">Sign out</button>
+      <button v-if="authState === 'staff'" class="s-exit mono" type="button" @click="logout">退出</button>
     </header>
 
     <!-- anonymous: inline staff login -->
@@ -245,7 +245,7 @@ onUnmounted(stopCamera)
         </label>
         <p v-if="loginError" class="msg bad mono">{{ loginError }}</p>
         <button class="btn btn-solid wide" type="submit" :disabled="loginBusy">
-          {{ loginBusy ? 'Signing in…' : 'Sign in' }}
+          {{ loginBusy ? 'Signing in…' : '登录' }}
         </button>
       </form>
       <p v-if="isDev" class="hint mono">Dev accounts — admin / pps26-admin · staff / pps26-staff</p>
@@ -257,7 +257,7 @@ onUnmounted(stopCamera)
       <section v-if="mode === 'scanning' || mode === 'idle'" class="pane">
         <div class="reader-box" :class="{ live: mode === 'scanning' }">
           <div id="scan-reader" class="reader" />
-          <p v-if="mode === 'idle'" class="reader-idle mono">{{ cameraError || 'Starting camera…' }}</p>
+          <p v-if="mode === 'idle'" class="reader-idle mono">{{ cameraError || '正在启动摄像头…' }}</p>
         </div>
 
         <form class="manual" @submit.prevent="submitManual">
@@ -281,7 +281,7 @@ onUnmounted(stopCamera)
       <section v-else class="pane result">
         <template v-if="verify?.valid && verify.participant">
           <p class="kicker mono" :class="verify.checkedInAt ? 'bad' : 'good'">
-            {{ verify.checkedInAt ? 'ALREADY CHECKED IN' : 'VALID CREDENTIAL' }}
+            {{ verify.checkedInAt ? '已签到' : '凭证有效' }}
           </p>
           <p class="p-name">{{ verify.participant.fullName }}</p>
           <p class="p-aff">{{ verify.participant.affiliation }}</p>
@@ -290,7 +290,7 @@ onUnmounted(stopCamera)
             <div class="p-row"><dt>Type</dt><dd>{{ verify.participant.typeName }}</dd></div>
             <div class="p-row"><dt>Country</dt><dd>{{ verify.participant.country }}</dd></div>
             <div v-if="verify.checkedInAt" class="p-row">
-              <dt>Checked in</dt><dd>{{ new Date(verify.checkedInAt).toLocaleTimeString('en-GB') }}</dd>
+              <dt>已签到</dt><dd>{{ new Date(verify.checkedInAt).toLocaleTimeString('en-GB') }}</dd>
             </div>
           </dl>
           <p v-if="actionMessage" class="msg bad mono">{{ actionMessage }}</p>
@@ -302,20 +302,20 @@ onUnmounted(stopCamera)
               :disabled="actionBusy"
               @click="confirmCheckin"
             >
-              {{ actionBusy ? 'Confirming…' : 'Confirm check-in' }}
+              {{ actionBusy ? 'Confirming…' : '确认签到' }}
             </button>
-            <button class="btn btn-ghost wide" type="button" @click="resetToScan">Scan next</button>
+            <button class="btn btn-ghost wide" type="button" @click="resetToScan">扫下一个</button>
           </div>
         </template>
 
         <template v-else>
           <p class="kicker mono bad">
-            {{ verify?.reason === 'not_found' ? 'NOT RECOGNISED' : verify?.reason === 'registration_not_confirmed' ? 'NOT CONFIRMED' : verify?.reason === 'revoked' ? 'REVOKED' : 'CHECK FAILED' }}
+            {{ verify?.reason === 'not_found' ? '未识别' : verify?.reason === 'registration_not_confirmed' ? '未确认缴费' : verify?.reason === 'revoked' ? '已撤销' : '核验失败' }}
           </p>
-          <p class="p-name">{{ actionMessage || 'This QR does not match a checkable PPS 2026 credential.' }}</p>
+          <p class="p-name">{{ actionMessage || '该二维码不是有效的 ISAGMSM 参会凭证。' }}</p>
           <p v-if="verify?.participant" class="p-aff">{{ verify.participant.fullName }} · {{ verify.participant.displayId }} · status: {{ verify.reason }}</p>
           <div class="actions">
-            <button class="btn btn-solid wide" type="button" @click="resetToScan">Scan next</button>
+            <button class="btn btn-solid wide" type="button" @click="resetToScan">扫下一个</button>
           </div>
         </template>
       </section>

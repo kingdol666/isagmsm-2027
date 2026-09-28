@@ -41,21 +41,21 @@ function printPage() {
     <template v-else-if="credential">
       <header class="sec-head">
         <div class="sec-meta">
-          <span class="sec-code">PPS26—09 · CREDENTIAL</span>
+          <span class="sec-code">ISAGMSM—09 · 凭证</span>
           <span class="sec-tag">ACADEMIC EVENT PASS</span>
         </div>
         <h1 class="sec-title">
-          <template v-if="credential.checkedInAt">Checked in<em>.</em></template>
-          <template v-else>You're <em>confirmed</em></template>
+          <template v-if="credential.checkedInAt">已完成<em>签到</em></template>
+          <template v-else>报名<em>已确认</em></template>
         </h1>
       </header>
 
       <!-- the pass -->
-      <article class="pass" aria-label="PPS 2026 event credential">
+      <article class="pass" aria-label="ISAGMSM 2026 会议凭证">
         <header class="pass-top">
           <div>
-            <p class="pass-mark">PPS<i>·</i>26</p>
-            <p class="pass-event">POLYMER PROCESSING SYMPOSIUM 2026</p>
+            <p class="pass-mark">ISAGMSM<i>·</i>26</p>
+            <p class="pass-event">第五届先进凝胶材料与软物质国际学术研讨会</p>
           </div>
           <p class="pass-status" :class="{ ok: credential.status === 'active' }">
             {{ credential.status === 'active' ? 'VALID' : 'REVOKED' }}
@@ -64,26 +64,26 @@ function printPage() {
 
         <div class="pass-body">
           <div class="pass-who">
-            <p class="label">Participant</p>
+            <p class="label">参会人</p>
             <p class="name">{{ credential.registration.fullName }}</p>
             <p class="aff">{{ credential.registration.affiliation }}</p>
             <p class="country">{{ credential.registration.country }}</p>
 
             <dl class="facts">
               <div class="fact">
-                <dt>Registration type</dt>
+                <dt>报名类型</dt>
                 <dd>{{ credential.type.name }}</dd>
               </div>
               <div class="fact">
-                <dt>Registration ID</dt>
+                <dt>参会 ID</dt>
                 <dd class="mono">{{ credential.registration.displayId }}</dd>
               </div>
               <div class="fact">
-                <dt>Check-in</dt>
+                <dt>签到状态</dt>
                 <dd>
                   {{ credential.checkedInAt
                     ? `Checked in ${new Date(credential.checkedInAt).toLocaleString('en-GB')}`
-                    : 'Not yet checked in' }}
+                    : '尚未签到' }}
                 </dd>
               </div>
             </dl>
@@ -96,7 +96,7 @@ function printPage() {
               width="200"
               height="200"
             >
-            <figcaption class="mono">SCAN TO VERIFY</figcaption>
+            <figcaption class="mono">扫码核验</figcaption>
           </figure>
         </div>
 
@@ -107,9 +107,9 @@ function printPage() {
       </article>
 
       <div class="actions">
-        <a class="btn btn-solid" :href="`/api/credentials/${token}/pdf`" download>Download PDF</a>
-        <NuxtLink class="btn btn-ghost" :to="`/verify/${token}`">Verify credential</NuxtLink>
-        <button class="btn btn-ghost" type="button" @click="printPage">Print</button>
+        <a class="btn btn-solid" :href="`/api/credentials/${token}/pdf`" download>下载 PDF</a>
+        <NuxtLink class="btn btn-ghost" :to="`/verify/${token}`">核验凭证</NuxtLink>
+        <button class="btn btn-ghost" type="button" @click="printPage">打印</button>
       </div>
 
       <p class="state small">Keep this page safe — the link contains your personal verification QR. A copy was generated for the email {{ credential.registration.email }}.</p>
