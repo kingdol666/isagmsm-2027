@@ -1,5 +1,5 @@
 import type { DbExecutor } from '../db'
-import { checkins } from '../db/schema'
+import { checkins, credentials, registrations } from '../db/schema'
 import { desc, eq } from 'drizzle-orm'
 
 /**
@@ -26,4 +26,19 @@ export async function findCheckinByCredential(db: DbExecutor, credentialId: stri
 
 export async function listCheckins(db: DbExecutor, limit = 100) {
   return db.select().from(checkins).orderBy(desc(checkins.checkedInAt)).limit(limit)
+}
+
+export async function listCheckinsDetail(db: DbExecutor, limit = 100) {
+  return db
+    .select({ checkin: checkins, registration: registrations })
+    .from(checkins)
+    .innerJoin(credentials, eq(checkins.credentialId, credentials.id))
+    .innerJoin(registrations, eq(credentials.registrationId, registrations.id))
+    .orderBy(desc(checkins.checkedInAt))
+    .limit(limit)
+}
+
+export async function countCheckins(db: DbExecutor) {
+  const rows = await db.select({ id: checkins.id }).from(checkins).limit(1000)
+  return rows.length
 }

@@ -1,6 +1,16 @@
 import type { DbExecutor } from '../db'
 import { credentials, registrationTypes, registrations } from '../db/schema'
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
+
+export async function listCredentialsDetail(db: DbExecutor, limit = 100) {
+  return db
+    .select({ credential: credentials, registration: registrations, type: registrationTypes })
+    .from(credentials)
+    .innerJoin(registrations, eq(credentials.registrationId, registrations.id))
+    .innerJoin(registrationTypes, eq(registrations.typeId, registrationTypes.id))
+    .orderBy(desc(credentials.issuedAt))
+    .limit(limit)
+}
 
 export async function issueCredential(db: DbExecutor, values: typeof credentials.$inferInsert) {
   const rows = await db.insert(credentials).values(values).returning()

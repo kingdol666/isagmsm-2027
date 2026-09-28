@@ -59,6 +59,19 @@ export interface RegistrationListQuery {
   pageSize?: number
 }
 
+export async function countByStatus(db: DbExecutor) {
+  const rows = await db
+    .select({ status: registrations.status, value: count() })
+    .from(registrations)
+    .groupBy(registrations.status)
+  return Object.fromEntries(rows.map(r => [r.status, r.value]))
+}
+
+export async function countAll(db: DbExecutor) {
+  const rows = await db.select({ value: count() }).from(registrations)
+  return rows[0]?.value ?? 0
+}
+
 export async function listRegistrations(db: DbExecutor, query: RegistrationListQuery) {
   const page = Math.max(1, query.page ?? 1)
   const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 20))
