@@ -28,7 +28,7 @@ export async function createPaymentForOrder(db: Db, orderId: string, providerNam
   }
 
   const provider = getPaymentProvider(providerName, { mockPaymentSecret: mockSecret })
-  const paymentId = crypto.randomUUID()
+  const paymentId = randomUUID()
   const result = await provider.createPayment({
     paymentId,
     orderNo: order.orderNo,

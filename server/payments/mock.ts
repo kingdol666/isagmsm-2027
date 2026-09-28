@@ -45,13 +45,14 @@ export function createMockProvider(secret: string): PaymentProvider {
           amountFen?: number
         }
         if (!body.eventId || !body.providerPaymentNo || !body.result) return null
-        if (!['paid', 'failed', 'expired'].includes(body.result)) return null
+        const result = body.result
+        if (result !== 'paid' && result !== 'failed' && result !== 'expired') return null
         return {
           eventId: body.eventId,
-          eventType: body.eventType ?? `mock.${body.result}`,
+          eventType: body.eventType ?? `mock.${result}`,
           providerPaymentNo: body.providerPaymentNo,
           orderNo: body.orderNo,
-          status: body.result,
+          status: result,
           amountFen: body.amountFen,
         }
       }

@@ -63,7 +63,7 @@ export async function listOrders(db: DbExecutor, query: OrderListQuery) {
   return { rows, total: total[0]?.value ?? 0, page, pageSize }
 }
 
-export async function sumPaidRevenue(db: Db) {
+export async function sumPaidRevenue(db: DbExecutor) {
   const rows = await db
     .select({ total: sum(orders.totalFen) })
     .from(orders)

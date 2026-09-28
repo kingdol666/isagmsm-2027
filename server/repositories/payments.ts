@@ -45,7 +45,7 @@ export async function findPaymentByProviderNo(db: DbExecutor, providerPaymentNo:
  * seen — duplicates are stored with accepted = false and never re-processed.
  */
 export async function recordPaymentEvent(
-  db: Db,
+  db: DbExecutor,
   values: typeof paymentEvents.$inferInsert,
 ): Promise<boolean> {
   const rows = await db

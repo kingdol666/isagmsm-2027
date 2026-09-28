@@ -166,24 +166,24 @@ async function seed() {
   for (const p of FAKE_PARTICIPANTS) {
     const type = typeByCode.get(p.type)!
 
-    const [user] = await db.insert(users).values({ email: p.email, fullName: p.fullName }).returning()
+    const user = (await db.insert(users).values({ email: p.email, fullName: p.fullName }).returning())[0]!
     regSeq += 1
-    const [registration] = await db.insert(registrations).values({
-      userId: user.id,
-      typeId: type.id,
-      status: p.outcome === 'paid' ? 'confirmed' : 'submitted',
-      displayId: `PPS26-${String(regSeq).padStart(6, '0')}`,
-      fullName: p.fullName,
-      email: p.email,
-      affiliation: p.affiliation,
-      country: p.country,
-      phone: `+86 13${String(100000000 + regSeq).slice(0, 8)}`,
-    }).returning()
+      const registration = (await db.insert(registrations).values({
+        userId: user.id,
+        typeId: type.id,
+        status: p.outcome === 'paid' ? 'confirmed' : 'submitted',
+        displayId: `PPS26-${String(regSeq).padStart(6, '0')}`,
+        fullName: p.fullName,
+        email: p.email,
+        affiliation: p.affiliation,
+        country: p.country,
+        phone: `+86 13${String(100000000 + regSeq).slice(0, 8)}`,
+      }).returning())[0]!
 
     if (p.outcome === 'confirmed_no_order') continue
 
     const breakdown = computePrice({ priceFen: type.priceFen, currency: type.currency }, { now: new Date('2026-09-20T00:00:00+08:00') })
-    const [order] = await db.insert(orders).values({
+    const order = (await db.insert(orders).values({
       registrationId: registration.id,
       orderNo: `PPS26-ORD-${String(regSeq).padStart(6, '0')}`,
       subtotalFen: breakdown.subtotalFen,
@@ -191,17 +191,17 @@ async function seed() {
       totalFen: breakdown.totalFen,
       currency: 'CNY',
       status: p.outcome === 'paid' ? 'paid' : 'pending',
-    }).returning()
+    }).returning())[0]!
 
     if (p.outcome === 'paid') {
-      const [payment] = await db.insert(payments).values({
+      const payment = (await db.insert(payments).values({
         orderId: order.id,
         provider: 'mock',
         providerPaymentNo: `MOCK-${randomBytes(12).toString('hex')}`,
         amountFen: order.totalFen,
         currency: order.currency,
         status: 'paid',
-      }).returning()
+      }).returning())[0]!
       await db.insert(paymentEvents).values({
         provider: 'mock',
         eventId: randomUUID(),

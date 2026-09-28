@@ -4,7 +4,7 @@ import { asc, eq } from 'drizzle-orm'
 
 /* ---- content read APIs (homepage) ---- */
 
-export async function listSpeakers(db: Db) {
+export async function listSpeakers(db: DbExecutor) {
   return db
     .select()
     .from(speakers)
@@ -12,7 +12,7 @@ export async function listSpeakers(db: Db) {
     .orderBy(asc(speakers.sortOrder))
 }
 
-export async function listProgram(db: Db) {
+export async function listProgram(db: DbExecutor) {
   const sessions = await db.select().from(programSessions).orderBy(asc(programSessions.dayNo))
   const items = await db
     .select()
@@ -24,11 +24,11 @@ export async function listProgram(db: Db) {
   }))
 }
 
-export async function listSponsors(db: Db) {
+export async function listSponsors(db: DbExecutor) {
   return db.select().from(sponsors).orderBy(asc(sponsors.sortOrder))
 }
 
-export async function findActiveVenue(db: Db) {
+export async function findActiveVenue(db: DbExecutor) {
   const rows = await db.select().from(venues).where(eq(venues.active, true)).limit(1)
   return rows[0] ?? null
 }
@@ -52,7 +52,7 @@ export async function insertSpeakers(db: DbExecutor, values: (typeof speakers.$i
 }
 
 export async function insertProgram(
-  db: Db,
+  db: DbExecutor,
   sessions: (typeof programSessions.$inferInsert)[],
   items: (typeof programItems.$inferInsert)[],
 ) {
