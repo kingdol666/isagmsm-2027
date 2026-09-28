@@ -39,7 +39,7 @@ test('resend enters a cooldown and the same code keeps working', async ({ page }
   await expect(resend).toContainText(/Resend \(\d+s\)/)
 })
 
-test('duplicate sign-up for an existing account is rejected', async ({ page }) => {
+test('duplicate sign-up is intercepted at the email step — no code sent', async ({ page }) => {
   const email = uniqueEmail('dup')
   const password = `dup-${Date.now()}-pass!`
   await createAccountViaApi(page.context(), email, password, 'Dup Tester')
@@ -48,13 +48,10 @@ test('duplicate sign-up for an existing account is rejected', async ({ page }) =
   await page.waitForLoadState('networkidle')
   await page.fill('input[name="email"]', email)
   await page.click('button:has-text("Send verification code")')
-  await expect(page.locator('.code-input')).toBeVisible()
-  const devCode = (await page.locator('.dev-code').textContent())?.match(/\d{6}/)?.[0]
-  await page.fill('.code-input', devCode!)
-  await page.fill('input[name="fullName"]', 'Dup Tester')
-  await page.fill('input[name="password"]', password)
-  await page.click('button:has-text("Create account")')
-  await expect(page.locator('.msg.bad')).toContainText(/already exists/)
+
+  // 拦截在发码环节：提示“该邮箱已完成注册，请直接登录”，且不进入验证码步骤
+  await expect(page.locator('.msg.bad')).toContainText('该邮箱已完成注册，请直接登录')
+  await expect(page.locator('.code-input')).toHaveCount(0)
 })
 
 test('sign out returns to anonymous state', async ({ page }) => {

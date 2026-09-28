@@ -74,6 +74,8 @@ export const registrations = pgTable('registrations', {
   dietary: varchar('dietary', { length: 200 }),
   invoiceRequired: boolean('invoice_required').notNull().default(false),
   invoiceTitle: varchar('invoice_title', { length: 300 }),
+  /* 会员标识：默认 false，管理员依据缴费情况（线下/对公）手动赋予 */
+  isMember: boolean('is_member').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

@@ -11,6 +11,7 @@ interface ParticipantRow {
   affiliation: string
   country: string
   status: string
+  isMember: boolean
   createdAt: string
   typeName: string
   order: { orderNo: string, status: string, totalFen: number } | null
@@ -88,6 +89,26 @@ async function confirmPayment(row: ParticipantRow) {
     busyId.value = null
   }
 }
+
+async function toggleMember(row: ParticipantRow) {
+  busyId.value = row.registrationId
+  message.value = ''
+  try {
+    await $fetch(`/api/admin/participants/${row.registrationId}/membership`, {
+      method: 'POST',
+      body: { isMember: !row.isMember },
+    })
+    message.value = `${row.displayId} 已${row.isMember ? '取消' : '赋予'}会员标识`
+    await refresh()
+  }
+  catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string } }
+    message.value = e.data?.statusMessage ?? '操作失败'
+  }
+  finally {
+    busyId.value = null
+  }
+}
 </script>
 
 <template>
@@ -131,12 +152,13 @@ async function confirmPayment(row: ParticipantRow) {
             <th>类型 / 状态</th>
             <th>缴费</th>
             <th>凭证 / 签到</th>
+            <th>会员</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!data?.rows.length">
-            <td colspan="6" class="empty">没有匹配的参会人员。</td>
+            <td colspan="7" class="empty">没有匹配的参会人员。</td>
           </tr>
           <tr v-for="row in data?.rows" :key="row.registrationId">
             <td class="mono">
@@ -145,6 +167,7 @@ async function confirmPayment(row: ParticipantRow) {
             </td>
             <td>
               <strong>{{ row.fullName }}</strong>
+              <span v-if="row.isMember" class="badge member">会员</span>
               <small class="sub">{{ row.email }}</small>
               <small class="sub">{{ row.affiliation }}</small>
             </td>
@@ -200,6 +223,13 @@ async function confirmPayment(row: ParticipantRow) {
                 :disabled="busyId === row.registrationId"
                 @click="act(row, 'restore')"
               >恢复</button>
+              <button
+                class="op"
+                :class="{ gold: !row.isMember }"
+                type="button"
+                :disabled="busyId === row.registrationId"
+                @click="toggleMember(row)"
+              >{{ row.isMember ? '取消会员' : '设为会员' }}</button>
             </td>
           </tr>
         </tbody>
@@ -308,6 +338,16 @@ async function confirmPayment(row: ParticipantRow) {
 
 .badge.ok { border-color: var(--copper-deep); color: var(--copper-deep); }
 .badge.rev { border-color: var(--ink); color: var(--ink); }
+
+.badge.member {
+  border-color: var(--copper);
+  color: var(--paper);
+  background: var(--copper);
+  margin-left: 8px;
+}
+
+.op.gold { border-color: var(--copper-deep); color: var(--copper-deep); }
+.op.gold:hover { background: var(--copper-deep); color: var(--paper); }
 
 .actions { min-width: 180px; }
 

@@ -26,6 +26,7 @@ export default defineEventHandler(async (event) => {
       createdAt: registration.createdAt,
       typeName: type.name,
       affiliation: registration.affiliation,
+      isMember: registration.isMember,
       credentialStatus: credential?.status ?? null,
       order: order
         ? { id: order.id, orderNo: order.orderNo, totalFen: order.totalFen, currency: order.currency, status: order.status }

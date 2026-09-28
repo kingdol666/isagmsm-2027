@@ -15,7 +15,7 @@ const codeRes = await ctx.request.post(`${base}/api/auth/send-code`, {
 }).then(r => r.json())
 
 // 2. 注册
-const reg = await ctx.request.post(`${base}/api/auth/register`, {
+await ctx.request.post(`${base}/api/auth/register`, {
   data: { email, code: codeRes.devCode, password, fullName: '陈凝胶' },
 })
 

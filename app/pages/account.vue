@@ -11,6 +11,7 @@ interface MyRegistration {
   createdAt: string
   typeName: string
   affiliation: string
+  isMember: boolean
   credentialStatus: string | null
   order: { id: string, orderNo: string, totalFen: number, currency: string, status: string } | null
   credentialToken: string | null
@@ -141,7 +142,10 @@ async function saveProfile() {
             </span>
           </div>
           <p class="ec-conf mono">第五届先进凝胶材料与软物质国际学术研讨会</p>
-          <p class="ec-label mono">电子会员证 · 会员 ID</p>
+          <div class="ec-id-row">
+            <p class="ec-label ec-id-label mono">电子会员证 · 会员 ID</p>
+            <span v-if="activeCredential.isMember" class="ec-member mono">正式会员</span>
+          </div>
           <p class="ec-id mono">{{ activeCredential.displayId }}</p>
           <p class="ec-name">{{ user?.fullName || profileForm.fullName || activeCredential.typeName }}</p>
           <p class="ec-aff">{{ activeCredential.affiliation }}</p>
@@ -182,6 +186,7 @@ async function saveProfile() {
             <span class="mono reg-id">{{ reg.displayId }}</span>
             <span class="reg-type">{{ reg.typeName }}</span>
             <span class="badge" :class="{ ok: reg.status === 'confirmed' }">{{ zh(reg.status) }}</span>
+            <span v-if="reg.isMember" class="badge member">会员</span>
           </div>
           <div class="reg-sub">
             <span class="mono">{{ new Date(reg.createdAt).toLocaleDateString('zh-CN') }}</span>
@@ -358,6 +363,30 @@ async function saveProfile() {
   letter-spacing: .18em;
   color: var(--paper-dim);
   margin-top: 20px;
+}
+
+.ec-id-label {
+  margin-top: 0;
+}
+
+.ec-id-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 20px;
+}
+
+.ec-id-label {
+  margin-top: 0;
+}
+
+.ec-member {
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--paper);
+  background: var(--copper);
+  padding: 4px 10px;
 }
 
 .ec-id {

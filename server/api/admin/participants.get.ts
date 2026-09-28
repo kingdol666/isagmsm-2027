@@ -36,6 +36,7 @@ export default defineEventHandler(async (event) => {
         affiliation: row.registration.affiliation,
         country: row.registration.country,
         status: row.registration.status,
+        isMember: row.registration.isMember,
         createdAt: row.registration.createdAt,
         typeName: row.typeName,
         order: row.order,

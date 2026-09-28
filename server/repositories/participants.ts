@@ -72,3 +72,13 @@ export async function listParticipants(db: DbExecutor, query: ParticipantListQue
   }
   return { rows: result, total: total[0]?.value ?? 0, page, pageSize }
 }
+
+/** 管理端设置 / 取消会员标识。 */
+export async function setMembership(db: DbExecutor, registrationId: string, isMember: boolean) {
+  const rows = await db
+    .update(registrations)
+    .set({ isMember, updatedAt: new Date() })
+    .where(eq(registrations.id, registrationId))
+    .returning({ id: registrations.id, isMember: registrations.isMember })
+  return rows[0] ?? null
+}
