@@ -36,8 +36,19 @@ const payment = ref<PaymentView['payment'] | null>(null)
 const loadError = ref('')
 const creating = ref(false)
 const actionMessage = ref('')
+const providers = ref<Array<{ name: string, label: string, available: boolean }>>([])
 
 const yuan = (fen: number) => (fen / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+async function loadProviders() {
+  try {
+    const res = await $fetch<{ providers: Array<{ name: string, label: string, available: boolean }> }>('/api/payments/providers')
+    providers.value = res.providers
+  }
+  catch {
+    providers.value = [{ name: 'mock', label: 'Mock Pay', available: true }]
+  }
+}
 
 async function loadOrder() {
   try {
@@ -76,6 +87,11 @@ async function createPayment(provider = 'mock') {
   }
 }
 
+function startPayment(provider: { name: string, available: boolean }) {
+  if (!provider.available || creating.value) return
+  createPayment(provider.name)
+}
+
 let pollTimer: ReturnType<typeof setInterval> | null = null
 function startPolling() {
   stopPolling()
@@ -108,6 +124,7 @@ onUnmounted(stopPolling)
 
 onMounted(async () => {
   await loadOrder()
+  await loadProviders()
   await loadExistingPayment()
 })
 
@@ -181,15 +198,25 @@ const orderStatus = computed(() => orderData.value?.order.status ?? 'loading')
       <section v-else class="panel" aria-label="Choose payment method">
         <p class="panel-title">Choose payment method</p>
         <ul class="providers">
-          <li>
-            <button class="provider" type="button" :disabled="creating" @click="createPayment('mock')">
-              <span class="p-name">Mock Pay</span>
-              <span class="p-desc">Demo provider — simulated QR cashier, full webhook flow</span>
-              <span class="p-tag mono">DEV</span>
+          <li v-for="provider in providers" :key="provider.name">
+            <button
+              class="provider"
+              type="button"
+              :disabled="provider.name !== 'mock' && !provider.available"
+              @click="startPayment(provider)"
+            >
+              <span class="p-name">{{ provider.label }}</span>
+              <span class="p-desc">
+                {{ provider.name === 'mock'
+                  ? 'Demo provider — simulated QR cashier, full webhook flow'
+                  : provider.available
+                    ? 'Configured and active'
+                    : 'Awaiting merchant credentials — see PAYMENT.md' }}
+              </span>
+              <span class="p-tag mono">{{ provider.available ? 'ACTIVE' : 'OFF' }}</span>
             </button>
           </li>
         </ul>
-        <p class="state small">WeChat Pay and Alipay activate automatically once merchant credentials are configured (see PAYMENT.md).</p>
         <p v-if="actionMessage" class="state error">{{ actionMessage }}</p>
       </section>
     </template>
