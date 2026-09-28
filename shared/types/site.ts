@@ -37,6 +37,9 @@ export interface TransitItem {
   code: string
   name: string
   detail?: string
+  /** 高德坐标（lng, lat）— 用 https://lbs.amap.com/tools/picker 校准 */
+  lng?: number
+  lat?: number
 }
 
 export interface RegistrationTypeContent {

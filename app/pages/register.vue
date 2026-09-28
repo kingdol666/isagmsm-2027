@@ -184,8 +184,9 @@ async function submit() {
             <span class="f-hint mono">报名信息将关联到当前登录账号</span>
           </div>
           <label class="field">
-            <span class="f-label">手机号</span>
+            <span class="f-label">手机号 *</span>
             <input v-model="form.phone" type="tel" name="phone" autocomplete="tel" inputmode="tel">
+            <span v-if="fieldErrors.phone" class="f-error">{{ fieldErrors.phone }}</span>
           </label>
           <label class="field wide">
             <span class="f-label">单位 *</span>

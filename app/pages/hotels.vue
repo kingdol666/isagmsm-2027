@@ -35,7 +35,7 @@ useSeoMeta({ title: '酒店预定' })
 
       <section class="block">
         <h2 class="b-title">酒店位置地图</h2>
-        <AMapHotels :hotels="info.hotels" />
+        <AMapView :pois="info.hotels" height="420px" />
       </section>
 
       <section class="block">

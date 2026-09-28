@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "credentials_registration_uq" ON "credentials" USING btree ("registration_id");

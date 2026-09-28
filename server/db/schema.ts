@@ -136,7 +136,10 @@ export const credentials = pgTable('credentials', {
   token: varchar('token', { length: 64 }).notNull().unique(), // cryptographically random, unguessable
   status: varchar('status', { length: 30 }).notNull().default('active'), // active | revoked
   issuedAt: timestamp('issued_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, table => [
+  // 每位会员的报名最多一张凭证 — 数据库层硬约束（业务层 ensureCredential 已幂等）
+  uniqueIndex('credentials_registration_uq').on(table.registrationId),
+])
 
 export const checkins = pgTable('checkins', {
   id: uuid('id').primaryKey().defaultRandom(),

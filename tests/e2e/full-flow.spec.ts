@@ -53,6 +53,7 @@ test('sign-up → register → bank-transfer claim → approve → credential �
     await page.waitForTimeout(300)
   }
   await page.fill('input[name="affiliation"]', 'E2E 凝胶研究所')
+  await page.fill('input[name="phone"]', '13800009999')
   await page.fill('input[name="country"]', '中国')
   await page.click('form button:has-text("Continue")')
   await page.click('button:has-text("Create order")')

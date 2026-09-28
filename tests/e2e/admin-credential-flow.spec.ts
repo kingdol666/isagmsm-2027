@@ -29,7 +29,7 @@ test('admin issues credential, user sees it via avatar, scanner verifies, revoke
   const types = await userCtx.request.get(`${base}/api/registration-types`).then(r => r.json())
   const studentId = types.find((t: { code: string }) => t.code === 'student').id
   const created = await userCtx.request.post(`${base}/api/registrations`, {
-    data: { participant: { typeId: studentId, fullName, email, affiliation: '闭环测试大学', country: '中国' } },
+    data: { participant: { typeId: studentId, fullName, email, phone: '13800007777', affiliation: '闭环测试大学', country: '中国' } },
   })
   expect(created.status()).toBe(201)
   const { order } = await created.json() as { order: { id: string } }

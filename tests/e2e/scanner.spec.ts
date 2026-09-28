@@ -42,7 +42,7 @@ async function paidCredentialToken(context: import('@playwright/test').APIReques
   const academic = types.find((t: { code: string }) => t.code === 'academic').id
 
   const created = await context.post(`${base}/api/registrations`, {
-    data: { participant: { typeId: academic, fullName: 'Scan Tester', email, affiliation: 'Scan Institute', country: 'China' } },
+    data: { participant: { typeId: academic, fullName: 'Scan Tester', email, phone: '13800001234', affiliation: 'Scan Institute', country: 'China' } },
   })
   expect(created.status()).toBe(201)
   const { order } = await created.json() as { order: { id: string } }

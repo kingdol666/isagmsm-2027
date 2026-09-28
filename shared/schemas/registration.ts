@@ -6,7 +6,7 @@ export const participantSchema = z.object({
   fullName: z.string().trim().min(1, '请填写姓名').max(200),
   englishName: z.string().trim().max(200).optional().default(''),
   email: z.email('请填写有效的邮箱地址').max(320),
-  phone: z.string().trim().max(40).optional().default(''),
+  phone: z.string().trim().min(1, '请填写手机号').max(40),
   affiliation: z.string().trim().min(1, '请填写单位').max(300),
   department: z.string().trim().max(200).optional().default(''),
   position: z.string().trim().max(120).optional().default(''),

@@ -3,6 +3,17 @@ import { transportationContent as info } from '#shared/content/site'
 
 definePageMeta({ layout: 'site' })
 useSeoMeta({ title: '会场交通' })
+
+/* 左侧列表点击 → 右侧地图切换到对应点位（null = 显示全部） */
+const activeIndex = ref<number | null>(null)
+
+function select(index: number) {
+  activeIndex.value = activeIndex.value === index ? null : index
+}
+
+function poiName(index: number) {
+  return info.transit[index]?.name ?? ''
+}
 </script>
 
 <template>
@@ -20,8 +31,20 @@ useSeoMeta({ title: '会场交通' })
         <div>
           <h2 class="v-name">{{ info.venueName }}</h2>
           <p class="v-report">{{ info.reportPoint }}</p>
+
+          <p class="list-hint mono">点击任意地点，右侧地图将切换到对应位置</p>
           <ul class="v-list">
-            <li v-for="item in info.transit" :key="item.code">
+            <li
+              v-for="(item, index) in info.transit"
+              :key="item.code"
+              class="v-item-row"
+              :class="{ active: activeIndex === index }"
+              role="button"
+              tabindex="0"
+              @click="select(index)"
+              @keydown.enter="select(index)"
+              @keydown.space.prevent="select(index)"
+            >
               <span class="v-code">{{ item.code }}</span>
               <span class="v-item">
                 {{ item.name }}
@@ -31,25 +54,16 @@ useSeoMeta({ title: '会场交通' })
           </ul>
         </div>
 
-        <!-- 抽象示意地图占位（诚实占位，正式地图待嵌入） -->
-        <div class="map-block" role="img" aria-label="会场位置示意地图 — 待嵌入">
-          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-            <g stroke="#111111" stroke-opacity=".12" stroke-width="1">
-              <line x1="0" y1="60" x2="400" y2="60" /><line x1="0" y1="120" x2="400" y2="120" />
-              <line x1="0" y1="180" x2="400" y2="180" /><line x1="0" y1="240" x2="400" y2="240" />
-              <line x1="66" y1="0" x2="66" y2="300" /><line x1="133" y1="0" x2="133" y2="300" />
-              <line x1="266" y1="0" x2="266" y2="300" /><line x1="333" y1="0" x2="333" y2="300" />
-            </g>
-            <g stroke="#111111" stroke-opacity=".30" stroke-width="2" fill="none">
-              <path d="M-10 210 C 90 190, 150 250, 240 220 S 380 150, 410 170" />
-              <path d="M40 -10 C 70 80, 40 160, 90 310" />
-            </g>
-            <line x1="230" y1="140" x2="230" y2="86" stroke="#B45F3A" stroke-width="1.5" />
-            <line x1="230" y1="140" x2="292" y2="140" stroke="#B45F3A" stroke-width="1.5" />
-            <circle cx="230" cy="140" r="10" fill="none" stroke="#B45F3A" stroke-width="2" />
-            <circle cx="230" cy="140" r="3.5" fill="#B45F3A" />
-          </svg>
-          <span class="map-label">{{ info.mapLabel }}</span>
+        <!-- 右侧地图：随左侧选择切换渲染（高德 Key 未配置时显示占位说明） -->
+        <div>
+          <AMapView :pois="info.transit" :active-index="activeIndex" height="440px" />
+          <p class="map-caption mono">
+            {{
+              activeIndex != null
+                ? `正在查看：${poiName(activeIndex)}`
+                : '当前显示全部交通节点 · 点击左侧列表聚焦单个地点'
+            }}
+          </p>
         </div>
       </div>
     </div>
@@ -64,7 +78,7 @@ useSeoMeta({ title: '会场交通' })
 .t-body {
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(36px, 5vw, 64px);
+  gap: clamp(28px, 4vw, 48px);
   align-items: start;
 }
 
@@ -80,18 +94,37 @@ useSeoMeta({ title: '会场交通' })
   margin-top: 10px;
 }
 
+.list-hint {
+  margin-top: clamp(22px, 3vw, 32px);
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  color: var(--copper-deep);
+  border-top: 1px solid var(--ink);
+  padding-top: 12px;
+}
+
 .v-list {
-  margin-top: clamp(24px, 4vw, 38px);
   border-bottom: 1px solid var(--ink);
 }
 
-.v-list li {
+.v-item-row {
   display: grid;
   grid-template-columns: 74px 1fr;
   column-gap: 16px;
   border-top: 1px solid var(--hairline);
-  padding: 14px 0;
+  padding: 14px 8px 14px 0;
   align-items: baseline;
+  cursor: pointer;
+  transition: background-color .2s ease, box-shadow .2s ease;
+}
+
+.v-item-row:hover {
+  background: rgba(180, 95, 58, .055);
+}
+
+.v-item-row.active {
+  background: rgba(180, 95, 58, .08);
+  box-shadow: inset 3px 0 0 var(--copper);
 }
 
 .v-code {
@@ -114,37 +147,16 @@ useSeoMeta({ title: '会场交通' })
   margin-top: 2px;
 }
 
-.map-block {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  background: var(--tint);
-  border: 1px solid var(--ink);
-  overflow: hidden;
-}
-
-.map-block svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.map-label {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  background: var(--paper);
-  border: 1px solid var(--ink);
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: .12em;
-  color: var(--ink);
-  padding: 7px 12px;
+.map-caption {
+  margin-top: 12px;
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  color: var(--grey);
 }
 
 @media (min-width: 768px) {
   .t-body {
-    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
   }
 }
 </style>

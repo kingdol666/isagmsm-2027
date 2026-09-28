@@ -46,7 +46,7 @@ test('participants table exposes payment status, search filters, credential acti
   const types = await page.context().request.get(`${base}/api/registration-types`).then(r => r.json())
   const studentId = types.find((t: { code: string }) => t.code === 'student').id
   const created = await page.context().request.post(`${base}/api/registrations`, {
-    data: { participant: { typeId: studentId, fullName, email, affiliation: 'View Institute', country: 'China' } },
+    data: { participant: { typeId: studentId, fullName, email, phone: '13800005678', affiliation: 'View Institute', country: 'China' } },
   })
   expect(created.status()).toBe(201)
   const { order } = await created.json() as { order: { id: string } }

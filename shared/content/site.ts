@@ -270,10 +270,10 @@ export const transportationContent: { code: string; tag: string; title: string; 
   venueName: '合肥 · 会议酒店（具体会场待确认）',
   reportPoint: '报到签到处：会议主酒店大堂（以第二轮通知为准）',
   transit: [
-    { code: '机场', name: '合肥新桥国际机场', detail: '距会议酒店约 55 公里，车程 1 小时；机场大巴 / 出租车' },
-    { code: '高铁', name: '合肥南站', detail: '距会议酒店约 13 公里，打车约 20 分钟；地铁 1 号线约 40 分钟' },
-    { code: '火车', name: '合肥火车站', detail: '距会议酒店约 22 公里，打车约 35 分钟；地铁 1 号线约 1 小时' },
-    { code: '地铁', name: '地铁 1 号线', detail: '万达城站 1 号口出，步行至会议酒店' },
+    { code: '机场', name: '合肥新桥国际机场', detail: '距会议酒店约 55 公里，车程 1 小时；机场大巴 / 出租车', lng: 116.6455, lat: 31.9835 },
+    { code: '高铁', name: '合肥南站', detail: '距会议酒店约 13 公里，打车约 20 分钟；地铁 1 号线约 40 分钟', lng: 117.3124, lat: 31.7897 },
+    { code: '火车', name: '合肥火车站', detail: '距会议酒店约 22 公里，打车约 35 分钟；地铁 1 号线约 1 小时', lng: 117.3109, lat: 31.9075 },
+    { code: '地铁', name: '地铁 1 号线 · 万达城站', detail: '1 号口出，步行至会议酒店', lng: 117.2897, lat: 31.7165 },
   ],
   mapLabel: 'Map — to be embedded',
 }
