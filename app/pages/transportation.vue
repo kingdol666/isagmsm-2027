@@ -56,7 +56,7 @@ function poiName(index: number) {
 
         <!-- 右侧地图：随左侧选择切换渲染（高德 Key 未配置时显示占位说明） -->
         <div>
-          <AMapView :pois="info.transit" :active-index="activeIndex" height="440px" />
+          <MapLibreView :pois="info.transit" :active-index="activeIndex" height="440px" />
           <p class="map-caption mono">
             {{
               activeIndex != null

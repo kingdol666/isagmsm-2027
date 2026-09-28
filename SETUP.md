@@ -1,30 +1,15 @@
 # SETUP — 上线配置指南
 
-本文说明如何填入**高德地图 Key** 与**邮箱 SMTP 配置**，让系统具备真实地图渲染与真实邮件发送能力。所有配置都填写在项目根目录的 `.env` 文件中（复制 `.env.example` 为起点），填写后重启 `pnpm dev` 生效。启动日志会打印配置自检报告，`GET /api/health` 可随时查看当前状态。
+本文说明如何配置**邮箱 SMTP**，让系统具备真实邮件发送能力（地图已使用 MapLibre GL + OpenStreetMap 免费渲染，无需任何 Key）。所有配置都填写在项目根目录的 `.env` 文件中（复制 `.env.example` 为起点），填写后重启 `pnpm dev` 生效。启动日志会打印配置自检报告，`GET /api/health` 可随时查看当前状态。
 
 ---
 
-## 1. 高德地图 Key（酒店 / 会场交通真实地图）
+## 1. 地图（无需配置）
 
-### 申请步骤
+地图使用 **MapLibre GL JS（WebGL）+ OpenStreetMap 免费瓦片**渲染，`pnpm install` 后开箱即用，无需申请任何 Key。
 
-1. 打开 [https://lbs.amap.com/](https://lbs.amap.com/)，注册/登录高德开放平台（支付宝或手机号即可）
-2. 进入 **控制台 → 应用管理 → 创建新应用**（名称随意，如「ISAGMSM 会议」）
-3. 在应用下 **添加 Key**：
-   - 服务平台选择 **「Web端(JS API)」**
-   - 勾选同意服务协议并提交
-4. 得到两个值：
-   - **Key**（32 位字符串）
-   - **安全密钥 securityJsCode**（2021 年 12 月后申请的 Key 必须配合使用，在 Key 的「设置」里可查看）
-
-### 填入 `.env`
-
-```bash
-NUXT_PUBLIC_AMAP_KEY=你的Key
-NUXT_PUBLIC_AMAP_SECURITY_KEY=你的安全密钥
-```
-
-重启后，「酒店预定」页渲染真实地图（三家酒店标记 + 点击弹窗），「会场交通」页点击左侧列表即可切换地图到对应位置。
+- 酒店预定页：三家酒店标记 + 点击弹窗
+- 会场交通页：点击左侧交通节点，右侧地图飞行聚焦到对应位置
 
 ### 校准酒店 / 会场坐标
 
@@ -36,6 +21,8 @@ NUXT_PUBLIC_AMAP_SECURITY_KEY=你的安全密钥
 // transportationContent.transit（会场交通页）
 { code: '机场', name: '合肥新桥国际机场', lng: 116.6455, lat: 31.9835, ... }
 ```
+
+> 生产大流量提示：OpenStreetMap 公共瓦片有[使用政策](https://operations.osmfoundation.org/policies/tiles/)限制，正式上线可替换为自建瓦片或 Carto 等免费源（改 `app/components/site/MapLibreView.vue` 的 `sources`）。
 
 ---
 
