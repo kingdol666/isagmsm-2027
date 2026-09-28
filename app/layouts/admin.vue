@@ -4,6 +4,7 @@
       <NuxtLink to="/admin" class="a-brand">PPS<i>·</i>26 <span>ADMIN</span></NuxtLink>
       <nav class="a-nav" aria-label="Admin sections">
         <NuxtLink to="/admin">Dashboard</NuxtLink>
+        <NuxtLink to="/admin/approvals">缴费审批</NuxtLink>
         <NuxtLink to="/admin/registrations">Registrations</NuxtLink>
         <NuxtLink to="/admin/orders">Orders</NuxtLink>
         <NuxtLink to="/admin/payments">Payments</NuxtLink>

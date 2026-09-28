@@ -1,18 +1,27 @@
 <script setup lang="ts">
-import { venueContent } from '#shared/content/site'
+import { transportationContent as info } from '#shared/content/site'
+
+definePageMeta({ layout: 'site' })
+useSeoMeta({ title: '会场交通' })
 </script>
 
 <template>
-  <!-- 06 · VENUE -->
-  <section id="venue" class="sec">
+  <main id="main" class="page">
     <div class="wrap">
-      <SecHead :code="venueContent.code" :tag="venueContent.tag" :title="venueContent.title" :title-em="venueContent.titleEm" />
-      <div class="venue-body">
+      <header class="sec-head">
+        <div class="sec-meta">
+          <span class="sec-code">{{ info.code }}</span>
+          <span class="sec-tag">{{ info.tag }}</span>
+        </div>
+        <h1 class="sec-title">{{ info.title }}</h1>
+      </header>
+
+      <div class="t-body">
         <div>
-          <h3 class="v-name">{{ venueContent.name }}</h3>
-          <p class="v-addr">{{ venueContent.address }}</p>
+          <h2 class="v-name">{{ info.venueName }}</h2>
+          <p class="v-report">{{ info.reportPoint }}</p>
           <ul class="v-list">
-            <li v-for="item in venueContent.transit" :key="item.code">
+            <li v-for="item in info.transit" :key="item.code">
               <span class="v-code">{{ item.code }}</span>
               <span class="v-item">
                 {{ item.name }}
@@ -21,13 +30,9 @@ import { venueContent } from '#shared/content/site'
             </li>
           </ul>
         </div>
-        <!-- Placeholder: abstract SVG map, explicitly labelled. No fake map
-             screenshots (honesty rule). To be replaced by a real embed. -->
-        <div
-          class="map-block"
-          role="img"
-          aria-label="Abstract placeholder map with a marker for the venue — map to be embedded"
-        >
+
+        <!-- 抽象示意地图占位（诚实占位，正式地图待嵌入） -->
+        <div class="map-block" role="img" aria-label="会场位置示意地图 — 待嵌入">
           <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
             <g stroke="#111111" stroke-opacity=".12" stroke-width="1">
               <line x1="0" y1="60" x2="400" y2="60" /><line x1="0" y1="120" x2="400" y2="120" />
@@ -44,15 +49,19 @@ import { venueContent } from '#shared/content/site'
             <circle cx="230" cy="140" r="10" fill="none" stroke="#B45F3A" stroke-width="2" />
             <circle cx="230" cy="140" r="3.5" fill="#B45F3A" />
           </svg>
-          <span class="map-label">{{ venueContent.mapLabel }}</span>
+          <span class="map-label">{{ info.mapLabel }}</span>
         </div>
       </div>
     </div>
-  </section>
+  </main>
 </template>
 
 <style scoped>
-.venue-body {
+.page {
+  padding-block: clamp(48px, 8vh, 96px);
+}
+
+.t-body {
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(36px, 5vw, 64px);
@@ -60,21 +69,19 @@ import { venueContent } from '#shared/content/site'
 }
 
 .v-name {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(1.6rem, 2.8vw, 2.1rem);
-  line-height: 1.15;
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+  font-weight: 600;
+  line-height: 1.3;
 }
 
-.v-addr {
-  font-size: 15.5px;
+.v-report {
+  font-size: 14.5px;
   color: var(--grey);
-  margin-top: 12px;
-  max-width: 44ch;
+  margin-top: 10px;
 }
 
 .v-list {
-  margin-top: clamp(26px, 4vw, 40px);
+  margin-top: clamp(24px, 4vw, 38px);
   border-bottom: 1px solid var(--ink);
 }
 
@@ -91,7 +98,6 @@ import { venueContent } from '#shared/content/site'
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: .12em;
-  text-transform: uppercase;
   color: var(--copper-deep);
   font-weight: 500;
 }
@@ -132,13 +138,12 @@ import { venueContent } from '#shared/content/site'
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: .12em;
-  text-transform: uppercase;
   color: var(--ink);
   padding: 7px 12px;
 }
 
 @media (min-width: 768px) {
-  .venue-body {
+  .t-body {
     grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
   }
 }

@@ -1,118 +1,125 @@
 <script setup lang="ts">
-import { sponsorsContent } from '#shared/content/site'
+import { sponsorshipContent } from '#shared/content/site'
 </script>
 
 <template>
-  <!-- 08 · SPONSORS — typographic wordmarks only -->
-  <section id="sponsors" class="sec">
+  <!-- 08 · 参展赞助预览 -->
+  <section id="sponsorship" class="sec">
     <div class="wrap">
-      <SecHead :code="sponsorsContent.code" :tag="sponsorsContent.tag" :title="sponsorsContent.title" />
-      <!-- Placeholder note: all names are fictional sample wordmarks,
-           typeset only — no drawn or real logos (honesty rule). -->
-      <ul class="sponsor-rows">
-        <li v-for="row in sponsorsContent.rows" :key="row.tier">
-          <span class="sr-tier">{{ row.tier }}</span>
-          <span class="wm-group">
-            <span v-for="name in row.names" :key="name.text" class="wordmark" :class="`wm-${name.style}`">
-              {{ name.text }}
-            </span>
-          </span>
-        </li>
-      </ul>
-      <p class="sponsor-note">{{ sponsorsContent.note }}</p>
+      <SecHead :code="sponsorshipContent.code" :tag="sponsorshipContent.tag" :title="sponsorshipContent.title" />
+      <p class="sp-intro">{{ sponsorshipContent.intro }}</p>
+      <div class="tier-grid">
+        <article v-for="tier in sponsorshipContent.tiers" :key="tier.tier" class="tier">
+          <span class="t-name">{{ tier.tier }}</span>
+          <p class="t-price">{{ tier.price }}</p>
+          <p class="t-quota">{{ tier.quota }}</p>
+          <ul class="t-benefits">
+            <li v-for="benefit in tier.benefits" :key="benefit">{{ benefit }}</li>
+          </ul>
+        </article>
+      </div>
+      <div class="reg-foot">
+        <NuxtLink class="btn btn-solid" href="/sponsorship">赞助详情与洽谈</NuxtLink>
+        <p class="reg-note">{{ sponsorshipContent.paymentNote }}</p>
+      </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-.sponsor-rows {
+.sp-intro {
+  font-size: clamp(15.5px, 1.3vw, 17px);
+  line-height: 1.8;
+  max-width: 60ch;
+  margin-bottom: clamp(28px, 4vw, 44px);
+  color: var(--ink);
+}
+
+.tier-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 1px solid var(--ink);
   border-bottom: 1px solid var(--ink);
 }
 
-.sponsor-rows li {
-  display: grid;
-  grid-template-columns: 1fr;
-  row-gap: 10px;
-  border-top: 1px solid var(--hairline);
+.tier {
   padding: 24px 0;
-  align-items: baseline;
+  border-top: 1px solid var(--hairline);
 }
 
-.sr-tier {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--grey);
+.tier:first-child {
+  border-top: none;
 }
 
-.wordmark {
-  transition: color .2s ease;
-}
-
-.wordmark:hover {
+.t-name {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
   color: var(--copper-deep);
 }
 
-.wm-serif {
+.t-price {
   font-family: var(--serif);
   font-size: clamp(1.7rem, 3vw, 2.2rem);
-  line-height: 1.1;
+  line-height: 1;
+  margin-top: 10px;
 }
 
-.wm-group {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.wm-sans {
-  font-weight: 600;
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.wm-sans2 {
-  font-weight: 600;
-  font-style: italic;
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
-  letter-spacing: .02em;
-}
-
-.wm-mono {
-  font-family: var(--mono);
-  font-weight: 500;
-  font-size: clamp(1.1rem, 1.8vw, 1.35rem);
-  letter-spacing: .04em;
-}
-
-.wm-serifit {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
-}
-
-.sponsor-note {
+.t-quota {
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: .1em;
-  text-transform: uppercase;
   color: var(--grey);
-  margin-top: 22px;
+  margin-top: 8px;
+}
+
+.t-benefits {
+  margin-top: 14px;
+}
+
+.t-benefits li {
+  font-size: 14px;
+  color: var(--grey);
+  line-height: 1.9;
+  border-top: 1px solid var(--hairline-soft);
+  padding: 5px 0;
+}
+
+.t-benefits li::before {
+  content: "—";
+  color: var(--copper-deep);
+  margin-right: 10px;
+}
+
+.reg-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  margin-top: clamp(26px, 4vw, 40px);
+}
+
+.reg-note {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: var(--grey);
 }
 
 @media (min-width: 768px) {
-  .sponsor-rows li {
-    grid-template-columns: 200px 1fr;
-    column-gap: 28px;
-    row-gap: 0;
+  .tier-grid {
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 32px;
   }
 
-  .wm-group {
-    flex-direction: row;
-    gap: 48px;
-    flex-wrap: wrap;
+  .tier {
+    padding: 26px 26px 26px 0;
+  }
+
+  .tier + .tier {
+    border-top: none;
+    border-left: 1px solid var(--hairline);
+    padding-left: 28px;
   }
 }
 </style>

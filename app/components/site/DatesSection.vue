@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { datesContent } from '#shared/content/site'
+import { datesContent, siteMeta } from '#shared/content/site'
 </script>
 
 <template>
@@ -13,16 +13,15 @@ import { datesContent } from '#shared/content/site'
           <span class="dl-date">{{ item.date }}</span>
         </li>
       </ul>
-      <!-- Call for abstracts — the academic conference's second CTA -->
+      <!-- 征稿 CTA -->
       <div class="cfp">
         <p class="cfp-text">
-          <b>CALL FOR ABSTRACTS</b> — contributions across all eight themes are welcome.
-          Abstract submission opens 01 May 2026.
+          <b>征稿启事</b> — 欢迎围绕六大研究方向投稿，摘要提交截止 2026年3月25日。
         </p>
         <a
           class="btn btn-ghost"
-          href="mailto:abstracts@pps2026-conf.org?subject=PPS%202026%20Abstract%20Submission"
-        >Submit an abstract</a>
+          :href="`mailto:${siteMeta.abstractsEmail}?subject=ISAGMSM%E6%8A%95%E7%A8%BF`"
+        >提交摘要</a>
       </div>
     </div>
   </section>

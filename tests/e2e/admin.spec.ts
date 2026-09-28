@@ -53,15 +53,19 @@ test('registrations table exposes per-row payment status; search filters', async
   })
   expect(created.status()).toBe(201)
   const { order } = await created.json() as { order: { id: string } }
-  const pay = await page.context().request.post(`${base}/api/payments/create`, {
-    data: { orderId: order.id, provider: 'mock' },
+  // bank-transfer claim + admin approval issues the credential
+  const claim = await page.context().request.post(`${base}/api/orders/${order.id}/claim`, {
+    data: { reference: 'E2E-ADMIN-REF' },
   })
-  const { payment } = await pay.json() as { payment: { id: string } }
-  // simulate the signed webhook through the cashier path
-  const cashier = await page.context().request.post(`${base}/api/payments/mock/cashier`, {
-    data: { paymentId: payment.id, result: 'paid' },
+  expect(claim.status()).toBe(200)
+  const adminLogin = await page.context().request.post(`${base}/api/admin/login`, {
+    data: { username: 'admin', password: 'pps26-admin' },
   })
-  expect((await cashier.json()).status).toBe('paid')
+  expect(adminLogin.status()).toBe(200)
+  const review = await page.context().request.post(`${base}/api/admin/orders/${order.id}/review`, {
+    data: { action: 'approve' },
+  })
+  expect(review.status()).toBe(200)
 
   await page.goto(`${base}/admin/login`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')

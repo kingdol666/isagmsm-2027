@@ -18,7 +18,7 @@ async function staffLogin(page: import('@playwright/test').Page) {
   await expect(page.locator('#manual-token')).toBeVisible({ timeout: 30_000 })
 }
 
-/** Pays a fresh registration end-to-end via API and returns its credential token. */
+/** Drives a fresh registration through claim + admin approval, returns the credential token. */
 async function paidCredentialToken(context: import('@playwright/test').APIRequestContext) {
   const email = uniqueEmail('scan')
   const password = `scan-${Date.now()}-pass!`
@@ -45,30 +45,23 @@ async function paidCredentialToken(context: import('@playwright/test').APIReques
     data: { participant: { typeId: academic, fullName: 'Scan Tester', email, affiliation: 'Scan Institute', country: 'China' } },
   })
   expect(created.status()).toBe(201)
-  const { order } = await created.json() as { order: { id: string, totalFen: number, orderNo: string } }
+  const { order } = await created.json() as { order: { id: string } }
 
-  const pay = await context.post(`${base}/api/payments/create`, {
-    data: { orderId: order.id, provider: 'mock' },
+  // bank-transfer claim (participant), then admin approval
+  const claim = await context.post(`${base}/api/orders/${order.id}/claim`, {
+    data: { reference: 'E2E-SCAN-REF' },
   })
-  const { payment } = await pay.json() as { payment: { id: string, providerPaymentNo: string } }
+  expect(claim.status()).toBe(200)
 
-  const { createHmac } = await import('node:crypto')
-  const secret = 'dev-only-mock-secret'
-  const body = JSON.stringify({
-    eventId: `e2e-scan-${payment.id}`,
-    providerPaymentNo: payment.providerPaymentNo,
-    orderNo: order.orderNo,
-    result: 'paid',
-    amountFen: order.totalFen,
+  const adminLogin = await context.post(`${base}/api/admin/login`, {
+    data: { username: 'admin', password: 'pps26-admin' },
   })
-  const webhook = await context.post(`${base}/api/payments/webhook/mock`, {
-    headers: { 'content-type': 'text/plain', 'x-mock-signature': createHmac('sha256', secret).update(body).digest('hex') },
-    data: body,
+  expect(adminLogin.status()).toBe(200)
+
+  const review = await context.post(`${base}/api/admin/orders/${order.id}/review`, {
+    data: { action: 'approve' },
   })
-  if (webhook.status() !== 200) {
-    console.error('WEBHOOK_FAIL', webhook.status(), await webhook.text())
-  }
-  expect(webhook.status()).toBe(200)
+  expect(review.status()).toBe(200)
 
   const orderView = await context.get(`${base}/api/orders/${order.id}`).then(r => r.json())
   return orderView.credentialToken as string

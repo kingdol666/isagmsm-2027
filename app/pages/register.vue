@@ -41,7 +41,7 @@ onMounted(async () => {
 })
 
 const step = ref(0)
-const steps = ['Registration', 'Information', 'Confirmation']
+const steps = ['选择票种', '填写信息', '确认提交']
 
 const selectedType = ref<RegistrationTypeApi | null>(null)
 const form = reactive({
@@ -126,8 +126,8 @@ async function submit() {
   <div class="register">
     <header class="sec-head">
       <div class="sec-meta">
-        <span class="sec-code">PPS26—07 · REGISTER</span>
-        <span class="sec-tag">3 STEPS</span>
+        <span class="sec-code">ISAGMSM—08 · 报名</span>
+        <span class="sec-tag">三步完成</span>
       </div>
       <h1 class="sec-title">Registration</h1>
     </header>
@@ -170,55 +170,55 @@ async function submit() {
       <form class="form" novalidate @submit.prevent="next">
         <div class="grid">
           <label class="field">
-            <span class="f-label">Full Name *</span>
+            <span class="f-label">姓名 *</span>
             <input v-model="form.fullName" type="text" name="fullName" autocomplete="name">
             <span v-if="fieldErrors.fullName" class="f-error">{{ fieldErrors.fullName }}</span>
           </label>
           <label class="field">
-            <span class="f-label">English Name</span>
+            <span class="f-label">英文名</span>
             <input v-model="form.englishName" type="text" name="englishName">
           </label>
           <div class="field">
-            <span class="f-label">Email (account)</span>
+            <span class="f-label">账户邮箱（锁定）</span>
             <input type="email" :value="user?.email" disabled aria-label="Account email">
-            <span class="f-hint mono">Registration is tied to your signed-in account</span>
+            <span class="f-hint mono">报名信息将关联到当前登录账号</span>
           </div>
           <label class="field">
-            <span class="f-label">Phone</span>
+            <span class="f-label">手机号</span>
             <input v-model="form.phone" type="tel" name="phone" autocomplete="tel" inputmode="tel">
           </label>
           <label class="field wide">
-            <span class="f-label">Affiliation *</span>
+            <span class="f-label">单位 *</span>
             <input v-model="form.affiliation" type="text" name="affiliation" autocomplete="organization">
             <span v-if="fieldErrors.affiliation" class="f-error">{{ fieldErrors.affiliation }}</span>
           </label>
           <label class="field">
-            <span class="f-label">Department</span>
+            <span class="f-label">院系 / 部门</span>
             <input v-model="form.department" type="text" name="department">
           </label>
           <label class="field">
-            <span class="f-label">Position</span>
+            <span class="f-label">职务</span>
             <input v-model="form.position" type="text" name="position">
           </label>
           <label class="field">
-            <span class="f-label">Country / Region *</span>
+            <span class="f-label">国家 / 地区 *</span>
             <input v-model="form.country" type="text" name="country" autocomplete="country-name">
             <span v-if="fieldErrors.country" class="f-error">{{ fieldErrors.country }}</span>
           </label>
           <label class="field">
-            <span class="f-label">Dietary Requirement</span>
-            <input v-model="form.dietary" type="text" name="dietary" placeholder="e.g. vegetarian">
+            <span class="f-label">饮食禁忌</span>
+            <input v-model="form.dietary" type="text" name="dietary" placeholder="如：素食">
           </label>
           <label class="field wide check">
             <input v-model="form.invoiceRequired" type="checkbox" name="invoiceRequired">
-            <span class="f-label">I need an invoice (发票)</span>
+            <span class="f-label">需要发票</span>
           </label>
           <label v-if="form.invoiceRequired" class="field wide">
-            <span class="f-label">Invoice Title</span>
+            <span class="f-label">发票抬头</span>
             <input v-model="form.invoiceTitle" type="text" name="invoiceTitle">
           </label>
         </div>
-        <p class="form-note">Fields marked * are required. Information is validated on the server.</p>
+        <p class="form-note">带 * 为必填项；信息将在服务端再次校验。</p>
         <div class="actions">
           <button class="btn btn-ghost" type="button" @click="back">Back</button>
           <button class="btn btn-solid" type="submit" @click="next">Continue</button>

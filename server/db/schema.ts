@@ -86,8 +86,14 @@ export const orders = pgTable('orders', {
   discountFen: integer('discount_fen').notNull().default(0),
   totalFen: integer('total_fen').notNull(),
   currency: varchar('currency', { length: 8 }).notNull().default('CNY'),
-  status: varchar('status', { length: 30 }).notNull().default('pending'), // pending | paid | failed | expired | cancelled | refunded
+  status: varchar('status', { length: 30 }).notNull().default('pending'), // pending | reviewing | paid | failed | expired | cancelled | refunded
   discountReason: varchar('discount_reason', { length: 100 }),
+  /* bank-transfer review flow */
+  reference: varchar('reference', { length: 120 }), // 转账流水号（用户提交）
+  claimedAt: timestamp('claimed_at', { withTimezone: true }),
+  reviewedBy: uuid('reviewed_by'),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  reviewNote: varchar('review_note', { length: 300 }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

@@ -5,8 +5,8 @@ import { siteMeta } from '#shared/content/site'
 <template>
   <div class="flow">
     <header class="flow-bar">
-      <NuxtLink class="flow-brand" href="/">PPS<i>·</i>26</NuxtLink>
-      <span class="flow-note">Polymer Processing Symposium 2026</span>
+      <NuxtLink class="flow-brand" href="/">{{ siteMeta.shortName }}</NuxtLink>
+      <span class="flow-note">{{ siteMeta.fullNameZh }}</span>
       <div class="flow-right">
         <ClientOnly>
           <AuthChip />

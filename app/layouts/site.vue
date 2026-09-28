@@ -1,9 +1,18 @@
+<script setup lang="ts">
+import { siteMeta } from '#shared/content/site'
+</script>
+
 <template>
   <div>
-    <SiteTopbar />
-    <SiteRail />
-    <!-- Footer lives INSIDE the main content column (not beside it) so the
-         fixed index rail can never cover it — the Direction-C port fix. -->
+    <SiteHeader />
+
+    <!-- 重要日期横幅 — 参照学术会议官网形态 -->
+    <div class="date-strip" role="note">
+      <span class="ds-label mono">重要日期</span>
+      <span v-for="item in siteMeta.bannerDates" :key="item" class="ds-item">{{ item }}</span>
+    </div>
+
+    <!-- Footer lives INSIDE the main column so no fixed element can cover it. -->
     <div class="site-main">
       <slot />
       <SiteFooter />
@@ -12,14 +21,31 @@
 </template>
 
 <style scoped>
-.site-main {
-  padding-top: 60px; /* topbar offset (mobile / tablet) */
+.date-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 28px;
+  padding: 12px var(--pad);
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
 }
 
-@media (min-width: 1024px) {
-  .site-main {
-    padding-top: 0;
-    margin-left: var(--rail-w);
-  }
+.ds-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .18em;
+  color: var(--copper-deep);
+}
+
+.ds-item {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--copper-deep);
+  letter-spacing: .02em;
+}
+
+.site-main {
+  min-height: 60vh;
 }
 </style>

@@ -63,10 +63,10 @@ test('sign out returns to anonymous state', async ({ page }) => {
   await createAccountViaApi(page.context(), email, password, 'Sign Out Tester')
 
   await page.goto(base, { waitUntil: 'networkidle' })
-  await expect(page.locator('.rail-auth .chip-link.name')).toContainText('Sign Out Tester')
-  await page.click('.rail-auth button:has-text("Sign out")')
+  await expect(page.locator('.h-auth .chip-link.name')).toContainText('Sign Out Tester')
+  await page.click('.h-auth button:has-text("Sign out")')
   await page.waitForURL(base + '/')
-  await expect(page.locator('.rail-auth .chip-link.accent')).toContainText('Register')
+  await expect(page.locator('.h-auth .chip-link.accent')).toContainText('Register')
 })
 
 test('forgot-password: reset code sets a new password and old one stops working', async ({ page }) => {

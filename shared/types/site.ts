@@ -47,12 +47,43 @@ export interface RegistrationTypeContent {
   availability: 'available' | 'on_invitation'
 }
 
-export interface SponsorName {
-  text: string
-  style: 'serif' | 'sans' | 'sans2' | 'mono' | 'serifit'
-}
-
 export interface SponsorRow {
   tier: string
-  names: SponsorName[]
+  names: Array<{ text: string, style: 'serif' | 'sans' | 'sans2' | 'mono' | 'serifit' }>
+}
+
+/* ---- gel-specific content structures ---- */
+
+export interface OrgSection {
+  title: string
+  kind: 'units' | 'people'
+  entries: Array<{ role?: string, name: string, note?: string }>
+}
+
+export interface AbstractTopic {
+  no: string
+  title: string
+  scope: string
+}
+
+export interface HotelItem {
+  name: string
+  stars: string
+  price: string
+  address: string
+  intro: string
+}
+
+export interface SponsorTier {
+  tier: string
+  price: string
+  quota: string
+  benefits: string[]
+}
+
+export interface SponsorAdItem {
+  item: string
+  benefit: string
+  price: string
+  quota: string
 }

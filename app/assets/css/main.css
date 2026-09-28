@@ -29,10 +29,10 @@
   --tint-2: #E9E7DF;
   --paper-hl: rgba(247, 246, 242, .20); /* hairlines on ink */
   --paper-dim: rgba(247, 246, 242, .66);
-  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
-  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Instrument Serif", Georgia, "Songti SC", "SimSun", serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
-  --rail-w: 232px;
+  --header-h: 104px;
   --pad: clamp(20px, 5vw, 64px);
   --sec-y: clamp(76px, 11vh, 132px);
 }
@@ -102,20 +102,22 @@ body.nav-open { overflow: hidden; }
 .sec-code { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--copper-deep); }
 .sec-tag { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--grey); text-align: right; }
 .sec-title {
-  font-family: var(--serif); font-weight: 400;
-  font-size: clamp(2.3rem, 4.6vw, 3.7rem);
-  line-height: 1.02; letter-spacing: -.01em; max-width: 18ch;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  line-height: 1.18;
+  letter-spacing: .01em;
+  max-width: 24ch;
 }
-.sec-title em { font-style: italic; color: var(--copper-deep); }
+.sec-title em { font-style: normal; color: var(--copper-deep); }
 
 @media (min-width: 1024px) {
   :root { --pad: clamp(40px, 4.5vw, 72px); }
-  html { scroll-padding-top: 24px; }
+  html { scroll-padding-top: 128px; }
 }
 
 @media (min-width: 1440px) {
-  :root { --rail-w: 264px; }
-  .sec-title { font-size: clamp(2.8rem, 3.4vw, 4rem); }
+  .sec-title { font-size: clamp(2rem, 3vw, 2.9rem); }
   .wrap { max-width: 1360px; }
 }
 

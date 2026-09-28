@@ -6,12 +6,12 @@ import { speakersContent } from '#shared/content/site'
   <!-- 03 · KEYNOTE SPEAKERS — 4/2/1, monogram plates -->
   <section id="speakers" class="sec">
     <div class="wrap">
-      <SecHead :code="speakersContent.code" :tag="speakersContent.tag" :title="'Keynote Speakers'" />
+      <SecHead :code="speakersContent.code" :tag="speakersContent.tag" :title="'拟邀大会报告'" />
       <!-- Placeholder note: portraits are letter monograms by design —
            no real photographs are used (honesty rule). Sample data. -->
       <div class="sp-grid">
         <article v-for="speaker in speakersContent.items" :key="speaker.code" class="speaker">
-          <p class="sp-head"><b>{{ speaker.code }}</b><span>Keynote</span></p>
+          <p class="sp-head"><b>{{ speaker.code }}</b><span>大会报告</span></p>
           <figure class="sp-plate" role="img" :aria-label="`Monogram placeholder for ${speaker.name}`">
             <span aria-hidden="true">{{ speaker.monogram }}</span>
           </figure>

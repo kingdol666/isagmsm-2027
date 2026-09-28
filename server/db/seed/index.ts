@@ -41,10 +41,10 @@ async function wipe() {
 }
 
 const TYPES = [
-  { code: 'student', name: 'Student', priceFen: 160000, description: 'For undergraduate & graduate students (valid ID required)', availability: 'available', sortOrder: 1 },
-  { code: 'academic', name: 'Academic', priceFen: 240000, description: 'Faculty & research staff of universities and institutes', availability: 'available', sortOrder: 2 },
-  { code: 'industry', name: 'Industry', priceFen: 360000, description: 'Professionals & engineers from industry', availability: 'available', sortOrder: 3 },
-  { code: 'invited', name: 'Invited Speaker', priceFen: 0, description: 'By invitation of the organising committee', availability: 'on_invitation', sortOrder: 4 },
+  { code: 'student', name: '学生代表', priceFen: 120000, description: '本科生与研究生（报到时出示有效证件）', availability: 'available', sortOrder: 1 },
+  { code: 'academic', name: '正式代表', priceFen: 200000, description: '高校、科研院所教师与研究人员', availability: 'available', sortOrder: 2 },
+  { code: 'industry', name: '企业代表', priceFen: 240000, description: '企业技术人员与商务代表', availability: 'available', sortOrder: 3 },
+  { code: 'invited', name: '特邀报告人', priceFen: 0, description: '由组织委员会邀请', availability: 'on_invitation', sortOrder: 4 },
 ]
 
 const SPEAKERS = [

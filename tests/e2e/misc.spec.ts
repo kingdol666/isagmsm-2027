@@ -35,9 +35,28 @@ test('homepage carries structured event data and meta', async ({ page }) => {
   await page.goto(base, { waitUntil: 'networkidle' })
   const jsonLd = await page.locator('script[type="application/ld+json"]').first().textContent()
   expect(jsonLd).toContain('ConferenceEvent')
-  expect(jsonLd).toContain('2026-10-15')
+  expect(jsonLd).toContain('2026-04-24')
   const description = await page.locator('meta[name="description"]').getAttribute('content')
-  expect(description).toContain('Polymer Processing')
+  expect(description).toContain('先进凝胶材料')
+  // header nav shows the seven conference sections
+  for (const label of ['组织机构', '征文投稿', '参会注册', '会场交通', '酒店预定', '参展赞助']) {
+    await expect(page.locator('.h-nav')).toContainText(label)
+  }
+})
+
+test('all seven conference pages render with their section titles', async ({ page }) => {
+  const pages = [
+    { path: '/organization', title: '组织机构' },
+    { path: '/abstracts', title: '征文投稿' },
+    { path: '/registration', title: '参会注册' },
+    { path: '/transportation', title: '会场交通' },
+    { path: '/hotels', title: '酒店预定' },
+    { path: '/sponsorship', title: '参展赞助' },
+  ]
+  for (const p of pages) {
+    await page.goto(base + p.path, { waitUntil: 'networkidle' })
+    await expect(page.locator('h1.sec-title')).toContainText(p.title)
+  }
 })
 
 test('account profile saves and persists across reloads', async ({ page }) => {

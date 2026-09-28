@@ -1,20 +1,18 @@
 <script setup lang="ts">
-import { siteMeta, venueContent } from '#shared/content/site'
+import { siteMeta, transportationContent } from '#shared/content/site'
 
 definePageMeta({ layout: 'site' })
 
 useSeoMeta({
-  title: 'PPS 2026 — Polymer Processing Symposium · Hefei, China',
+  title: `${siteMeta.fullNameZh} · ${siteMeta.dates} · ${siteMeta.location}`,
   description:
-    'PPS 2026 — International Symposium on Polymer Processing. Materials · Processing · Manufacturing · Intelligence. 15—17 October 2026, Hefei, China. Register now.',
-  ogTitle: 'PPS 2026 — Polymer Processing Symposium',
-  ogDescription:
-    'Materials · Processing · Manufacturing · Intelligence. 15—17 October 2026, Hefei, China.',
+    `${siteMeta.fullNameEn}（${siteMeta.fullNameZh}），${siteMeta.dates}，${siteMeta.location}。围绕凝胶材料设计合成、软物质物理、智能响应体系、生物医用转化与产业化交流最新进展。`,
+  ogTitle: `ISAGMSM 2026 — ${siteMeta.fullNameZh}`,
+  ogDescription: `${siteMeta.dates} · ${siteMeta.location} · 立即报名`,
   ogType: 'website',
   twitterCard: 'summary_large_image',
 })
 
-/* Structured data for search engines (ConferenceEvent). */
 useHead({
   script: [
     {
@@ -22,26 +20,26 @@ useHead({
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'ConferenceEvent',
-        name: 'Polymer Processing Symposium 2026',
-        alternateName: 'PPS 2026',
-        description: 'International symposium on polymer processing — materials, processing, manufacturing and intelligence.',
-        startDate: '2026-10-15',
-        endDate: '2026-10-17',
+        name: siteMeta.fullNameEn,
+        alternateName: siteMeta.fullNameZh,
+        description: '第五届先进凝胶材料与软物质国际学术研讨会',
+        startDate: '2026-04-24',
+        endDate: '2026-04-26',
         eventStatus: 'https://schema.org/EventScheduled',
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         location: {
           '@type': 'Place',
-          name: venueContent.name,
+          name: transportationContent.venueName,
           address: {
             '@type': 'PostalAddress',
-            addressLocality: 'Hefei',
-            addressRegion: 'Anhui',
+            addressLocality: '合肥',
+            addressRegion: '安徽',
             addressCountry: 'CN',
           },
         },
         organizer: {
           '@type': 'Organization',
-          name: 'PPS 2026 Organising Committee',
+          name: 'ISAGMSM 组织委员会',
           email: siteMeta.email,
         },
       }),
@@ -58,7 +56,6 @@ useHead({
     <SpeakersSection />
     <ProgramSection />
     <DatesSection />
-    <VenueSection />
     <RegistrationSection />
     <SponsorsSection />
   </main>

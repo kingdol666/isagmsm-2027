@@ -7,15 +7,15 @@ import { footerContent, siteMeta, siteNav } from '#shared/content/site'
        content column (see layouts/site.vue) so the fixed rail never covers it. -->
   <footer id="colophon" class="colophon">
     <div class="wrap">
-      <p class="f-mark">PPS 2026<span>Polymer Processing Symposium</span></p>
+      <p class="f-mark">ISAGMSM<span>{{ siteMeta.fullNameEn }}</span></p>
       <div class="f-grid">
         <div>
           <p class="f-line">{{ footerContent.line }}</p>
           <a class="f-mail" :href="`mailto:${siteMeta.email}`">{{ siteMeta.email }}</a>
           <p class="f-host">{{ footerContent.hostNote }}</p>
         </div>
-        <nav class="f-nav" aria-label="Footer navigation">
-          <a v-for="item in siteNav" :key="item.code" :href="item.href">{{ item.label }}</a>
+        <nav class="f-nav" aria-label="页脚导航">
+          <NuxtLink v-for="item in siteNav" :key="item.code" :to="item.href">{{ item.label }}</NuxtLink>
         </nav>
       </div>
       <!-- utility row: participant + staff entry points -->

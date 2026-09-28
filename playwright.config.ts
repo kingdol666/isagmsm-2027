@@ -13,14 +13,9 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'pnpm dev',
+    command: 'pnpm dev:e2e',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120_000,
-    env: {
-      // The suite legitimately exceeds per-IP rate limits from one machine.
-      // The bypass only works outside production (see server/utils/rate-limit.ts).
-      RATE_LIMIT_DISABLED: '1',
-    },
   },
 })

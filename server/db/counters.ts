@@ -30,9 +30,9 @@ export async function bumpCounter(db: DbExecutor, key: string): Promise<number> 
 }
 
 export function formatDisplayId(seq: number): string {
-  return `PPS26-${String(seq).padStart(6, '0')}`
+  return `ISAGMSM-${String(seq).padStart(6, '0')}`
 }
 
 export function formatOrderNo(seq: number): string {
-  return `PPS26-ORD-${String(seq).padStart(6, '0')}`
+  return `ISAGMSM-ORD-${String(seq).padStart(6, '0')}`
 }

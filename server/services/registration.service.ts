@@ -28,10 +28,10 @@ export async function submitRegistration(
 ): Promise<RegistrationRecord> {
   const type = await findTypeById(db, input.typeId)
   if (!type || !type.active) {
-    throw new DomainError(400, 'Unknown registration type')
+    throw new DomainError(400, '报名类型不存在')
   }
   if (type.availability !== 'available') {
-    throw new DomainError(403, 'This registration type is not open for self-service')
+    throw new DomainError(403, '该报名类型不接受自行报名')
   }
 
   return db.transaction(async (tx) => {
