@@ -3,7 +3,7 @@ import type { Db } from '../db'
 import { DomainError } from './registration.service'
 import { getPaymentProvider } from '../payments'
 import type { ProviderCallbackEvent } from '../payments'
-import { createPayment, findPaymentByProviderNo, findPaymentById, recordPaymentEvent, transitionPayment } from '../repositories/payments'
+import { createPayment, findLatestPaymentForOrder, findPaymentByProviderNo, findPaymentById, recordPaymentEvent, transitionPayment } from '../repositories/payments'
 import { findOrderById, transitionOrder } from '../repositories/orders'
 import { confirmIfSubmitted } from '../repositories/registrations'
 import { markOrderPaidInTx } from './order.service'
@@ -25,6 +25,13 @@ export async function createPaymentForOrder(db: Db, orderId: string, providerNam
   if (!order) throw new DomainError(404, 'Order not found')
   if (order.status !== 'pending') {
     throw new DomainError(409, `Order is ${order.status}, no payment can be created`)
+  }
+
+  // Reuse a still-pending payment instead of stacking duplicate attempts
+  // (e.g. the payment page auto-starts a payment on every load).
+  const latest = await findLatestPaymentForOrder(db, order.id)
+  if (latest && latest.status === 'pending') {
+    return latest
   }
 
   const provider = getPaymentProvider(providerName, { mockPaymentSecret: mockSecret })

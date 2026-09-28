@@ -18,8 +18,8 @@ export const participantSchema = z.object({
 
 export type ParticipantInput = z.output<typeof participantSchema>
 
-export const createRegistrationSchema = participantSchema.extend({
-  // accepted-terms-style flags can be added here later
+export const createRegistrationRequestSchema = z.object({
+  participant: participantSchema,
 })
 
 export const lookupByEmailSchema = z.object({

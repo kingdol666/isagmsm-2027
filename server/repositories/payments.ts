@@ -39,6 +39,16 @@ export async function findPaymentByProviderNo(db: DbExecutor, providerPaymentNo:
   return rows[0] ?? null
 }
 
+export async function findLatestPaymentForOrder(db: DbExecutor, orderId: string) {
+  const rows = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.orderId, orderId))
+    .orderBy(desc(payments.createdAt))
+    .limit(1)
+  return rows[0] ?? null
+}
+
 /**
  * Idempotency gate: records a provider event exactly once. Returns
  * `accepted = true` only for the FIRST time this (provider, eventId) pair is
