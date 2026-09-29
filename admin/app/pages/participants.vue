@@ -23,6 +23,9 @@ const { data, error, refresh } = await useFetch<{ rows: ParticipantRow[] }>('/ap
   query: { q: search, status: statusFilter },
 })
 
+/** 门户地址（查看 QR 跳转用）——可通过 NUXT_PUBLIC_PORTAL_URL 覆盖 */
+const portalUrl = useRuntimeConfig().public.portalUrl
+
 watch(error, (err) => {
   if (err?.statusCode === 401) navigateTo('/login')
 }, { immediate: true })
@@ -223,7 +226,7 @@ async function credentialAction(row: ParticipantRow, action: 'issue' | 'revoke' 
                 <a
                   v-if="row.credential && row.credential.status === 'active'"
                   class="op"
-                  :href="`http://localhost:3000/credential/${row.credential.token}`"
+                  :href="`${portalUrl}/credential/${row.credential.token}`"
                   target="_blank"
                   rel="noopener"
                 >查看 QR</a>

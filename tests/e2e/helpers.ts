@@ -1,8 +1,11 @@
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 
-export const base = 'http://localhost:3000'
-export const consoleBase = 'http://localhost:3001'
+/** 端口可经环境变量覆盖（默认 3000 / 3001，与两应用 devServer 一致）。 */
+export const PORT = Number(process.env.PORTAL_PORT ?? 3000)
+export const ADMIN_PORT = Number(process.env.CONSOLE_PORT ?? 3001)
+export const base = `http://localhost:${PORT}`
+export const consoleBase = `http://localhost:${ADMIN_PORT}`
 
 export function uniqueEmail(tag: string) {
   return `e2e-${tag}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.test`
@@ -34,7 +37,7 @@ export async function consoleUiLogin(page: import('@playwright/test').Page) {
     await page.click('button[type="submit"]')
     await page.waitForTimeout(1200)
   }
-  await page.waitForURL(/localhost:3001\/?(\?.*)?$/, { timeout: 20_000 })
+  await page.waitForURL(new RegExp(`localhost:${ADMIN_PORT}/?(\\?.*)?$`), { timeout: 20_000 })
 }
 
 export interface CreatedRegistration {

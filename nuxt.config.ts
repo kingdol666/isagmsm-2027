@@ -23,9 +23,11 @@ export default defineNuxtConfig({
   ],
 
   // 公网/局域网可访问：绑定所有网卡；放行任意 Host（阿里云用 IP 或域名访问）
+  // 端口用专属变量 PORTAL_PORT 覆盖（默认 3000）——禁止用通用 PORT/NUXT_PORT：
+  // Nuxt 原生读 PORT/NUXT_PORT 且优先于本配置，会与同机部署的管理台互相抢占端口
   devServer: {
     host: '0.0.0.0',
-    port: 3000,
+    port: Number(process.env.PORTAL_PORT ?? 3000),
   },
 
   vite: {

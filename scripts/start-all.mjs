@@ -19,6 +19,12 @@ const isWin = process.platform === 'win32'
 const CHILDREN = []
 let shuttingDown = false
 
+/** 端口可经环境变量覆盖，默认 3000（门户）/ 3001（管理台）。
+ *  用专属变量而非通用 PORT/NUXT_PORT：Nuxt 原生读它们且优先于配置，
+ *  两个应用会互相抢端口。 */
+const PORT = Number(process.env.PORTAL_PORT ?? 3000)
+const ADMIN_PORT = Number(process.env.CONSOLE_PORT ?? 3001)
+
 /** 列出本机网卡 IPv4（用于打印公网/局域网访问提示）。 */
 function candidateIps() {
   const out = []
@@ -131,19 +137,19 @@ async function main() {
   }
 
   /* 3. 同时启动两个应用（开发模式，门户走真实 SMTP 邮箱验证） */
-  console.log('[start] 启动门户（3000）与管理台（3001）…')
+  console.log(`[start] 启动门户（${PORT}）与管理台（${ADMIN_PORT}）…`)
   spawnApp('门户', 'pnpm', ['dev'])
   spawnApp('管理台', 'pnpm', ['dev:admin'])
 
-  const [portalUp, consoleUp] = await Promise.all([waitForPort(3000), waitForPort(3001)])
+  const [portalUp, consoleUp] = await Promise.all([waitForPort(PORT), waitForPort(ADMIN_PORT)])
   const ips = candidateIps()
   const siteUrl = process.env.NUXT_PUBLIC_SITE_URL ?? ''
   const siteUrlWarn = !siteUrl || siteUrl.includes('localhost')
 
   console.log('')
   console.log('──────────────────────────────────────────────────────────────')
-  console.log(`  门户   : http://localhost:3000      ${portalUp ? '✓ 已就绪' : '✗ 启动超时'}`)
-  console.log(`  管理台 : http://localhost:3001      ${consoleUp ? '✓ 已就绪' : '✗ 启动超时'}`)
+  console.log(`  门户   : http://localhost:${PORT}      ${portalUp ? '✓ 已就绪' : '✗ 启动超时'}`)
+  console.log(`  管理台 : http://localhost:${ADMIN_PORT}      ${consoleUp ? '✓ 已就绪' : '✗ 启动超时'}`)
   console.log(`  本机网卡: ${ips.length ? ips.join('  ') : '（未检测到）'} —— 已绑定 0.0.0.0，同网卡可直接访问`)
   if (portalUp && consoleUp) {
     console.log('')
