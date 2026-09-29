@@ -12,13 +12,13 @@ test('sign-up rejects a wrong verification code with a visible error', async ({ 
   await page.goto(`${base}/sign-up`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
   await page.fill('input[name="email"]', email)
-  await page.click('button:has-text("Send verification code")')
+  await page.click('button:has-text("发送验证码")')
   await expect(page.locator('.code-input')).toBeVisible()
 
   await page.fill('.code-input', '000000')
   await page.fill('input[name="fullName"]', 'Wrong Code')
   await page.fill('input[name="password"]', 'some-password-1!')
-  await page.click('button:has-text("Create account")')
+  await page.click('button:has-text("创建账号")')
   await expect(page.locator('.msg.bad')).toBeVisible()
   await expect(page.locator('.msg.bad')).toContainText(/Wrong code/)
   // still on the sign-up page
@@ -30,13 +30,13 @@ test('resend enters a cooldown and the same code keeps working', async ({ page }
   await page.goto(`${base}/sign-up`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
   await page.fill('input[name="email"]', email)
-  await page.click('button:has-text("Send verification code")')
+  await page.click('button:has-text("发送验证码")')
   await expect(page.locator('.code-input')).toBeVisible()
 
   // immediate resend is cooldown-blocked: the button disables with a countdown
-  const resend = page.locator('button:has-text("Resend")')
+  const resend = page.locator('button:has-text("重新发送")')
   await expect(resend).toBeDisabled()
-  await expect(resend).toContainText(/Resend \(\d+s\)/)
+  await expect(resend).toContainText(/重新发送 \(\d+s\)/)
 })
 
 test('duplicate sign-up is intercepted at the email step — no code sent', async ({ page }) => {
@@ -47,7 +47,7 @@ test('duplicate sign-up is intercepted at the email step — no code sent', asyn
   await page.goto(`${base}/sign-up`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
   await page.fill('input[name="email"]', email)
-  await page.click('button:has-text("Send verification code")')
+  await page.click('button:has-text("发送验证码")')
 
   // 拦截在发码环节：提示“该邮箱已完成注册，请直接登录”，且不进入验证码步骤
   await expect(page.locator('.msg.bad')).toContainText('该邮箱已完成注册，请直接登录')
@@ -77,13 +77,13 @@ test('forgot-password: reset code sets a new password and old one stops working'
   await page.goto(`${base}/forgot-password`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
   await page.fill('input[name="email"]', email)
-  await page.click('button:has-text("Send reset code")')
+  await page.click('button:has-text("发送重置码")')
   await expect(page.locator('.dev-code')).toBeVisible()
   const devCode = (await page.locator('.dev-code').textContent())?.match(/\d{6}/)?.[0]
   await page.fill('.code-input', devCode!)
   await page.fill('input[name="password"]', newPassword)
-  await page.click('button:has-text("Update password")')
-  await expect(page.locator('.ok')).toContainText('Password updated')
+  await page.click('button:has-text("更新密码")')
+  await expect(page.locator('.ok')).toContainText('密码已更新')
 
   // new password works
   await page.goto(`${base}/login`, { waitUntil: 'networkidle' })
@@ -104,7 +104,7 @@ test('login rejects a wrong password with a visible error', async ({ page }) => 
   await page.fill('input[name="email"]', email)
   await page.fill('input[name="password"]', 'wrong-password-1!')
   await page.click('button[type="submit"]')
-  await expect(page.locator('.msg.bad')).toContainText('Invalid email or password')
+  await expect(page.locator('.msg.bad')).toContainText('邮箱或密码不正确')
 })
 
 test('account page is gated: anonymous visitors are sent to sign-up', async ({ page }) => {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'flow' })
-useSeoMeta({ title: 'Reset password' })
+useSeoMeta({ title: '找回密码' })
 
 const route = useRoute()
 
@@ -31,7 +31,7 @@ async function sendResetCode() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    error.value = e.data?.statusMessage ?? 'Could not send the reset code.'
+    error.value = e.data?.statusMessage ?? '重置码发送失败，请稍后再试。'
   }
   finally {
     busy.value = false
@@ -50,7 +50,7 @@ async function resetPassword() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    error.value = e.data?.statusMessage ?? 'Reset failed.'
+    error.value = e.data?.statusMessage ?? '重置失败，请核对验证码后重试。'
   }
   finally {
     busy.value = false
@@ -63,51 +63,51 @@ async function resetPassword() {
     <header class="sec-head">
       <div class="sec-meta">
         <span class="sec-code">ACCOUNT · RECOVERY</span>
-        <span class="sec-tag">PASSWORD RESET</span>
+        <span class="sec-tag">密码找回</span>
       </div>
-      <h1 class="sec-title">Forgot password</h1>
+      <h1 class="sec-title">找回<em>密码</em></h1>
     </header>
 
     <!-- done -->
     <section v-if="done" class="pane" aria-live="polite">
-      <p class="ok mono">Password updated.</p>
-      <NuxtLink class="btn btn-solid" :href="`/login?redirect=${encodeURIComponent(safeRedirect())}`">Sign in with the new password</NuxtLink>
+      <p class="ok mono">密码已更新 ✓</p>
+      <NuxtLink class="btn btn-solid" :href="`/login?redirect=${encodeURIComponent(safeRedirect())}`">使用新密码登录</NuxtLink>
     </section>
 
     <!-- step 0: email -->
     <section v-else-if="step === 0" aria-label="Request reset code">
-      <p class="note mono">Enter your account email — we will send a 6-digit reset code.</p>
+      <p class="note mono">输入注册邮箱，我们将发送 6 位重置码（10 分钟内有效）。</p>
       <form class="form" @submit.prevent="sendResetCode">
         <label class="field">
-          <span class="f-label mono">Email</span>
+          <span class="f-label mono">邮箱</span>
           <input v-model="email" type="email" name="email" autocomplete="email" required>
         </label>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
         <button class="btn btn-solid" type="submit" :disabled="busy || !email">
-          {{ busy ? 'Sending…' : 'Send reset code' }}
+          {{ busy ? '发送中…' : '发送重置码' }}
         </button>
       </form>
     </section>
 
     <!-- step 1: code + new password -->
     <section v-else aria-label="Set new password">
-      <p class="note mono">Code sent to <strong>{{ email }}</strong></p>
+      <p class="note mono">重置码已发送至 <strong>{{ email }}</strong></p>
       <p v-if="devCode" class="dev-code mono">DEV MODE — your reset code: <strong>{{ devCode }}</strong></p>
       <form class="form" @submit.prevent="resetPassword">
         <label class="field">
-          <span class="f-label mono">6-digit code</span>
+          <span class="f-label mono">6 位重置码</span>
           <input v-model="code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="code-input">
         </label>
         <label class="field">
-          <span class="f-label mono">New password * (min 8 characters)</span>
+          <span class="f-label mono">新密码 *（至少 8 位）</span>
           <input v-model="password" type="password" name="password" autocomplete="new-password" minlength="8" required>
         </label>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
-        <button class="btn btn-solid" type="submit" :disabled="busy">Update password</button>
+        <button class="btn btn-solid" type="submit" :disabled="busy">更新密码</button>
       </form>
     </section>
 
-    <p class="note mono"><NuxtLink class="link" href="/login">Back to sign in</NuxtLink></p>
+    <p class="note mono"><NuxtLink class="link" href="/login">返回登录</NuxtLink></p>
   </div>
 </template>
 
@@ -123,7 +123,6 @@ async function resetPassword() {
 .f-label {
   font-size: 12px;
   letter-spacing: .12em;
-  text-transform: uppercase;
   color: var(--grey);
 }
 
@@ -144,7 +143,7 @@ async function resetPassword() {
   outline-offset: -1px;
 }
 
-.msg.bad { font-size: 13px; color: var(--copper-deep); }
+.msg.bad { font-size: 13px; color: #A03A2A; }
 
 .ok { font-size: 14px; color: var(--ink); border: 1px solid var(--copper-deep); padding: 12px 16px; }
 

@@ -38,8 +38,24 @@ const profileForm = reactive({
 })
 const profileLoaded = ref(false)
 const profileSaved = ref(false)
+const profileSavedAt = ref('')
 const profileError = ref('')
+const profileFieldErrors = ref<Record<string, string>>({})
 const profileBusy = ref(false)
+const profileInitial = ref('')
+
+const profileDirty = computed(() => {
+  if (!profileInitial.value) return false
+  return JSON.stringify(profileForm) !== profileInitial.value
+})
+
+const abstractSummary = computed(() => {
+  const total = abstracts.value.filter(a => a.status !== 'withdrawn').length
+  const pending = abstracts.value.filter(a => a.status === 'submitted').length
+  const accepted = abstracts.value.filter(a => a.status === 'accepted').length
+  const returned = abstracts.value.filter(a => a.status === 'returned').length
+  return { total, pending, accepted, returned }
+})
 
 /* registrations */
 const registrations = ref<MyRegistration[]>([])
@@ -177,6 +193,7 @@ onMounted(async () => {
     profileForm.position = p?.position ?? ''
     profileForm.country = p?.country ?? ''
     profileForm.dietary = p?.dietary ?? ''
+    profileInitial.value = JSON.stringify(profileForm)
     profileLoaded.value = true
   }
   catch {
@@ -203,14 +220,23 @@ async function saveProfile() {
   profileBusy.value = true
   profileError.value = ''
   profileSaved.value = false
+  profileFieldErrors.value = {}
   try {
     const parsed = accountProfileSchema.safeParse({ ...profileForm })
     if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0] ?? 'form')
+        if (!fieldErrors[key]) fieldErrors[key] = issue.message
+      }
+      profileFieldErrors.value = fieldErrors
       profileError.value = parsed.error.issues[0]?.message ?? '请检查表单。'
       return
     }
     await $fetch('/api/account/profile', { method: 'PUT', body: parsed.data })
+    profileInitial.value = JSON.stringify(profileForm)
     profileSaved.value = true
+    profileSavedAt.value = new Date().toLocaleTimeString('zh-CN')
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
@@ -232,8 +258,16 @@ async function saveProfile() {
       <h1 class="sec-title">我的<em>参会</em></h1>
     </header>
 
+    <!-- 锚点子导航：长页面快速跳转 -->
+    <nav class="subnav mono" aria-label="个人中心导航">
+      <a v-if="activeCredential" href="#my-credential">我的凭证</a>
+      <a href="#registrations">我的报名</a>
+      <a href="#abstracts">我的投稿<sup v-if="abstractSummary.total">{{ abstractSummary.total }}</sup></a>
+      <a href="#profile">参会资料</a>
+    </nav>
+
     <!-- 电子会议卡：深色徽章设计，含会员ID/姓名/机构/QR/token -->
-    <section v-if="activeCredential" class="ecard-section" aria-label="电子会议卡">
+    <section v-if="activeCredential" id="my-credential" class="ecard-section" aria-label="电子会议卡">
       <div class="ecard" :class="{ revoked: activeCredential.credentialStatus === 'revoked' }">
         <div class="ecard-main">
           <div class="ec-top">
@@ -281,6 +315,10 @@ async function saveProfile() {
     <!-- 我的投稿（含审稿结果与历史记录） -->
     <section id="abstracts" class="section" aria-label="我的投稿">
       <h2 class="s-title">我的投稿</h2>
+      <p v-if="abstractsLoaded && abstracts.length" class="ab-summary mono">
+        共 {{ abstractSummary.total }} 篇有效投稿 · 待审 {{ abstractSummary.pending }} · 已接收 {{ abstractSummary.accepted }} · 已返稿 {{ abstractSummary.returned }}
+        <span class="ab-cap">（同时待审最多 3 篇 · 累计最多 20 篇，已撤回不计）</span>
+      </p>
       <p v-if="abstractsLoaded && abstracts.length === 0" class="note mono">
         还没有投稿记录。
         <NuxtLink class="link" href="/submit">进入在线投稿 →</NuxtLink>
@@ -357,7 +395,7 @@ async function saveProfile() {
     </section>
 
     <!-- 我的报名 -->
-    <section class="section" aria-label="我的报名">
+    <section id="registrations" class="section" aria-label="我的报名">
       <h2 class="s-title">我的报名</h2>
       <ul v-if="registrations.length" class="reg-list">
         <li v-for="reg in registrations" :key="reg.id" class="reg-row">
@@ -396,7 +434,7 @@ async function saveProfile() {
     </section>
 
     <!-- 参会人资料 -->
-    <section class="section" aria-label="参会人资料">
+    <section id="profile" class="section" aria-label="参会人资料">
       <h2 class="s-title">参会人资料</h2>
       <p class="note mono">填写一次，报名时自动预填。</p>
       <form v-if="profileLoaded" class="form" @submit.prevent="saveProfile">
@@ -404,6 +442,7 @@ async function saveProfile() {
           <label class="field">
             <span class="f-label mono">姓名 *</span>
             <input v-model="profileForm.fullName" type="text" autocomplete="name">
+            <span v-if="profileFieldErrors.fullName" class="f-err">{{ profileFieldErrors.fullName }}</span>
           </label>
           <label class="field">
             <span class="f-label mono">英文名</span>
@@ -416,10 +455,12 @@ async function saveProfile() {
           <label class="field">
             <span class="f-label mono">国家 / 地区 *</span>
             <input v-model="profileForm.country" type="text" autocomplete="country-name">
+            <span v-if="profileFieldErrors.country" class="f-err">{{ profileFieldErrors.country }}</span>
           </label>
           <label class="field wide">
             <span class="f-label mono">单位 *</span>
             <input v-model="profileForm.affiliation" type="text" autocomplete="organization">
+            <span v-if="profileFieldErrors.affiliation" class="f-err">{{ profileFieldErrors.affiliation }}</span>
           </label>
           <label class="field">
             <span class="f-label mono">院系 / 部门</span>
@@ -434,11 +475,14 @@ async function saveProfile() {
             <input v-model="profileForm.dietary" type="text" placeholder="如：素食">
           </label>
         </div>
-        <p v-if="profileSaved" class="msg ok mono">资料已保存。</p>
+        <p v-if="profileSaved" class="msg ok mono">资料已保存 ✓ {{ profileSavedAt }}</p>
         <p v-if="profileError" class="msg bad mono">{{ profileError }}</p>
-        <button class="btn btn-solid" type="submit" :disabled="profileBusy">
-          {{ profileBusy ? '保存中…' : '保存资料' }}
-        </button>
+        <div class="save-row">
+          <button class="btn btn-solid" type="submit" :disabled="profileBusy || !profileDirty">
+            {{ profileBusy ? '保存中…' : profileDirty ? '保存修改' : '暂无修改' }}
+          </button>
+          <span v-if="profileDirty && !profileBusy" class="mono dirty-hint">有未保存的修改</span>
+        </div>
       </form>
       <p v-else class="note mono">正在加载资料…</p>
     </section>
@@ -447,6 +491,10 @@ async function saveProfile() {
 
 <style scoped>
 .section { margin-top: clamp(36px, 6vw, 60px); }
+
+.section, .ecard-section {
+  scroll-margin-top: 130px;
+}
 
 .s-title {
   font-size: 17px;
@@ -958,6 +1006,85 @@ async function saveProfile() {
   font-size: 11px;
   color: var(--grey);
   font-weight: 400;
+}
+
+/* ---- 锚点子导航 ---- */
+.subnav {
+  position: sticky;
+  top: calc(var(--header-h) - 40px);
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--copper);
+  padding: 11px 16px;
+  margin-bottom: clamp(22px, 3vw, 32px);
+}
+
+.subnav a {
+  font-size: 12.5px;
+  letter-spacing: .1em;
+  color: var(--grey);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+
+.subnav a:hover {
+  color: var(--copper-deep);
+}
+
+.subnav sup {
+  color: var(--copper-deep);
+  font-size: 10px;
+}
+
+/* ---- 投稿汇总与保存行 ---- */
+.ab-summary {
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: var(--ink);
+  border: 1px solid var(--hairline-soft);
+  background: rgba(180, 95, 58, .05);
+  padding: 8px 12px;
+  margin: 0 0 14px;
+}
+
+.ab-summary .ab-cap {
+  color: var(--grey);
+}
+
+.save-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.dirty-hint {
+  font-size: 11.5px;
+  color: var(--copper-deep);
+}
+
+.field input {
+  font: inherit;
+  font-size: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
+  padding: 9px 11px;
+}
+
+.field input:focus {
+  outline: 2px solid var(--copper);
+  outline-offset: -1px;
+  border-color: var(--copper);
+}
+
+.f-err {
+  font-size: 12px;
+  color: #A03A2A;
 }
 
 @media (min-width: 768px) {

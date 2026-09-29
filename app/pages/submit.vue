@@ -41,6 +41,8 @@ const busy = ref(false)
 const errorMsg = ref('')
 const fieldErrors = ref<Record<string, string>>({})
 const done = ref<{ resubmitted: boolean, version: number } | null>(null)
+const myPending = ref<number | null>(null)
+const myTotal = ref<number | null>(null)
 
 const topicLabels = new Map(themesContent.items.map(item => [item.no, `${item.no} · ${item.title}`]))
 const reportLabels: Record<string, string> = {
@@ -62,6 +64,14 @@ onMounted(async () => {
     form.submitterAffiliation = res.profile?.affiliation ?? ''
   }
   catch { /* prefill is best-effort */ }
+
+  // 投稿余量提示（待审 ≤3 / 累计 ≤20，已撤回不计）
+  try {
+    const res = await $fetch<{ abstracts: Array<{ status: string }> }>('/api/abstracts/mine')
+    myPending.value = res.abstracts.filter(a => a.status === 'submitted').length
+    myTotal.value = res.abstracts.filter(a => a.status !== 'withdrawn').length
+  }
+  catch { /* hint is best-effort */ }
 
   if (editId.value) {
     try {
@@ -165,6 +175,11 @@ async function send() {
         <p class="rn-tag mono">返稿意见 · 第 {{ editAbstract.version }} 版</p>
         <p class="rn-body">{{ lastReturnComment || '（无具体意见）' }}</p>
       </section>
+
+      <p v-if="!editAbstract && myPending !== null" class="quota mono" aria-live="polite">
+        当前待审 {{ myPending }}/3 篇 · 累计有效 {{ myTotal }}/20 篇
+        <span v-if="myPending >= 3" class="quota-full">（待审已满，请等待审稿结果）</span>
+      </p>
 
       <form class="form" @submit.prevent="send">
         <!-- 蜜罐：对人类不可见；自动机填写即被服务端拒绝（反垃圾投稿） -->
@@ -297,6 +312,20 @@ async function send() {
   background: rgba(180, 95, 58, .06);
   padding: 16px 18px;
   margin-bottom: clamp(22px, 3vw, 32px);
+}
+
+.quota {
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  color: var(--grey);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--copper);
+  padding: 8px 12px;
+  margin: 0 0 16px;
+}
+
+.quota-full {
+  color: #A03A2A;
 }
 
 .rn-tag {

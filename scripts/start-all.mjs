@@ -40,7 +40,7 @@ function sh(command, args, opts = {}) {
   return spawnSync(command, args, { stdio: opts.capture ? ['ignore', 'pipe', 'pipe'] : 'inherit', shell: isWin, encoding: 'utf8', ...opts })
 }
 
-function runStep(label, command, args, opts) {
+function runStep(label, command, args, opts = {}) {
   process.stdout.write(`[start] ${label} … `)
   const r = sh(command, args, opts)
   if (r.status !== 0) {
@@ -59,6 +59,12 @@ function dockerAvailable() {
 
 function containerRunning(name) {
   const r = sh('docker', ['ps', '--format', '{{.Names}}'], { capture: true })
+  return r.status === 0 && String(r.stdout).split(/\r?\n/).includes(name)
+}
+
+/** 容器存在（含已停止的）——docker ps -a 含全部容器。 */
+function containerExists(name) {
+  const r = sh('docker', ['ps', '-a', '--format', '{{.Names}}'], { capture: true })
   return r.status === 0 && String(r.stdout).split(/\r?\n/).includes(name)
 }
 
@@ -106,16 +112,20 @@ function killChildren() {
 async function main() {
   console.log('── ISAGMSM 2027 一键启动（开发模式，真实邮箱验证） ─────────────')
 
-  /* 1. Docker / PostgreSQL */
+  /* 1. Docker / PostgreSQL（三种状态：运行中 → 跳过；已存在但停止 → docker start；不存在 → compose up） */
   if (dockerAvailable()) {
     if (containerRunning('pps-postgres')) {
       console.log('[start] Docker: pps-postgres 容器已在运行 —— 跳过启动')
     }
-    else {
-      if (!runStep('Docker: 启动 PostgreSQL（docker compose up -d）', 'docker', ['compose', 'up', '-d'])) {
-        console.error('[start] 数据库容器启动失败，请检查 docker-compose.yml')
+    else if (containerExists('pps-postgres')) {
+      if (!runStep('Docker: 启动已存在的 pps-postgres 容器（docker start）', 'docker', ['start', 'pps-postgres'])) {
+        console.error('[start] 容器启动失败。若反复失败，可执行 docker rm pps-postgres 后重试（数据在卷中不会丢失）')
         process.exit(1)
       }
+    }
+    else if (!runStep('Docker: 创建并启动 PostgreSQL（docker compose up -d）', 'docker', ['compose', 'up', '-d'])) {
+      console.error('[start] 数据库容器创建失败，请检查 docker-compose.yml')
+      process.exit(1)
     }
     let ready = false
     for (let i = 0; i < 30; i++) {

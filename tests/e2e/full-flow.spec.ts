@@ -23,7 +23,7 @@ test('sign-up → register → bank-transfer claim → approve → credential �
 
   /* 2. email-code sign-up */
   await page.fill('input[name="email"]', email)
-  await page.click('button:has-text("Send verification code")')
+  await page.click('button:has-text("发送验证码")')
   await expect(page.locator('.code-input')).toBeVisible({ timeout: 20_000 })
   await expect(page.locator('.dev-code')).toBeVisible()
   const devCode = (await page.locator('.dev-code').textContent())?.match(/\d{6}/)?.[0]
@@ -32,7 +32,7 @@ test('sign-up → register → bank-transfer claim → approve → credential �
   await page.fill('.code-input', devCode!)
   await page.fill('input[name="fullName"]', fullName)
   await page.fill('input[name="password"]', password)
-  await page.click('button:has-text("Create account")')
+  await page.click('button:has-text("创建账号")')
   await page.waitForURL(/\/register/, { timeout: 20_000 })
 
   /* 3. conference registration (email locked to the account) */

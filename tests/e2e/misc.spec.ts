@@ -72,7 +72,7 @@ test('account profile saves and persists across reloads', async ({ page }) => {
   await page.locator('.grid .field').nth(0).locator('input').fill('Profile Tester Updated')
   await page.locator('.grid .field').nth(3).locator('input').fill('Germany')
   await page.locator('.grid .field').nth(4).locator('input').fill('TU München')
-  await page.click('button:has-text("保存资料")')
+  await page.click('button:has-text("保存修改")')
   await expect(page.locator('.msg.ok')).toContainText('资料已保存')
 
   await page.reload({ waitUntil: 'networkidle' })

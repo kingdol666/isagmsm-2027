@@ -50,7 +50,7 @@ async function sendCode() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    error.value = e.data?.statusMessage ?? 'Could not send the code.'
+    error.value = e.data?.statusMessage ?? '验证码发送失败，请稍后再试。'
   }
   finally {
     busy.value = false
@@ -59,6 +59,13 @@ async function sendCode() {
 
 async function resend() {
   await sendCode()
+}
+
+function errorMessage(err: unknown): string {
+  const e = err as { data?: { statusMessage?: string, data?: { details?: Array<{ message: string }> } } }
+  return e.data?.data?.details?.[0]?.message
+    ?? e.data?.statusMessage
+    ?? '注册失败，请稍后再试。'
 }
 
 async function completeSignup() {
@@ -74,8 +81,7 @@ async function completeSignup() {
     await navigateTo(redirectTo.value)
   }
   catch (err: unknown) {
-    const e = err as { data?: { statusMessage?: string } }
-    error.value = e.data?.statusMessage ?? 'Sign-up failed.'
+    error.value = errorMessage(err)
   }
   finally {
     busy.value = false
@@ -88,43 +94,43 @@ async function completeSignup() {
     <header class="sec-head">
       <div class="sec-meta">
         <span class="sec-code">ACCOUNT · SIGN-UP</span>
-        <span class="sec-tag">EMAIL VERIFICATION</span>
+        <span class="sec-tag">邮箱验证注册</span>
       </div>
-      <h1 class="sec-title">Create your account</h1>
+      <h1 class="sec-title">创建<em>账号</em></h1>
     </header>
 
-    <FlowSteps :steps="['Email', 'Verify & set password']" :current="step" />
+    <FlowSteps :steps="['邮箱', '验证并设置密码']" :current="step" />
 
     <!-- STEP 0 — email + send code -->
     <section v-if="step === 0" aria-label="Request verification code">
       <form class="form" @submit.prevent="sendCode">
         <label class="field">
-          <span class="f-label mono">Email</span>
+          <span class="f-label mono">邮箱</span>
           <input v-model="email" type="email" name="email" autocomplete="email" inputmode="email" required>
         </label>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
         <button class="btn btn-solid" type="submit" :disabled="busy || !email">
-          {{ busy ? 'Sending…' : 'Send verification code' }}
+          {{ busy ? '发送中…' : '发送验证码' }}
         </button>
       </form>
-      <p class="note mono">Already have an account? <NuxtLink class="link" :href="`/login?redirect=${encodeURIComponent(redirectTo)}`">Sign in</NuxtLink></p>
+      <p class="note mono">已有账号？<NuxtLink class="link" :href="`/login?redirect=${encodeURIComponent(redirectTo)}`">直接登录</NuxtLink></p>
     </section>
 
     <!-- STEP 1 — code + password + name -->
     <section v-else aria-label="Verify and set password">
-      <p class="sent mono">Code sent to <strong>{{ email }}</strong></p>
+      <p class="sent mono">验证码已发送至 <strong>{{ email }}</strong></p>
       <p v-if="devCode" class="dev-code mono">DEV MODE — your code: <strong>{{ devCode }}</strong></p>
       <form class="form" @submit.prevent="completeSignup">
         <label class="field">
-          <span class="f-label mono">6-digit code</span>
+          <span class="f-label mono">6 位验证码</span>
           <input v-model="code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="code-input">
         </label>
         <label class="field">
-          <span class="f-label mono">Your name *</span>
+          <span class="f-label mono">您的姓名 *</span>
           <input v-model="fullName" type="text" name="fullName" autocomplete="name" required>
         </label>
         <label class="field">
-          <span class="f-label mono">Password * (min 8 characters)</span>
+          <span class="f-label mono">密码 *（至少 8 位）</span>
           <input v-model="password" type="password" name="password" autocomplete="new-password" minlength="8" required>
         </label>
         <!-- 蜜罐：对人类不可见；自动机填写即被服务端拒绝（反垃圾注册） -->
@@ -133,9 +139,9 @@ async function completeSignup() {
         </div>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
         <div class="actions">
-          <button class="btn btn-solid" type="submit" :disabled="busy">Create account</button>
+          <button class="btn btn-solid" type="submit" :disabled="busy">创建账号</button>
           <button class="btn btn-ghost" type="button" :disabled="cooldown > 0 || busy" @click="resend">
-            {{ cooldown > 0 ? `Resend (${cooldown}s)` : 'Resend code' }}
+            {{ cooldown > 0 ? `重新发送 (${cooldown}s)` : '重新发送验证码' }}
           </button>
         </div>
       </form>
