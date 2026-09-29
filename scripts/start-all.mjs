@@ -13,10 +13,22 @@
  */
 import { spawn, spawnSync } from 'node:child_process'
 import net from 'node:net'
+import os from 'node:os'
 
 const isWin = process.platform === 'win32'
 const CHILDREN = []
 let shuttingDown = false
+
+/** 列出本机网卡 IPv4（用于打印公网/局域网访问提示）。 */
+function candidateIps() {
+  const out = []
+  for (const list of Object.values(os.networkInterfaces())) {
+    for (const ni of list ?? []) {
+      if (ni && ni.family === 'IPv4' && !ni.internal) out.push(ni.address)
+    }
+  }
+  return out
+}
 
 function sh(command, args, opts = {}) {
   return spawnSync(command, args, { stdio: opts.capture ? ['ignore', 'pipe', 'pipe'] : 'inherit', shell: isWin, encoding: 'utf8', ...opts })
@@ -124,10 +136,15 @@ async function main() {
   spawnApp('管理台', 'pnpm', ['dev:admin'])
 
   const [portalUp, consoleUp] = await Promise.all([waitForPort(3000), waitForPort(3001)])
+  const ips = candidateIps()
+  const siteUrl = process.env.NUXT_PUBLIC_SITE_URL ?? ''
+  const siteUrlWarn = !siteUrl || siteUrl.includes('localhost')
+
   console.log('')
   console.log('──────────────────────────────────────────────────────────────')
   console.log(`  门户   : http://localhost:3000      ${portalUp ? '✓ 已就绪' : '✗ 启动超时'}`)
   console.log(`  管理台 : http://localhost:3001      ${consoleUp ? '✓ 已就绪' : '✗ 启动超时'}`)
+  console.log(`  本机网卡: ${ips.length ? ips.join('  ') : '（未检测到）'} —— 已绑定 0.0.0.0，同网卡可直接访问`)
   if (portalUp && consoleUp) {
     console.log('')
     console.log('  账号（管理台）: admin  / pps26-admin')
@@ -135,6 +152,19 @@ async function main() {
     console.log('  账号（参会演示）: demo.user@example.test / Demo-2027-Pass!（个人中心）')
     console.log('  邮箱验证: 开发模式走真实 SMTP —— 注册/找回密码的验证码会真实发到邮箱')
   }
+  if (siteUrlWarn) {
+    console.log('')
+    console.warn('  ⚠ 公网部署注意：NUXT_PUBLIC_SITE_URL 未设置或仍为 localhost ——')
+    console.warn('    二维码 / 邮件里的验证链接会指向 http://localhost:3000，公网用户打不开。')
+    console.warn('    请用外网地址启动，例如（阿里云公网 IP 假设 47.98.x.x）：')
+    console.warn('      NUXT_PUBLIC_SITE_URL=http://47.98.x.x:3000 pnpm start')
+  }
+  console.log('')
+  console.log('  ⚠ 公网安全提示（阿里云安全组）：')
+  console.log('    • 门户 3000 可对公网放行；')
+  console.log('    • 管理台 3001 建议仅对管理 IP 放行（或改为内网访问）；')
+  console.log('    • dev 模式对公网暴露有信息泄露风险，正式上线请改用 pnpm build + node .output/server/index.mjs；')
+  console.log('    • 若在 nginx 等反向代理之后，请设 TRUST_PROXY=1（限流才信任 X-Forwarded-For）。')
   console.log('  按 Ctrl+C 停止两个应用')
   console.log('──────────────────────────────────────────────────────────────')
 }

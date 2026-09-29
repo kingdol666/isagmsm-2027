@@ -22,6 +22,18 @@ export default defineNuxtConfig({
     { path: '~/components', pathPrefix: false },
   ],
 
+  // 公网/局域网可访问：绑定所有网卡；放行任意 Host（阿里云用 IP 或域名访问）
+  devServer: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
+
+  vite: {
+    server: {
+      allowedHosts: true,
+    },
+  },
+
   css: ['~/assets/css/main.css'],
 
   devtools: { enabled: false },

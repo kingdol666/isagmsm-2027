@@ -76,15 +76,35 @@ bank: {
 
 ---
 
-## 3.5 一键启动（开发模式）
+## 3.5 一键启动（开发模式 / 公网可访问）
 
 ```bash
 pnpm start
 ```
 
 自动完成：检测 Docker（无则跳过；`pps-postgres` 容器已运行则不重复启动）→ 等 PostgreSQL 就绪 →
-幂等迁移 → 同时启动门户（3000，**真实 SMTP 邮箱验证**）与管理台（3001，含定时备份调度）→
-打印就绪状态与账号。`Ctrl+C` 同时停止两个应用。
+幂等迁移 → 同时启动门户（3000）与管理台（3001，含定时备份调度）→
+打印就绪状态、本机网卡 IP 与账号。`Ctrl+C` 同时停止两个应用。
+
+**两个应用均已绑定 `0.0.0.0`**（`devServer.host`，Vite `allowedHosts` 已放行）——
+局域网内用 `http://<内网IP>:3000` 直接访问；部署到阿里云时用 `http://<公网IP>:3000` 访问。
+
+### 阿里云公网部署要点
+
+1. **安全组放行**：入方向放行 TCP **3000**（门户，对公网 0.0.0.0/0）；
+   **3001（管理台）建议只对管理员的出口 IP 放行**，不要对公网全开。
+2. **设置外网站点地址**（否则二维码/邮件里的链接指向 localhost）：
+
+   ```bash
+   NUXT_PUBLIC_SITE_URL=http://<你的公网IP或域名>:3000 pnpm start
+   ```
+
+3. **反向代理（nginx）**：`proxy_pass http://127.0.0.1:3000;` 并设置 `TRUST_PROXY=1`
+   （限流分桶才信任 X-Forwarded-For）；有域名+HTTPS 时顺便获得 CSP/HSTS。
+4. **正式上线建议**：dev 模式对公网暴露会泄露源码路径与错误堆栈（Vite 行为），
+   正式环境请改用生产构建：`pnpm build && pnpm build:admin`，然后
+   `node .output/server/index.mjs`（门户）/ `node admin/.output/server/index.mjs`（管理台），
+   同样监听 0.0.0.0 并配 `NUXT_PUBLIC_SITE_URL` 等环境变量。
 
 ## 4. 其他上线前清单
 
