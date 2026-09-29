@@ -7,7 +7,7 @@ import { findUserById } from '../repositories/users'
 
 /** 投稿：已注册账号提交稿件（姓名/机构/作者列表均必填）。限流反灌水。 */
 export default defineEventHandler(async (event) => {
-  enforceRateLimit(event, 'abstracts', 5, 10 * 60_000)
+  enforceRateLimit(event, 'abstracts', 10, 10 * 60_000)
   try {
     const session = requireUser(event)
     const input = await parseBody(event, submitAbstractSchema)

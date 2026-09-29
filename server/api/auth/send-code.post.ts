@@ -11,7 +11,7 @@ import { enforceRateLimit } from '../../utils/rate-limit'
  * Dev 模式（MAIL_DRIVER=test 或未配 SMTP）：响应携带 devCode 供本地演示。
  */
 export default defineEventHandler(async (event) => {
-  enforceRateLimit(event, 'auth-send-code', 10, 10 * 60_000)
+  enforceRateLimit(event, 'auth-send-code', 30, 10 * 60_000)
   try {
     const { email, purpose } = await parseBody(event, sendCodeSchema)
 

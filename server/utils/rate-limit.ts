@@ -56,7 +56,9 @@ export function enforceRateLimit(event: import('h3').H3Event, scope: string, lim
   // Test-only bypass: the full E2E suite legitimately exceeds per-IP windows
   // from one machine. NEVER active in production builds.
   if (process.env.RATE_LIMIT_DISABLED === '1' && process.env.NODE_ENV !== 'production') return
-  const result = limiter.allow(clientKey(event, scope), limit, windowMs)
+  // 运维调节目 Ups：RATE_LIMIT_SCALE=3 即全部阈值 ×3（只放大，不缩小）
+  const scale = Math.max(Number(process.env.RATE_LIMIT_SCALE) || 1, 1)
+  const result = limiter.allow(clientKey(event, scope), Math.round(limit * scale), windowMs)
   if (!result.ok) {
     // h3 将 Retry-After 头类型标记为 number（秒）
     setResponseHeader(event, 'retry-after', result.retryAfterSec)

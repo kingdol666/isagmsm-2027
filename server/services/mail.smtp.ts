@@ -59,6 +59,10 @@ export function createSmtpMailer(config: SmtpConfig): Mailer {
     port: config.port,
     secure: config.secure,
     auth: { user: config.user, pass: config.pass },
+    // 邮件服务异常时快速失败，避免挂住发码/注册接口
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   })
 
   return {

@@ -6,7 +6,7 @@ import { setUserSessionCookie } from '../../utils/session'
 
 /** Email-code sign-up: verifies the code, creates the account, signs the user in. */
 export default defineEventHandler(async (event) => {
-  enforceRateLimit(event, 'auth-register', 10, 10 * 60_000)
+  enforceRateLimit(event, 'auth-register', 30, 10 * 60_000)
   try {
     const body = await parseBody(event, registerAccountSchema)
     const db = useDb()

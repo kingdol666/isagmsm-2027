@@ -11,7 +11,7 @@ const loginSchema = z.object({
 
 /** 扫码端 staff 登录（staff/admin 皆可）。后台管理台在独立的 admin 项目（端口 3001）。 */
 export default defineEventHandler(async (event) => {
-  enforceRateLimit(event, 'staff-login', 10, 60_000)
+  enforceRateLimit(event, 'staff-login', 30, 60_000)
   try {
     const { username, password } = await parseBody(event, loginSchema)
     const db = useDb()

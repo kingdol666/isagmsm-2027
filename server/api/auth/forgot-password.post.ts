@@ -11,7 +11,7 @@ const forgotSchema = z.object({ email: z.email().max(320) })
  * whether the email is registered); the reset step validates the code + account.
  */
 export default defineEventHandler(async (event) => {
-  enforceRateLimit(event, 'auth-forgot', 10, 10 * 60_000)
+  enforceRateLimit(event, 'auth-forgot', 30, 10 * 60_000)
   try {
     const { email } = await parseBody(event, forgotSchema)
     const db = useDb()

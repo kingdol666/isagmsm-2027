@@ -5,7 +5,7 @@ import { enforceRateLimit } from '../../utils/rate-limit'
 import { setUserSessionCookie } from '../../utils/session'
 
 export default defineEventHandler(async (event) => {
-  enforceRateLimit(event, 'auth-login', 10, 60_000)
+  enforceRateLimit(event, 'auth-login', 30, 60_000)
   try {
     const { email, password } = await parseBody(event, loginSchema)
     const db = useDb()
