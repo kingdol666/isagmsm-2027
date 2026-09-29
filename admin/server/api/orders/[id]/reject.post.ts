@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { rejectOrderPayment } from '../../../services/console.service'
-import { parseBody, sendDomainError } from '../../../utils/validation'
+import { assertUuidParam, parseBody, sendDomainError } from '../../../utils/validation'
 
 const schema = z.object({ note: z.string().trim().max(300).optional().default('') })
 
@@ -8,8 +8,7 @@ const schema = z.object({ note: z.string().trim().max(300).optional().default(''
 export default defineEventHandler(async (event) => {
   try {
     const admin = requireConsoleAdmin(event)
-    const id = getRouterParam(event, 'id')
-    if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing order id' })
+    const id = assertUuidParam(getRouterParam(event, 'id'))
     const { note } = await parseBody(event, schema)
     const db = useDb()
     return await rejectOrderPayment(db, id, { userId: admin.userId, username: admin.username }, note)

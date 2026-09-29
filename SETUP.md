@@ -83,5 +83,19 @@ bank: {
 - [ ] `NUXT_PUBLIC_SITE_URL`：改为正式域名（影响二维码内容、验证链接、邮件链接）
 - [ ] **管理台（admin/）**：复制 `admin/.env.example` 为 `admin/.env`，填 `DATABASE_URL` 与
       `NUXT_CONSOLE_SESSION_SECRET`（**必须与门户的 NUXT_SESSION_SECRET 不同**）；审稿邮件按需填 `MAIL_SMTP_*`
+- [ ] **备份**：管理台 `.env` 里 `BACKUP_INTERVAL_HOURS=24`（默认开启）、`BACKUP_KEEP=14`、
+      `BACKUP_DOCKER_CONTAINER=pps-postgres`；备份目录默认 `admin/backups/`（务必纳入服务器备份/异地容灾）
 - [ ] 生产环境务必不要设置 `RATE_LIMIT_DISABLED=1` / `MAIL_DRIVER=test`（门户与管理台都是）
+- [ ] 生产以 HTTPS 运行（自动获得 HSTS 与 CSP；CSP 也可用 `NUXT_CSP=1` 提前启用）
+
+## 5. 安全机制一览（已内建）
+
+| 层 | 机制 |
+|---|---|
+| 注入 | Drizzle 全参数化；管理台搜索 LIKE 通配符转义；注入回归测试（单测 + E2E） |
+| 反爬 | 分端点限流 + 429/Retry-After（按连接级 IP 分桶，默认不信任 X-Forwarded-For；部署在 nginx 等可信代理后请设 `TRUST_PROXY=1`）；robots.txt Crawl-delay + 敏感路径禁爬 |
+| 反作弊 | 蜜罐字段（注册/报名/投稿）；一账号一有效报名；投稿数量上限；管理台登录锁定 |
+| 传输 | nosniff / DENY framing / Referrer-Policy / Permissions-Policy / COOP；生产 CSP + HSTS |
+| 支付 | 服务端计价、签名验证、幂等 webhook、状态机守卫（伪造请求不影响订单） |
+| 备份 | 管理台 pg_dump 定时/手动/保留策略/白名单下载（路径穿越防护） |
 - [ ] 检查 `GET /api/health`：payments 应显示 wechat/alipay 中已配置者，mail 应显示 smtp

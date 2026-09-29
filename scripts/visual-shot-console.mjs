@@ -3,7 +3,6 @@ import { chromium } from '@playwright/test'
 
 const base = 'http://localhost:3001'
 const outDir = process.env.SHOT_DIR ?? '.tmp/shots'
-const runTag = Date.now()
 
 const browser = await chromium.launch()
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })

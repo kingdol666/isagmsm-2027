@@ -33,6 +33,7 @@ const form = reactive({
   submitterName: '',
   submitterAffiliation: '',
   authors: [{ name: '', affiliation: '' }] as Array<{ name: string, affiliation: string }>,
+  website: '', // 蜜罐：人类不可见，机器人填写即被拒绝
 })
 
 const loaded = ref(false)
@@ -166,6 +167,10 @@ async function send() {
       </section>
 
       <form class="form" @submit.prevent="send">
+        <!-- 蜜罐：对人类不可见；自动机填写即被服务端拒绝（反垃圾投稿） -->
+        <div class="hp-field" aria-hidden="true">
+          <label>Website<input v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
         <label class="field">
           <span class="f-label mono">稿件标题 *</span>
           <input v-model="form.title" type="text" name="title" placeholder="稿件完整标题">

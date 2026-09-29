@@ -1,8 +1,10 @@
 import QRCode from 'qrcode'
 import { getCredentialView } from '../../../services/credential.service'
+import { enforceRateLimit } from '../../../utils/rate-limit'
 
-/** SVG QR encoding the public verification URL of a credential. */
+/** SVG QR encoding the public verification URL of a credential. 限流反爆破枚举。 */
 export default defineEventHandler(async (event) => {
+  enforceRateLimit(event, 'credential-qr', 120, 60_000)
   const token = getRouterParam(event, 'token')
   if (!token || token.length < 20) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid credential token' })

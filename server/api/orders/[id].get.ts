@@ -1,16 +1,24 @@
 import { findOrderById } from '../../repositories/orders'
 import { findCredentialByRegistration } from '../../repositories/credentials'
 import { findRegistrationDetail } from '../../repositories/registrations'
+import { assertUuidParam } from '../../utils/validation'
+import { requireUser } from '../../utils/session'
 
-/** 订单状态（参会人轮询 + 支付页渲染）：含参会 ID 与审核信息。 */
+/**
+ * 订单状态（参会人轮询 + 支付页渲染）：含参会 ID 与审核信息。
+ * 仅订单归属人可见（越权一律 404）——响应含凭证 token，绝不允许匿名读取。
+ */
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing order id' })
+  const session = requireUser(event)
+  const id = assertUuidParam(getRouterParam(event, 'id'))
   const db = useDb()
   const order = await findOrderById(db, id)
   if (!order) throw createError({ statusCode: 404, statusMessage: 'Order not found' })
 
   const detail = await findRegistrationDetail(db, order.registrationId)
+  if (detail?.registration.userId !== session.userId) {
+    throw createError({ statusCode: 404, statusMessage: 'Order not found' })
+  }
 
   let credentialToken: string | null = null
   if (order.status === 'paid') {

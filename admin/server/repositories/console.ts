@@ -14,6 +14,14 @@ import {
 
 /** 管理台查询层 —— 全部走 Drizzle 参数化构建器。 */
 
+/**
+ * 转义 LIKE 通配符（% _ \），防止用户输入改变匹配语义。
+ * 参数化已杜绝 SQL 注入；这一步保证搜索是「字面量」匹配。
+ */
+export function escapeLike(input: string): string {
+  return input.replace(/[\\%_]/g, ch => `\\${ch}`)
+}
+
 export async function findAdminByUsername(db: DbExecutor, username: string) {
   const rows = await db.select().from(adminUsers).where(eq(adminUsers.username, username)).limit(1)
   return rows[0] ?? null
@@ -46,7 +54,7 @@ export interface ParticipantRow {
 export async function listParticipants(db: DbExecutor, query: { q?: string, status?: string }): Promise<ParticipantRow[]> {
   const conditions = []
   if (query.q) {
-    const like = `%${query.q}%`
+    const like = `%${escapeLike(query.q)}%`
     conditions.push(or(
       ilike(registrations.fullName, like),
       ilike(registrations.email, like),

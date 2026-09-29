@@ -18,3 +18,16 @@ export function sendDomainError(error: unknown): never {
   }
   throw error
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * 路径参数 UUID 守卫：非 UUID 直接 404，绝不触达数据库。
+ * 防止 Postgres uuid 强转异常 → 500 + SQL/内部路径泄露。
+ */
+export function assertUuidParam(id: string | undefined): string {
+  if (!id || !UUID_RE.test(id)) {
+    throw createError({ statusCode: 404, statusMessage: 'Not found' })
+  }
+  return id
+}

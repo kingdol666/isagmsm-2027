@@ -3,6 +3,11 @@ Allow: /
 Disallow: /admin
 Disallow: /scan
 Disallow: /account
+Disallow: /verify
+Disallow: /credential
+Disallow: /submit
+Disallow: /payment
 Disallow: /api/
+Crawl-delay: 10
 
 Sitemap: https://pps2026-conf.org/sitemap.xml

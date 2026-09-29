@@ -58,6 +58,15 @@ Services smoke script (no browser): `pnpm tsx --env-file=.env scripts/smoke-serv
 
 > **会员-凭证绑定规则**：凭证只发给会员 —— 管理台**设为会员**后，收款确认/手动下发才会发放 QR 凭证；**取消会员**会在同一事务内自动吊销其全部有效凭证（旧 QR 扫码立即失效）。入会操作仅限管理员（staff 只能扫码）。
 
+## 安全加固（生产就绪）
+
+- **SQL 注入**：全部查询走 Drizzle 参数化构建器；管理台搜索额外做 LIKE 通配符转义（`% _ \`），注入载荷按字面量存储（回归测试覆盖）。
+- **反爬虫**：全端点限流（注册/登录/发码/报名/投稿/凭证下载/webhook 各自独立窗口，超限返回 429 + `Retry-After`）；`robots.txt` 禁爬敏感路径 + `Crawl-delay: 10`。
+- **反作弊**：注册/报名/投稿表单蜜罐字段（隐藏输入，机器人填写即拒）；一账号仅一条有效报名；投稿上限（累计 ≤20、待审 ≤2）；管理台登录 IP 限流 + 账号名级 5 次失败锁定 15 分钟。
+- **安全响应头**：nosniff、DENY framing、Referrer-Policy、Permissions-Policy（门户允许自身摄像头供扫码端使用）、COOP；生产启用 CSP（含 `frame-ancestors 'none'`）与 HSTS。
+- **支付防篡改**：金额只在服务端计算；webhook HMAC/签名验证 + 幂等存储；伪造签名请求被拒且订单不受影响。
+- **数据库备份**（管理台）：`pg_dump` 定时备份（`BACKUP_INTERVAL_HOURS`，默认 24h）+ 手动备份 + 保留策略（默认 14 份）+ 管理台下载；文件名白名单 + resolve 前缀校验杜绝路径穿越；恢复入口不暴露在网页（运维 `pg_restore` 手工执行）。
+
 > Camera QR scanning requires a secure context (https, or localhost during development). On phones without camera access the manual-entry path works identically.
 > Forgot password? `/forgot-password` sends a reset code to the account email.
 

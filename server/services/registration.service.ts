@@ -2,7 +2,7 @@ import type { Db } from '../db'
 import { bumpCounter, formatDisplayId } from '../db/counters'
 import type { ParticipantInput } from '../../shared/schemas/registration'
 import { findTypeById } from '../repositories/registration-types'
-import { createRegistration, findRegistrationDetail } from '../repositories/registrations'
+import { createRegistration, findActiveRegistrationByUser, findRegistrationDetail } from '../repositories/registrations'
 
 export class DomainError extends Error {
   constructor(public statusCode: number, message: string) {
@@ -20,6 +20,7 @@ export interface RegistrationRecord {
 /**
  * Conference registration for a signed-in account: attaches the registration
  * to the user and locks the email to the account's verified address.
+ * 防作弊：每个账号同时只允许一条有效报名（待缴费/已确认）。
  */
 export async function submitRegistration(
   db: Db,
@@ -32,6 +33,11 @@ export async function submitRegistration(
   }
   if (type.availability !== 'available') {
     throw new DomainError(403, '该报名类型不接受自行报名')
+  }
+
+  const active = await findActiveRegistrationByUser(db, user.id)
+  if (active) {
+    throw new DomainError(409, `该账号已有有效报名（${active.displayId}），如需修改请联系会务组`)
   }
 
   return db.transaction(async (tx) => {

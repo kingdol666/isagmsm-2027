@@ -111,6 +111,18 @@ body.nav-open { overflow: hidden; }
 /* ---- typography niceties ---- */
 p { text-wrap: pretty; }
 
+/* ---- 蜜罐字段（反垃圾）：对人类完全不可见，自动机填写即被服务端拒绝 ---- */
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  top: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ---- strata: five parallel hairlines = film cross-section; the melt is copper ---- */
 .strata { display: block; }
 .strata span { display: block; height: 1px; background: currentColor; opacity: .22; }

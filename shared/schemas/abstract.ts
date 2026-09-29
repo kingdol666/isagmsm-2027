@@ -27,6 +27,8 @@ export const submitAbstractSchema = z.object({
   submitterName: z.string().trim().min(1, '请填写姓名').max(120),
   submitterAffiliation: z.string().trim().min(1, '请填写机构').max(300),
   authors: z.array(abstractAuthorSchema).min(1, '至少填写一位作者').max(20, '作者最多 20 位'),
+  /** 蜜罐字段（页面上的隐藏输入）—— 机器人填了它就拒绝：反垃圾投稿 */
+  website: z.string().max(0, '提交被拒绝').optional().default(''),
 })
 
 export type SubmitAbstractInput = z.output<typeof submitAbstractSchema>

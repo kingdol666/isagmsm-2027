@@ -32,6 +32,17 @@ export async function setStatus(db: DbExecutor, id: string, status: string) {
   return rows[0] ?? null
 }
 
+/** 该账号当前的有效报名（待缴费/已确认）—— 一账号一有效报名（防批量注册刷单）。 */
+export async function findActiveRegistrationByUser(db: DbExecutor, userId: string) {
+  const rows = await db
+    .select({ id: registrations.id, displayId: registrations.displayId })
+    .from(registrations)
+    .where(and(eq(registrations.userId, userId), inArray(registrations.status, ['submitted', 'confirmed'])))
+    .orderBy(desc(registrations.createdAt))
+    .limit(1)
+  return rows[0] ?? null
+}
+
 /** Confirmed only when currently submitted — payment flow calls this inside the paid transaction. */
 export async function confirmIfSubmitted(db: DbExecutor, id: string) {
   const rows = await db

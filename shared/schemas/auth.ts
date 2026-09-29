@@ -17,6 +17,8 @@ export const registerAccountSchema = z.object({
   code: z.string().trim().regex(/^\d{6}$/, 'The code is 6 digits'),
   password: passwordSchema,
   fullName: z.string().trim().min(1, 'Your name is required').max(200),
+  /** 蜜罐字段（页面上的隐藏输入）—— 机器人填了它就拒绝：反垃圾注册 */
+  website: z.string().max(0, '提交被拒绝').optional().default(''),
 })
 
 export const loginSchema = z.object({

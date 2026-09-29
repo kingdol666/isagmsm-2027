@@ -14,6 +14,7 @@ const fullName = ref('')
 const code = ref('')
 const password = ref('')
 const devCode = ref('')
+const hpWebsite = ref('') // 蜜罐：人类不可见，机器人填写即被拒绝
 const error = ref('')
 const busy = ref(false)
 const cooldown = ref(0)
@@ -66,7 +67,7 @@ async function completeSignup() {
   try {
     await $fetch('/api/auth/register', {
       method: 'POST',
-      body: { email: email.value, code: code.value, password: password.value, fullName: fullName.value },
+      body: { email: email.value, code: code.value, password: password.value, fullName: fullName.value, website: hpWebsite.value },
     })
     // refresh the cached auth state before navigating (middleware reads it)
     await useAuth().fetchUser()
@@ -126,6 +127,10 @@ async function completeSignup() {
           <span class="f-label mono">Password * (min 8 characters)</span>
           <input v-model="password" type="password" name="password" autocomplete="new-password" minlength="8" required>
         </label>
+        <!-- 蜜罐：对人类不可见；自动机填写即被服务端拒绝（反垃圾注册） -->
+        <div class="hp-field" aria-hidden="true">
+          <label>Website<input v-model="hpWebsite" type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
         <div class="actions">
           <button class="btn btn-solid" type="submit" :disabled="busy">Create account</button>

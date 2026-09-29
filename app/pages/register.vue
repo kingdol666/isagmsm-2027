@@ -56,6 +56,7 @@ const form = reactive({
   dietary: '',
   invoiceRequired: false,
   invoiceTitle: '',
+  website: '',
 })
 const fieldErrors = reactive<Record<string, string>>({})
 const submitting = ref(false)
@@ -210,6 +211,10 @@ async function submit() {
             <span class="f-label">饮食禁忌</span>
             <input v-model="form.dietary" type="text" name="dietary" placeholder="如：素食">
           </label>
+          <!-- 蜜罐：对人类不可见；自动机填写即被服务端拒绝（反垃圾报名） -->
+          <div class="hp-field" aria-hidden="true">
+            <label>Website<input v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off"></label>
+          </div>
           <label class="field wide check">
             <input v-model="form.invoiceRequired" type="checkbox" name="invoiceRequired">
             <span class="f-label">需要发票</span>

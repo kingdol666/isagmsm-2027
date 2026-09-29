@@ -21,3 +21,6 @@ design-demos/node_modules
 design-demos/package-lock.json
 design-demos/package.json
 .mimosa/
+
+# database backups (admin console)
+admin/backups/

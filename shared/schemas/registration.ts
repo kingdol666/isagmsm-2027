@@ -14,6 +14,8 @@ export const participantSchema = z.object({
   dietary: z.string().trim().max(200).optional().default(''),
   invoiceRequired: z.boolean().optional().default(false),
   invoiceTitle: z.string().trim().max(300).optional().default(''),
+  /** 蜜罐字段（页面上的隐藏输入）—— 机器人填了它就拒绝：反垃圾报名 */
+  website: z.string().max(0, '提交被拒绝').optional().default(''),
 })
 
 export type ParticipantInput = z.output<typeof participantSchema>

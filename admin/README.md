@@ -43,3 +43,17 @@ pnpm dev:admin               # http://localhost:3001
 - 门户（3000）没有任何管理页面与管理 API，也不认识 `pps_console` cookie；
 - 门户只保留扫码端（`/scan` + `/api/staff/*` + `/api/checkin/*`，cookie `pps_staff`）；
 - 数据库迁移只由门户拥有（`pnpm db:migrate`），管理台以只连库的方式工作。
+
+## 数据库备份
+
+- **定时**：`BACKUP_INTERVAL_HOURS`（默认 24，0 关闭）——启动 30 秒后做一次基线备份，之后按间隔执行；
+- **手动**：管理台「数据库备份」页 → 立即备份；
+- **保留**：`BACKUP_KEEP`（默认 14 份），超出自动清理最旧备份；
+- **产物**：`pg_dump -Fc` 自定义格式，默认落盘 `admin/backups/`（已 gitignore），
+  通过 `docker exec <BACKUP_DOCKER_CONTAINER> pg_dump` 执行（参数数组、无 shell、无用户输入）；
+- **下载**：仅限 admin 会话；文件名严格白名单 `backup-YYYY-MM-DD-HHMMSS.dump` + resolve 前缀校验（路径穿越被 400 拒绝）；
+- **恢复**（不在网页暴露，运维手工执行）：
+
+```bash
+docker exec -i pps-postgres pg_restore -U pps -d pps2026 --clean --if-exists < admin/backups/<file>.dump
+```

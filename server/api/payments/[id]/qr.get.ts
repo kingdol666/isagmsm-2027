@@ -1,10 +1,10 @@
 import QRCode from 'qrcode'
 import { findPaymentById } from '../../../repositories/payments'
+import { assertUuidParam } from '../../../utils/validation'
 
 /** SVG QR encoding the mock cashier URL (what a phone camera would scan). */
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing payment id' })
+  const id = assertUuidParam(getRouterParam(event, 'id'))
   const db = useDb()
   const payment = await findPaymentById(db, id)
   if (!payment) throw createError({ statusCode: 404, statusMessage: 'Payment not found' })

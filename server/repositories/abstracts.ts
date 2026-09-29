@@ -72,6 +72,23 @@ export async function listAbstractsByUser(db: DbExecutor, userId: string): Promi
   return db.select().from(abstracts).where(eq(abstracts.userId, userId)).orderBy(desc(abstracts.createdAt))
 }
 
+/** 投稿数量上限（防灌水）用的计数。 */
+export async function countUserAbstracts(db: DbExecutor, userId: string): Promise<number> {
+  const rows = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(abstracts)
+    .where(eq(abstracts.userId, userId))
+  return rows[0]?.n ?? 0
+}
+
+export async function countPendingAbstracts(db: DbExecutor, userId: string): Promise<number> {
+  const rows = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(abstracts)
+    .where(and(eq(abstracts.userId, userId), eq(abstracts.status, 'submitted')))
+  return rows[0]?.n ?? 0
+}
+
 export async function listAllAbstracts(db: DbExecutor): Promise<Array<AbstractRow & { userEmail: string | null }>> {
   return db
     .select({

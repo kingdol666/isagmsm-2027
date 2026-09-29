@@ -22,6 +22,7 @@ async function signOut() {
         <NuxtLink to="/participants">参会管理</NuxtLink>
         <NuxtLink to="/approvals">缴费审批</NuxtLink>
         <NuxtLink to="/abstracts">稿件审稿</NuxtLink>
+        <NuxtLink to="/backups">数据库备份</NuxtLink>
       </nav>
       <div class="who">
         <ClientOnly>

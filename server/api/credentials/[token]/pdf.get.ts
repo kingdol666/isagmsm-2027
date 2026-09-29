@@ -1,12 +1,14 @@
 import QRCode from 'qrcode'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { getCredentialView } from '../../../services/credential.service'
+import { enforceRateLimit } from '../../../utils/rate-limit'
 
 /**
  * Printable PDF credential (server-generated via pdf-lib): event, participant,
- * type, registration id, QR of the verification URL, and status.
+ * type, registration id, QR of the verification URL, and status. 限流反爆破枚举。
  */
 export default defineEventHandler(async (event) => {
+  enforceRateLimit(event, 'credential-pdf', 30, 60_000)
   const token = getRouterParam(event, 'token')
   if (!token || token.length < 20) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid credential token' })

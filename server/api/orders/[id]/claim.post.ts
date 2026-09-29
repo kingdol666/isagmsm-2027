@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { submitPaymentClaim } from '../../../services/review.service'
-import { parseBody, sendDomainError } from '../../../utils/validation'
+import { assertUuidParam, parseBody, sendDomainError } from '../../../utils/validation'
 import { requireUser } from '../../../utils/session'
 import { enforceRateLimit } from '../../../utils/rate-limit'
 
@@ -13,8 +13,7 @@ export default defineEventHandler(async (event) => {
   enforceRateLimit(event, 'order-claim', 20, 60_000)
   try {
     const session = requireUser(event)
-    const orderId = getRouterParam(event, 'id')
-    if (!orderId) throw createError({ statusCode: 400, statusMessage: 'Missing order id' })
+    const orderId = assertUuidParam(getRouterParam(event, 'id'))
     const { reference } = await parseBody(event, claimSchema)
     const db = useDb()
     return await submitPaymentClaim(db, orderId, session.userId, reference)

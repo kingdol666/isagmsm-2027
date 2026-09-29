@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { setMembershipWithBinding } from '../../../services/console.service'
-import { parseBody, sendDomainError } from '../../../utils/validation'
+import { assertUuidParam, parseBody, sendDomainError } from '../../../utils/validation'
 
 const schema = z.object({ isMember: z.boolean() })
 
@@ -11,8 +11,7 @@ const schema = z.object({ isMember: z.boolean() })
  */
 export default defineEventHandler(async (event) => {
   try {
-    const id = getRouterParam(event, 'id')
-    if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing registration id' })
+    const id = assertUuidParam(getRouterParam(event, 'id'))
     const { isMember } = await parseBody(event, schema)
     const db = useDb()
     return await setMembershipWithBinding(db, id, isMember)
