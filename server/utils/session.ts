@@ -77,13 +77,14 @@ export function clearStaffSessionCookie(event: H3Event) {
   clearSessionCookie(event, ADMIN_COOKIE)
 }
 
-export function getSession(event: H3Event): AdminSession | null {
+/** 命名避开 h3 内置的 getSession —— 本应用管理的是扫码端 staff 会话。 */
+export function getStaffSession(event: H3Event): AdminSession | null {
   const config = useRuntimeConfig(event)
   return verifySessionToken<AdminSession>(getCookie(event, ADMIN_COOKIE), config.sessionSecret)
 }
 
 export function requireSession(event: H3Event): AdminSession {
-  const session = getSession(event)
+  const session = getStaffSession(event)
   if (!session) {
     throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
   }
