@@ -185,6 +185,7 @@ body {
 .ev-kind { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--ink); margin-right: 12px; }
 .ev-meta { font-family: var(--mono); font-size: 11px; color: var(--grey); }
 .ev-comment { margin: 5px 0 0; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+.ev-comment.snap-title { margin-top: 6px; font-weight: 600; color: var(--ink); }
 .comment { width: 100%; font: inherit; font-size: 14px; border: 1px solid var(--ink); border-radius: 0; background: transparent; padding: 11px 13px; resize: vertical; line-height: 1.7; }
 
 /* ---- 登录页 ---- */

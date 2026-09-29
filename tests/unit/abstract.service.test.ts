@@ -2,8 +2,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
 import { createDb } from '../../server/db'
 import { credentials, registrationTypes, registrations, users } from '../../server/db/schema'
-import { submitAbstract, resubmitAbstract, listMyAbstractsWithEvents } from '../../server/services/abstract.service'
+import { submitAbstract, resubmitAbstract, withdrawAbstract, listMyAbstractsWithEvents } from '../../server/services/abstract.service'
 import { reviewAbstract, setMembershipWithBinding } from '../../admin/server/services/console.service'
+import { listAllAbstracts } from '../../admin/server/repositories/console'
 import { ensureCredential } from '../../server/services/credential.service'
 import { DomainError } from '../../server/services/registration.service'
 import { reviewAbstractSchema } from '../../shared/schemas/abstract'
@@ -140,6 +141,53 @@ describe('AbstractReviewService (integration)', () => {
     const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
     await expect(resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, baseInput))
       .rejects.toBeInstanceOf(DomainError)
+  })
+
+  it('stores a content snapshot on submit and resubmit (complete version history)', async () => {
+    const user = await newUser('snapshot')
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+    const { mailer } = fakeMailer()
+    await reviewAbstract(db, abstract.id, 'chief', { action: 'return', comment: '请补充实验部分。' }, mailer)
+
+    const revised = { ...baseInput, title: '双网络离子凝胶的界面增强策略（第二版）' }
+    await resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, revised)
+
+    const mine = await listMyAbstractsWithEvents(db, user.id)
+    const snapshotEvents = mine[0]!.events.filter(e => e.snapshot)
+    expect(snapshotEvents).toHaveLength(2)
+    // 事件倒序：最新（重投）在前
+    expect(snapshotEvents[0]!.snapshot!.title).toContain('第二版')
+    expect(snapshotEvents[1]!.snapshot!.title).toBe(baseInput.title)
+    expect(snapshotEvents[1]!.snapshot!.authors).toHaveLength(2)
+  })
+
+  it('withdraws own pending submission, frees the pending slot, hides from admin list', async () => {
+    const user = await newUser('withdraw')
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+
+    // 他人不可撤回
+    const other = await newUser('withdraw-other')
+    await expect(withdrawAbstract(db, abstract.id, { id: other.id, email: other.email }))
+      .rejects.toBeInstanceOf(DomainError)
+
+    const withdrawn = await withdrawAbstract(db, abstract.id, { id: user.id, email: user.email })
+    expect(withdrawn.status).toBe('withdrawn')
+
+    // 管理台列表不再显示已撤回稿件
+    const adminList = await listAllAbstracts(db)
+    expect(adminList.some(a => a.id === abstract.id)).toBe(false)
+
+    // 撤回不可逆（再撤 → 409），重投也不允许
+    await expect(withdrawAbstract(db, abstract.id, { id: user.id, email: user.email }))
+      .rejects.toBeInstanceOf(DomainError)
+    await expect(resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, baseInput))
+      .rejects.toBeInstanceOf(DomainError)
+
+    // 用户自己的历史完整保留（投稿 + 撤回），且内容快照仍在
+    const mine = await listMyAbstractsWithEvents(db, user.id)
+    expect(mine[0]!.status).toBe('withdrawn')
+    expect(mine[0]!.events.map(e => e.kind)).toEqual(['withdrawn', 'submitted'])
+    expect(mine[0]!.events.find(e => e.kind === 'submitted')!.snapshot!.title).toBe(baseInput.title)
   })
 
   it('auto-revokes active credentials when membership is cancelled', async () => {

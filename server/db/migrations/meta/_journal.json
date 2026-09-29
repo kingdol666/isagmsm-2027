@@ -50,6 +50,13 @@
       "when": 1790605735175,
       "tag": "0006_secret_george_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790657425862,
+      "tag": "0007_naive_chronomancer",
+      "breakpoints": true
     }
   ]
 }

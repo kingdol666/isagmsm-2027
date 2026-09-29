@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ilike, or, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, ilike, ne, or, sql } from 'drizzle-orm'
 import type { DbExecutor } from '../db'
 import {
   abstractEvents,
@@ -260,6 +260,8 @@ export async function listAllAbstracts(db: DbExecutor) {
     })
     .from(abstracts)
     .leftJoin(users, eq(abstracts.userId, users.id))
+    // 已撤回稿件对管理台不可见（投稿人侧仍保留自己的历史）
+    .where(ne(abstracts.status, 'withdrawn'))
     .orderBy(desc(abstracts.createdAt))
 }
 
@@ -278,6 +280,7 @@ export async function insertAbstractEvent(db: DbExecutor, values: {
   abstractId: string
   kind: string
   comment?: string | null
+  snapshot?: Record<string, unknown> | null
   actor: string
 }) {
   await db.insert(abstractEvents).values(values)

@@ -52,7 +52,7 @@ Services smoke script (no browser): `pnpm tsx --env-file=.env scripts/smoke-serv
 5. Polling flips the order to PAID → redirect to `/credential/:token` (the event pass, with QR + PDF download).
 6. `/verify/:token` — what the QR encodes; shows live validity.
 7. `/account` — your registrations with **payment status**, resume-payment links, credentials, **your abstract submissions with review results & history**, and your participant profile.
-8. `/submit` — 在线投稿（标题 / 主题方向 / 报告类别 / 摘要 / 姓名 / 机构 / 作者列表，每位作者机构必填）；返稿后可修改重投，审稿结果邮件通知。
+8. `/submit` — 在线投稿（标题 / 主题方向 / 报告类别 / 摘要 / 姓名 / 机构 / 作者列表，每位作者机构必填）。**支持多论文投递**（待审 ≤3 篇、累计 ≤20 篇）；个人中心可查看**稿件内容与逐版本快照历史**；待审/已返稿的稿件可**撤回**——撤回后管理台不再显示；返稿后可修改重投，审稿结果邮件通知。
 9. `/scan` — staff sign-in (`staff / pps26-staff`) → scan the QR with a phone camera (or manual entry) → confirm check-in; duplicates are blocked.
 10. **管理台** `http://localhost:3001`（`admin / pps26-admin`，与门户独立会话）— 参会管理（**会员开关**）、缴费审批、**稿件审稿（接收/返稿 + 意见邮件）**。
 

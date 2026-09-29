@@ -217,6 +217,17 @@ export interface AbstractAuthor {
   affiliation: string
 }
 
+/** 投稿/重投事件携带的稿件内容快照（完整版本历史）。 */
+export interface AbstractEventSnapshot {
+  title: string
+  topic: string
+  reportType: string
+  abstractText: string
+  submitterName: string
+  submitterAffiliation: string
+  authors: AbstractAuthor[]
+}
+
 export const abstracts = pgTable('abstracts', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
@@ -227,18 +238,20 @@ export const abstracts = pgTable('abstracts', {
   submitterName: varchar('submitter_name', { length: 120 }).notNull(),
   submitterAffiliation: varchar('submitter_affiliation', { length: 300 }).notNull(),
   authors: jsonb('authors').$type<AbstractAuthor[]>().notNull(),
-  status: varchar('status', { length: 20 }).notNull().default('submitted'),
+  status: varchar('status', { length: 20 }).notNull().default('submitted'), // submitted | accepted | returned | withdrawn
   version: integer('version').notNull().default(1),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
-/** 审稿事件流 = 投稿人可见的历史记录（投稿/重投/接收/返稿 + 意见）。 */
+/** 审稿事件流 = 投稿人可见的历史记录（投稿/重投/接收/返稿/撤回 + 意见）。 */
 export const abstractEvents = pgTable('abstract_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   abstractId: uuid('abstract_id').notNull().references(() => abstracts.id),
-  kind: varchar('kind', { length: 20 }).notNull(), // submitted | resubmitted | accepted | returned
+  kind: varchar('kind', { length: 20 }).notNull(), // submitted | resubmitted | accepted | returned | withdrawn
   comment: text('comment'),
+  /** 投稿/重投时的稿件内容快照（title/topic/reportType/abstractText/authors/...）——完整版本历史 */
+  snapshot: jsonb('snapshot').$type<AbstractEventSnapshot | null>(),
   actor: varchar('actor', { length: 200 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })

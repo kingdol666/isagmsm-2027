@@ -1,5 +1,6 @@
 import type { Db } from '../db'
 import type { SubmitAbstractInput } from '../../shared/schemas/abstract'
+import type { AbstractSnapshot } from '../repositories/abstracts'
 import {
   countPendingAbstracts,
   countUserAbstracts,
@@ -8,20 +9,34 @@ import {
   insertAbstractEvent,
   listAbstractsByUser,
   listEventsByAbstract,
+  setAbstractStatus,
   updateAbstractContent,
 } from '../repositories/abstracts'
 import { DomainError } from './registration.service'
 
 /**
- * AbstractSubmissionService（门户侧）— 投稿与重投。
+ * AbstractSubmissionService（门户侧）— 投稿 / 多篇投递 / 撤回 / 重投。
  *   submitted → accepted | returned（审稿动作在独立的 admin 项目中实现）
+ *   submitted | returned → withdrawn（投稿人撤回；管理台列表不再显示）
  *   returned  → submitted（投稿人修改后重投，版本 +1）
- * 每次状态迁移都写入 abstract_events（投稿人可见的历史记录）。
- * 防灌水：每账号累计 ≤ 20 篇；同时待审中的稿件 ≤ 2 篇。
+ * 每次状态迁移都写入 abstract_events；投稿/重投附带稿件内容快照 —— 完整版本历史。
+ * 防灌水：每账号有效稿件 ≤ 20 篇（已撤回不计）；同时待审 ≤ 3 篇。
  */
 
 const MAX_TOTAL_ABSTRACTS = 20
-const MAX_PENDING_ABSTRACTS = 2
+const MAX_PENDING_ABSTRACTS = 3
+
+function snapshotOf(input: SubmitAbstractInput): AbstractSnapshot {
+  return {
+    title: input.title,
+    topic: input.topic,
+    reportType: input.reportType,
+    abstractText: input.abstractText,
+    submitterName: input.submitterName,
+    submitterAffiliation: input.submitterAffiliation,
+    authors: input.authors,
+  }
+}
 
 export interface AbstractWithEvents {
   id: string
@@ -36,7 +51,14 @@ export interface AbstractWithEvents {
   version: number
   createdAt: Date
   updatedAt: Date
-  events: Array<{ id: string, kind: string, comment: string | null, actor: string, createdAt: Date }>
+  events: Array<{
+    id: string
+    kind: string
+    comment: string | null
+    snapshot: AbstractSnapshot | null
+    actor: string
+    createdAt: Date
+  }>
 }
 
 export async function submitAbstract(
@@ -66,6 +88,7 @@ export async function submitAbstract(
   await insertAbstractEvent(db, {
     abstractId: abstract.id,
     kind: 'submitted',
+    snapshot: snapshotOf(input),
     actor: `user:${user.email}`,
   })
   return abstract
@@ -100,6 +123,30 @@ export async function resubmitAbstract(
   await insertAbstractEvent(db, {
     abstractId,
     kind: 'resubmitted',
+    snapshot: snapshotOf(input),
+    actor: `user:${user.email}`,
+  })
+  return updated
+}
+
+/** 撤回：仅本人、仅待审或已返稿的稿件；撤回后管理台列表不再显示。 */
+export async function withdrawAbstract(
+  db: Db,
+  abstractId: string,
+  user: { id: string, email: string },
+) {
+  const abstract = await findAbstractById(db, abstractId)
+  if (!abstract) throw new DomainError(404, '稿件不存在')
+  if (abstract.userId !== user.id) throw new DomainError(403, '只能操作自己的稿件')
+  if (abstract.status !== 'submitted' && abstract.status !== 'returned') {
+    throw new DomainError(409, '当前状态不可撤回（已接收稿件或已撤回）')
+  }
+
+  const updated = await setAbstractStatus(db, abstractId, 'withdrawn')
+  if (!updated) throw new DomainError(404, '稿件不存在')
+  await insertAbstractEvent(db, {
+    abstractId,
+    kind: 'withdrawn',
     actor: `user:${user.email}`,
   })
   return updated

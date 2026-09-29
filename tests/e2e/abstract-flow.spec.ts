@@ -47,7 +47,7 @@ test('abstract submission, return with comment, resubmit, accept, history', asyn
   const item = userPage.locator('.ab-item', { hasText: titleV1 })
   await expect(item).toBeVisible()
   await expect(item.locator('.badge.st')).toContainText('待审')
-  await item.locator('button:has-text("历史记录")').click()
+  await item.locator('button:has-text("稿件内容 / 历史")').click()
   await expect(item.locator('.ab-ev', { hasText: '投稿' })).toBeVisible()
 
   /* 3. 后台：搜索、展开、返稿（附意见） */
@@ -110,7 +110,7 @@ test('abstract submission, return with comment, resubmit, accept, history', asyn
   const final = userPage.locator('.ab-item', { hasText: titleV2 })
   await expect(final.locator('.badge.st')).toContainText('已接收')
   await expect(final.locator('.ab-verdict.accepted')).toContainText('修订到位，数据完整')
-  await final.locator('button:has-text("历史记录")').click()
+  await final.locator('button:has-text("稿件内容 / 历史")').click()
   await expect(final.locator('.ab-ev', { hasText: '修改重投' })).toBeVisible()
   await expect(final.locator('.ab-ev', { hasText: '返稿' })).toBeVisible()
   await expect(final.locator('.ab-ev', { hasText: '接收' })).toBeVisible()

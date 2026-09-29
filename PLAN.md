@@ -22,6 +22,8 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | M10 | Accounts: header sign-in, email-code sign-up, forgot password, profile, account-gated registration, admin payment column | ✅ Done |
 | M11 | Abstract review (投稿送审)：/submit 投稿、管理台审稿（接收/返稿 + 意见邮件）、版本与历史 | ✅ Done |
 | M12 | **管理台解耦**：独立应用 admin/（端口 3001、pps_console 会话、独立密钥），门户剥离全部管理面；会员-凭证强绑定（仅会员发证、取消会员自动吊销、仅 admin 可操作入会） | ✅ Done |
+| M13 | **安全加固**：安全响应头/CSP/HSTS、限流器重构+扩展、蜜罐×3、一账号一报名、投稿上限、登录锁定、LIKE 转义、管理台数据库定时备份；三路 subagent 红队测试并修复 V-1/V-3/V-4 | ✅ Done |
+| M14 | **投稿闭环完善**：投稿人可见稿件内容与逐版本快照历史、撤回稿件（管理台不再显示）、多论文投递（待审 ≤3 / 累计 ≤20，已撤回不计） | ✅ Done |
 
 All milestones verified: `pnpm lint` ✓ · `pnpm typecheck` ✓ · `pnpm test` (24) ✓ · `pnpm test:e2e` (2) ✓ · `pnpm build` ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
 

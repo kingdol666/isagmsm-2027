@@ -11,7 +11,7 @@ export type AbstractTopic = (typeof ABSTRACT_TOPICS)[number]
 export const ABSTRACT_REPORT_TYPES = ['oral', 'poster', 'abstract_only'] as const
 export type AbstractReportType = (typeof ABSTRACT_REPORT_TYPES)[number]
 
-export const abstractStatuses = ['submitted', 'accepted', 'returned'] as const
+export const abstractStatuses = ['submitted', 'accepted', 'returned', 'withdrawn'] as const
 export type AbstractStatus = (typeof abstractStatuses)[number]
 
 export const abstractAuthorSchema = z.object({

@@ -1,9 +1,9 @@
 import type { DbExecutor } from '../db'
-import type { AbstractAuthor } from '../db/schema'
+import type { AbstractAuthor, AbstractEventSnapshot } from '../db/schema'
 import { abstractEvents, abstracts, users } from '../db/schema'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, ne, sql } from 'drizzle-orm'
 
-export type { AbstractAuthor }
+export type { AbstractAuthor, AbstractEventSnapshot as AbstractSnapshot }
 
 export interface AbstractRow {
   id: string
@@ -26,6 +26,7 @@ export interface AbstractEventRow {
   abstractId: string
   kind: string
   comment: string | null
+  snapshot: AbstractEventSnapshot | null
   actor: string
   createdAt: Date
 }
@@ -77,7 +78,7 @@ export async function countUserAbstracts(db: DbExecutor, userId: string): Promis
   const rows = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(abstracts)
-    .where(eq(abstracts.userId, userId))
+    .where(and(eq(abstracts.userId, userId), ne(abstracts.status, 'withdrawn')))
   return rows[0]?.n ?? 0
 }
 
@@ -113,21 +114,23 @@ export async function listAllAbstracts(db: DbExecutor): Promise<Array<AbstractRo
 }
 
 /** 审稿动作（admin）：更新状态并写入事件，同一事务由服务层用 db.transaction 包裹。 */
-export async function setAbstractStatus(db: DbExecutor, id: string, status: 'accepted' | 'returned'): Promise<AbstractRow | null> {
+export async function setAbstractStatus(db: DbExecutor, id: string, status: 'accepted' | 'returned' | 'withdrawn'): Promise<AbstractRow | null> {
   const rows = await db.update(abstracts).set({ status, updatedAt: new Date() }).where(eq(abstracts.id, id)).returning()
   return rows[0] ?? null
 }
 
 export async function insertAbstractEvent(db: DbExecutor, values: {
   abstractId: string
-  kind: 'submitted' | 'resubmitted' | 'accepted' | 'returned'
+  kind: 'submitted' | 'resubmitted' | 'accepted' | 'returned' | 'withdrawn'
   comment?: string | null
+  snapshot?: AbstractEventSnapshot | null
   actor: string
 }): Promise<AbstractEventRow> {
   const rows = await db.insert(abstractEvents).values({
     abstractId: values.abstractId,
     kind: values.kind,
     comment: values.comment ?? null,
+    snapshot: values.snapshot ?? null,
     actor: values.actor,
   }).returning()
   return rows[0]!
@@ -138,21 +141,5 @@ export async function listEventsByAbstract(db: DbExecutor, abstractId: string): 
     .select()
     .from(abstractEvents)
     .where(and(eq(abstractEvents.abstractId, abstractId)))
-    .orderBy(desc(abstractEvents.createdAt))
-}
-
-export async function listEventsByUser(db: DbExecutor, userId: string): Promise<Array<AbstractEventRow & { abstractId: string }>> {
-  return db
-    .select({
-      id: abstractEvents.id,
-      abstractId: abstractEvents.abstractId,
-      kind: abstractEvents.kind,
-      comment: abstractEvents.comment,
-      actor: abstractEvents.actor,
-      createdAt: abstractEvents.createdAt,
-    })
-    .from(abstractEvents)
-    .innerJoin(abstracts, eq(abstractEvents.abstractId, abstracts.id))
-    .where(eq(abstracts.userId, userId))
     .orderBy(desc(abstractEvents.createdAt))
 }

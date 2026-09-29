@@ -46,6 +46,16 @@ const registrations = ref<MyRegistration[]>([])
 const regsLoaded = ref(false)
 
 /* abstracts（我的投稿 + 历史记录） */
+interface AbstractSnapshot {
+  title: string
+  topic: string
+  reportType: string
+  abstractText: string
+  submitterName: string
+  submitterAffiliation: string
+  authors: Array<{ name: string, affiliation: string }>
+}
+
 interface MyAbstract {
   id: string
   title: string
@@ -58,16 +68,18 @@ interface MyAbstract {
   status: string
   version: number
   createdAt: string
-  events: Array<{ id: string, kind: string, comment: string | null, actor: string, createdAt: string }>
+  events: Array<{ id: string, kind: string, comment: string | null, snapshot: AbstractSnapshot | null, actor: string, createdAt: string }>
 }
 const abstracts = ref<MyAbstract[]>([])
 const abstractsLoaded = ref(false)
 const expandedAbstract = ref<string | null>(null)
+const withdrawBusy = ref<string | null>(null)
 
 const abstractStatusZh: Record<string, string> = {
   submitted: '待审',
   accepted: '已接收',
   returned: '已返稿',
+  withdrawn: '已撤回',
 }
 
 const abstractEventZh: Record<string, string> = {
@@ -75,12 +87,22 @@ const abstractEventZh: Record<string, string> = {
   resubmitted: '修改重投',
   accepted: '接收',
   returned: '返稿',
+  withdrawn: '撤回',
 }
 
 const reportZh: Record<string, string> = {
   oral: '口头报告',
   poster: '墙报',
   abstract_only: '仅提交摘要',
+}
+
+const topicZh: Record<string, string> = {
+  A: '凝胶材料设计与合成',
+  B: '软物质物理与结构',
+  C: '刺激响应与智能凝胶',
+  D: '生物医用凝胶材料',
+  E: '表征、建模与人工智能',
+  F: '产业化与应用',
 }
 
 function absZh(value: string) {
@@ -93,6 +115,28 @@ function toggleAbstract(id: string) {
 
 function fmtDate(value: string) {
   return new Date(value).toLocaleString('zh-CN')
+}
+
+/** 快照对应的版本号（事件为倒序，最早投稿 = 第 1 版）。 */
+function snapshotVersion(abs: MyAbstract, ev: MyAbstract['events'][number]) {
+  const snapEvents = abs.events.filter(e => e.snapshot)
+  return snapEvents.length - snapEvents.indexOf(ev)
+}
+
+async function withdrawAbstract(abs: MyAbstract) {
+  if (!window.confirm(`确认撤回《${abs.title}》？撤回后会务组将不再看到此稿件，且不可恢复。`)) return
+  withdrawBusy.value = abs.id
+  try {
+    await $fetch(`/api/abstracts/${abs.id}/withdraw`, { method: 'POST' })
+    const res = await $fetch<{ abstracts: MyAbstract[] }>('/api/abstracts/mine')
+    abstracts.value = res.abstracts
+  }
+  catch (err: unknown) {
+    window.alert((err as { data?: { statusMessage?: string } }).data?.statusMessage ?? '撤回失败，请稍后再试。')
+  }
+  finally {
+    withdrawBusy.value = null
+  }
 }
 
 function yuan(fen: number) {
@@ -270,27 +314,44 @@ async function saveProfile() {
           </p>
 
           <div class="ab-actions">
+            <button
+              v-if="abs.status === 'submitted' || abs.status === 'returned'"
+              class="btn btn-ghost"
+              type="button"
+              :disabled="withdrawBusy === abs.id"
+              @click="withdrawAbstract(abs)"
+            >{{ withdrawBusy === abs.id ? '撤回中…' : '撤回稿件' }}</button>
             <NuxtLink v-if="abs.status === 'returned'" class="btn btn-solid" :to="`/submit?id=${abs.id}`">修改重投</NuxtLink>
             <button class="btn btn-ghost" type="button" @click="toggleAbstract(abs.id)">
-              {{ expandedAbstract === abs.id ? '收起历史' : '历史记录' }}
+              {{ expandedAbstract === abs.id ? '收起稿件与历史' : '稿件内容 / 历史' }}
             </button>
           </div>
 
-          <!-- 历史时间线 -->
-          <ol v-if="expandedAbstract === abs.id" class="ab-timeline">
-            <li v-for="ev in abs.events" :key="ev.id" class="ab-ev" :class="{ good: ev.kind === 'accepted', back: ev.kind === 'returned' }">
-              <div class="ev-row">
-                <span class="ev-kind mono">{{ abstractEventZh[ev.kind] ?? ev.kind }}</span>
-                <span class="ev-time mono">{{ fmtDate(ev.createdAt) }}</span>
-                <span class="ev-actor mono">{{ ev.actor }}</span>
-              </div>
-              <p v-if="ev.comment" class="ev-comment">{{ ev.comment }}</p>
-            </li>
-            <li class="ab-ev detail">
-              <div class="ev-row"><span class="ev-kind mono">摘要正文</span></div>
-              <p class="ev-comment pre">{{ abs.abstractText }}</p>
-            </li>
-          </ol>
+          <!-- 稿件内容 + 历史时间线 -->
+          <div v-if="expandedAbstract === abs.id" class="ab-detail">
+            <p class="ab-detail-label mono">当前稿件内容（第 {{ abs.version }} 版）</p>
+            <dl class="ab-facts mono">
+              <div class="ab-fact"><dt>主题方向</dt><dd>{{ topicZh[abs.topic] ?? abs.topic }}（{{ abs.topic }}）</dd></div>
+              <div class="ab-fact"><dt>报告类别</dt><dd>{{ reportZh[abs.reportType] ?? abs.reportType }}</dd></div>
+            </dl>
+            <p class="ab-abstract">{{ abs.abstractText }}</p>
+
+            <p class="ab-detail-label mono">历史记录（含各版本内容）</p>
+            <ol class="ab-timeline">
+              <li v-for="ev in abs.events" :key="ev.id" class="ab-ev" :class="{ good: ev.kind === 'accepted', back: ev.kind === 'returned' }">
+                <div class="ev-row">
+                  <span class="ev-kind mono">{{ abstractEventZh[ev.kind] ?? ev.kind }}</span>
+                  <span class="ev-time mono">{{ fmtDate(ev.createdAt) }}</span>
+                  <span class="ev-actor mono">{{ ev.actor }}</span>
+                </div>
+                <p v-if="ev.comment" class="ev-comment">{{ ev.comment }}</p>
+                <div v-if="ev.snapshot" class="ev-snapshot">
+                  <p class="ev-snap-title">《{{ ev.snapshot.title }}》<span class="mono">· 第 {{ snapshotVersion(abs, ev) }} 版快照 · {{ reportZh[ev.snapshot.reportType] ?? ev.snapshot.reportType }}</span></p>
+                  <p class="ev-comment pre">{{ ev.snapshot.abstractText }}</p>
+                </div>
+              </li>
+            </ol>
+          </div>
         </li>
       </ul>
     </section>
@@ -849,6 +910,54 @@ async function saveProfile() {
 .ev-comment.pre {
   white-space: pre-wrap;
   color: var(--grey);
+}
+
+/* ---- 稿件内容与版本快照 ---- */
+.ab-detail {
+  margin-top: 16px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 14px;
+}
+
+.ab-detail-label {
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--copper-deep);
+  margin: 14px 0 8px;
+}
+
+.ab-detail-label:first-child {
+  margin-top: 0;
+}
+
+.ab-abstract {
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--ink);
+  white-space: pre-wrap;
+  border: 1px solid var(--hairline-soft);
+  background: rgba(17, 17, 17, .02);
+  padding: 12px 14px;
+  margin: 8px 0 0;
+}
+
+.ev-snapshot {
+  margin-top: 8px;
+  border-left: 3px solid var(--hairline);
+  padding: 6px 0 6px 12px;
+}
+
+.ev-snap-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.ev-snap-title .mono {
+  font-size: 11px;
+  color: var(--grey);
+  font-weight: 400;
 }
 
 @media (min-width: 768px) {

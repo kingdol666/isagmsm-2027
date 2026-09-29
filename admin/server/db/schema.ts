@@ -102,6 +102,8 @@ export const abstractEvents = pgTable('abstract_events', {
   abstractId: uuid('abstract_id').notNull(),
   kind: varchar('kind', { length: 20 }).notNull(),
   comment: text('comment'),
+  /** 投稿/重投时的稿件内容快照（完整版本历史） */
+  snapshot: jsonb('snapshot').$type<Record<string, unknown> | null>(),
   actor: varchar('actor', { length: 200 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })

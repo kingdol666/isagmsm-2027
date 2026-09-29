@@ -18,6 +18,7 @@ interface AbstractEvent {
   id: string
   kind: string
   comment: string | null
+  snapshot: { title: string, reportType: string, abstractText: string } | null
   actor: string
   createdAt: string
 }
@@ -42,8 +43,8 @@ const filtered = computed(() => {
   })
 })
 
-const statusZh: Record<string, string> = { submitted: '待审', accepted: '已接收', returned: '已返稿' }
-const kindZh: Record<string, string> = { submitted: '投稿', resubmitted: '修改重投', accepted: '接收', returned: '返稿' }
+const statusZh: Record<string, string> = { submitted: '待审', accepted: '已接收', returned: '已返稿', withdrawn: '已撤回' }
+const kindZh: Record<string, string> = { submitted: '投稿', resubmitted: '修改重投', accepted: '接收', returned: '返稿', withdrawn: '撤回' }
 const reportZh: Record<string, string> = { oral: '口头报告', poster: '墙报', abstract_only: '仅提交摘要' }
 
 const expanded = ref<string | null>(null)
@@ -150,6 +151,8 @@ function fmt(value: string) {
               <li v-for="ev in eventsByAbstract[row.id]" :key="ev.id" class="ev">
                 <span class="ev-kind">{{ kindZh[ev.kind] ?? ev.kind }}</span>
                 <span class="ev-meta">{{ fmt(ev.createdAt) }} · {{ ev.actor }}</span>
+                <p v-if="ev.snapshot" class="ev-comment snap-title">《{{ ev.snapshot.title }}》 · {{ reportZh[ev.snapshot.reportType] ?? ev.snapshot.reportType }}</p>
+                <p v-if="ev.snapshot" class="ev-comment pre">{{ ev.snapshot.abstractText }}</p>
                 <p v-if="ev.comment" class="ev-comment">{{ ev.comment }}</p>
               </li>
             </ol>
