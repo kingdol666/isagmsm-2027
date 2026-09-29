@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nuxt dev",
     "dev:admin": "pnpm --filter isagmsm-admin-console dev",
+    "start": "node scripts/start-all.mjs",
     "build": "nuxt build",
     "build:admin": "pnpm --filter isagmsm-admin-console build",
     "preview": "nuxt preview",

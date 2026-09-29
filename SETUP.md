@@ -76,6 +76,16 @@ bank: {
 
 ---
 
+## 3.5 一键启动（开发模式）
+
+```bash
+pnpm start
+```
+
+自动完成：检测 Docker（无则跳过；`pps-postgres` 容器已运行则不重复启动）→ 等 PostgreSQL 就绪 →
+幂等迁移 → 同时启动门户（3000，**真实 SMTP 邮箱验证**）与管理台（3001，含定时备份调度）→
+打印就绪状态与账号。`Ctrl+C` 同时停止两个应用。
+
 ## 4. 其他上线前清单
 
 - [ ] `NUXT_SESSION_SECRET`：改为随机长字符串（`openssl rand -hex 32`）

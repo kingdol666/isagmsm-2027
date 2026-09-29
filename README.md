@@ -18,12 +18,28 @@ Visual identity: **Direction C — "The Grid as Instrument"** (Swiss Internation
 
 ```bash
 pnpm install
+pnpm start                    # 一键启动：Docker(自动/幂等) → 迁移 → 门户:3000 + 管理台:3001
+```
+
+`pnpm start`（开发模式）会自动：检测 Docker（无则跳过并提示；容器已运行不重复启动）→ 等 PostgreSQL 就绪 → 幂等执行迁移 → 同时拉起两个应用并打印账号。邮箱验证走**真实 SMTP**（`.env` 中 MAIL_SMTP_*，验证码真实发到邮箱）。
+
+也可以分步手动：
+
+```bash
 docker compose up -d          # PostgreSQL 17 on localhost:5433
-pnpm db:migrate               # create schema
-pnpm db:seed                  # demo data (speakers, program, participants, admin accounts)
+pnpm db:migrate               # create schema（幂等）
+pnpm db:seed                  # demo data（可选：speakers/program/participants/admin 账号）
 pnpm dev                      # 门户 http://localhost:3000
 pnpm dev:admin                # 管理台 http://localhost:3001（复制 admin/.env.example → admin/.env）
 ```
+
+### 账号
+
+| 应用 | 账号 | 密码 | 用途 |
+|---|---|---|---|
+| 管理台 :3001 | `admin` | `pps26-admin`（生产用 `ADMIN_PASSWORD` 覆盖） | 会员/凭证/缴费审批/稿件审稿/备份 |
+| 门户 /scan | `staff` | `pps26-staff`（生产用 `STAFF_PASSWORD`） | 现场扫码签到 |
+| 门户 个人中心 | `demo.user@example.test` | `Demo-2027-Pass!` | 参会演示账号（新用户经邮箱验证码注册） |
 
 ## Commands
 
