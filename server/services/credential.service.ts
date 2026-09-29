@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import type { DbExecutor } from '../db'
+import { registrations } from '../db/schema'
+import { eq } from 'drizzle-orm'
 import { findCheckinByCredential } from '../repositories/checkins'
 import { findCredentialByRegistration, findCredentialDetailByToken, issueCredential } from '../repositories/credentials'
 
@@ -11,10 +13,21 @@ export function generateCredentialToken(): string {
   return randomBytes(32).toString('base64url')
 }
 
-/** Idempotent: issuing twice returns the same credential (unique per registration). */
+/**
+ * Idempotent: issuing twice returns the same credential (unique per registration).
+ * 会员门槛：凭证只授予 isMember=true 的报名。非会员（含支付成功路径）不发证，
+ * 由管理员在管理台设为会员后再下发 — 这条规则是签发的唯一硬闸口。
+ */
 export async function ensureCredential(db: DbExecutor, registrationId: string) {
   const existing = await findCredentialByRegistration(db, registrationId)
   if (existing) return existing
+
+  const reg = await db
+    .select({ isMember: registrations.isMember })
+    .from(registrations)
+    .where(eq(registrations.id, registrationId))
+    .limit(1)
+  if (!reg[0]?.isMember) return null
 
   try {
     return await issueCredential(db, {

@@ -1,23 +1,18 @@
 import type { Db } from '../db'
-import type { ReviewAbstractInput, SubmitAbstractInput } from '../../shared/schemas/abstract'
+import type { SubmitAbstractInput } from '../../shared/schemas/abstract'
 import {
   findAbstractById,
   insertAbstract,
   insertAbstractEvent,
   listAbstractsByUser,
-  listAllAbstracts,
   listEventsByAbstract,
-  setAbstractStatus,
   updateAbstractContent,
 } from '../repositories/abstracts'
-import { findUserById } from '../repositories/users'
 import { DomainError } from './registration.service'
-import type { AbstractDecisionMail, Mailer } from './mail.types'
 
 /**
- * AbstractReviewService — 投稿送审状态机。
- *   submitted → accepted（接收，附审稿意见）
- *   submitted → returned （返稿，附返稿意见，邮件通知投稿人）
+ * AbstractSubmissionService（门户侧）— 投稿与重投。
+ *   submitted → accepted | returned（审稿动作在独立的 admin 项目中实现）
  *   returned  → submitted（投稿人修改后重投，版本 +1）
  * 每次状态迁移都写入 abstract_events（投稿人可见的历史记录）。
  */
@@ -90,50 +85,6 @@ export async function resubmitAbstract(
   return updated
 }
 
-/** 审稿（admin）：迁移状态 + 记录事件 + 邮件通知投稿人注册邮箱。 */
-export async function reviewAbstract(
-  db: Db,
-  abstractId: string,
-  reviewerName: string,
-  input: ReviewAbstractInput,
-  mailer: Mailer,
-) {
-  const abstract = await findAbstractById(db, abstractId)
-  if (!abstract) throw new DomainError(404, '稿件不存在')
-  if (abstract.status !== 'submitted') throw new DomainError(409, '该稿件当前状态不可审稿（已审结或待重投）')
-
-  const action = input.action === 'accept' ? 'accepted' : 'returned'
-  const comment = input.comment.trim()
-  await setAbstractStatus(db, abstractId, action)
-  await insertAbstractEvent(db, {
-    abstractId,
-    kind: action,
-    comment,
-    actor: `admin:${reviewerName}`,
-  })
-
-  const owner = await findUserById(db, abstract.userId)
-  if (owner) {
-    const decisionMail: AbstractDecisionMail = {
-      email: owner.email,
-      displayName: abstract.submitterName || owner.fullName || owner.email,
-      title: abstract.title,
-      action,
-      comment,
-      version: abstract.version,
-    }
-    try {
-      await mailer.sendAbstractDecision(decisionMail)
-    }
-    catch (error) {
-      // 审稿结果已落库；邮件失败不阻塞审稿，由邮件服务自身重试/告警
-      console.error(`[abstract] decision mail failed for ${owner.email}:`, error)
-    }
-  }
-
-  return { ...abstract, status: action }
-}
-
 export async function listMyAbstractsWithEvents(db: Db, userId: string): Promise<AbstractWithEvents[]> {
   const mine = await listAbstractsByUser(db, userId)
   const withEvents = await Promise.all(mine.map(async abstract => ({
@@ -141,12 +92,4 @@ export async function listMyAbstractsWithEvents(db: Db, userId: string): Promise
     events: await listEventsByAbstract(db, abstract.id),
   })))
   return withEvents
-}
-
-export async function listAbstractsForAdmin(db: Db) {
-  return listAllAbstracts(db)
-}
-
-export async function getAbstractEventsForAdmin(db: Db, abstractId: string) {
-  return listEventsByAbstract(db, abstractId)
 }

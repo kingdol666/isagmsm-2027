@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { base, uniqueEmail } from './helpers'
+import { base, consoleBase, consoleLoginViaApi, createRegistrationWithClaimViaApi } from './helpers'
 
 /**
  * STANDALONE SCANNER (/scan) — the on-site check-in tool:
@@ -18,52 +18,29 @@ async function staffLogin(page: import('@playwright/test').Page) {
   await expect(page.locator('#manual-token')).toBeVisible({ timeout: 30_000 })
 }
 
-/** Drives a fresh registration through claim + admin approval, returns the credential token. */
-async function paidCredentialToken(context: import('@playwright/test').APIRequestContext) {
-  const email = uniqueEmail('scan')
-  const password = `scan-${Date.now()}-pass!`
+/**
+ * Drives a fresh registration through the console (member-first):
+ * claim → console 设会员 → approve → credential issued, returns the token.
+ */
+async function paidCredentialToken(context: import('@playwright/test').BrowserContext) {
+  const { registrationId, orderId } = await createRegistrationWithClaimViaApi(
+    { request: context.request },
+    'Scan Tester',
+    'Scan Institute',
+    'E2E-SCAN-REF',
+  )
 
-  const codeRes = await context.post(`${base}/api/auth/send-code`, {
-    data: { email, purpose: 'signup' },
-  }).then(r => r.json())
-  expect(codeRes.devCode).toMatch(/^\d{6}$/)
-
-  const reg = await context.post(`${base}/api/auth/register`, {
-    data: { email, code: codeRes.devCode, password, fullName: 'Scan Tester' },
+  // 会员门槛：先在管理台设为会员，再收款确认（凭证自动下发）
+  await consoleLoginViaApi(context)
+  const member = await context.request.post(`${consoleBase}/api/participants/${registrationId}/membership`, {
+    data: { isMember: true },
   })
-  expect(reg.status()).toBe(201)
+  expect(member.status()).toBe(200)
 
-  const login = await context.post(`${base}/api/auth/login`, {
-    data: { email, password },
-  })
-  expect(login.status()).toBe(200)
+  const approve = await context.request.post(`${consoleBase}/api/orders/${orderId}/approve`)
+  expect(approve.status()).toBe(200)
 
-  const types = await context.get(`${base}/api/registration-types`).then(r => r.json())
-  const academic = types.find((t: { code: string }) => t.code === 'academic').id
-
-  const created = await context.post(`${base}/api/registrations`, {
-    data: { participant: { typeId: academic, fullName: 'Scan Tester', email, phone: '13800001234', affiliation: 'Scan Institute', country: 'China' } },
-  })
-  expect(created.status()).toBe(201)
-  const { order } = await created.json() as { order: { id: string } }
-
-  // bank-transfer claim (participant), then admin approval
-  const claim = await context.post(`${base}/api/orders/${order.id}/claim`, {
-    data: { reference: 'E2E-SCAN-REF' },
-  })
-  expect(claim.status()).toBe(200)
-
-  const adminLogin = await context.post(`${base}/api/admin/login`, {
-    data: { username: 'admin', password: 'pps26-admin' },
-  })
-  expect(adminLogin.status()).toBe(200)
-
-  const review = await context.post(`${base}/api/admin/orders/${order.id}/review`, {
-    data: { action: 'approve' },
-  })
-  expect(review.status()).toBe(200)
-
-  const orderView = await context.get(`${base}/api/orders/${order.id}`).then(r => r.json())
+  const orderView = await context.request.get(`${base}/api/orders/${orderId}`).then(r => r.json())
   return orderView.credentialToken as string
 }
 
@@ -81,7 +58,7 @@ test('unknown manual codes are rejected with NOT RECOGNISED', async ({ page }) =
 })
 
 test('valid credential: verify → confirm check-in → duplicate blocked', async ({ page }) => {
-  const token = await paidCredentialToken(page.context().request)
+  const token = await paidCredentialToken(page.context())
   await staffLogin(page)
 
   await page.fill('#manual-token', token)
@@ -99,8 +76,8 @@ test('valid credential: verify → confirm check-in → duplicate blocked', asyn
   await expect(page.locator('.kicker.bad')).toContainText('已签到')
 })
 
-test('confirming on the scanner is reflected in the admin check-ins list', async ({ page }) => {
-  const token = await paidCredentialToken(page.context().request)
+test('check-in state persists on the public verify page', async ({ page }) => {
+  const token = await paidCredentialToken(page.context())
   await staffLogin(page)
   await page.fill('#manual-token', token)
   await page.click('.manual button[type="submit"]')
@@ -108,14 +85,7 @@ test('confirming on the scanner is reflected in the admin check-ins list', async
   await page.click('button:has-text("确认签到")')
   await expect(page.locator('.log-row').first()).toContainText('checked in')
 
-  // admin-level verification: the check-in lands in the admin check-ins list
-  // (staff logging in as admin replaces the shared pps_admin session cookie)
-  const adminLogin = await page.context().request.post(`${base}/api/admin/login`, {
-    data: { username: 'admin', password: 'pps26-admin' },
-  })
-  expect(adminLogin.status()).toBe(200)
-  const list = await page.context().request.get(`${base}/api/admin/checkins`)
-  expect(list.status()).toBe(200)
-  const rows = await list.json() as { rows: Array<{ fullName: string }> }
-  expect(rows.rows.some(row => row.fullName === 'Scan Tester')).toBe(true)
+  // user-visible persistence: the public verify page shows the check-in
+  await page.goto(`/verify/${token}`, { waitUntil: 'networkidle' })
+  await expect(page.locator('.verdict.good')).toContainText('Valid — checked in')
 })

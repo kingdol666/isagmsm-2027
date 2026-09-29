@@ -1,6 +1,30 @@
 # ARCHITECTURE
 
-Nuxt 4 is the unified frontend and backend (Nitro server). No other backend framework.
+双应用拓扑（pnpm workspace）：**门户**（`.`，3000）+ **独立管理台**（`admin/`，3001）。
+两个 Nuxt 4 应用各自独立构建/部署/会话，唯一共享点是同一个 PostgreSQL 数据库（迁移由门户拥有）。
+
+```
+门户（3000）                                管理台（3001，admin/）
+  公开网站 / 注册 / 报名 / 缴费页              登录（仅 admin 角色）
+  在线投稿 / 我的投稿                          参会管理（会员开关 + 凭证操作）
+  凭证 / verify / 电子卡                      缴费审批（通过/驳回）
+  /scan 扫码端（staff cookie: pps_staff）      稿件审稿（接收/返稿 + 邮件）
+  cookie: pps_user                            cookie: pps_console
+  secret: NUXT_SESSION_SECRET                 secret: NUXT_CONSOLE_SESSION_SECRET
+        └──────────── 共享 PostgreSQL（唯一数据通道）────────────┘
+```
+
+隔离性质：cookie 按 host 共享、按名字区分 —— 三个会话（`pps_user` / `pps_staff` /
+`pps_console`）互不可用；门户没有任何管理页面或 `/api/admin/**`（管理面整体迁至 `admin/`）；
+管理台登录仅接受 `admin` 角色（staff 只能扫码）。
+
+## 会员-凭证绑定（跨两应用的领域不变量）
+
+1. `ensureCredential`（门户）与凭证下发（管理台）都要求 `registrations.is_member = true`
+   —— 非会员支付成功也不发证；
+2. 管理台「取消会员」在同一事务内摘除会员标识并 `credentials.status → revoked`
+   （旧 QR/token 立即失效）；
+3. 入会/取消仅限管理台 admin。
 
 ```
 app/                      frontend (Vue 3, SSR)
@@ -69,14 +93,21 @@ GET  /api/credentials/:token/qr       credential QR (SVG, encodes verify URL)
 GET  /api/credentials/:token/pdf      printable PDF (pdf-lib, server-generated)
 POST /api/checkin/verify              staff: read-only token verification
 POST /api/checkin                     staff: confirm check-in (duplicate-safe)
+POST /api/staff/login|logout, GET /api/staff/me   scanner staff sessions (staff OR admin; cookie pps_staff)
 POST /api/abstracts                   submit an abstract (REQUIRES signed-in account; authors w/ affiliations)
 GET  /api/abstracts/mine              my abstracts + full review history
 POST /api/abstracts/:id/resubmit      revise & resubmit a RETURNED abstract (version + 1)
-GET  /api/admin/abstracts             admin: all abstracts (+ submitter email)
-GET  /api/admin/abstracts/:id/events  admin: one abstract's review history
-POST /api/admin/abstracts/:id/review  admin: accept | return (comment → emailed to the submitter)
-POST /api/admin/login|logout, GET /api/admin/me
-GET  /api/admin/dashboard|registrations|orders|payments|credentials|checkins
+
+── 以下管理 API 属于独立管理台（admin/，端口 3001，cookie pps_console，仅 admin）──
+POST /api/login|logout, GET /api/me
+GET  /api/dashboard                   live counts + revenue
+GET  /api/participants                all registrations (+ type/order/credential/checkin)
+POST /api/participants/:id/membership 会员开关（取消 = 事务内自动吊销全部 active 凭证）
+POST /api/orders/:id/approve|reject   收款确认（会员自动发证）/ 驳回
+POST /api/credentials/manage          issue（仅会员）| revoke | restore
+GET  /api/abstracts                   all abstracts (+ submitter email)
+GET  /api/abstracts/:id/events        review history
+POST /api/abstracts/:id/review        accept | return（comment 邮件通知投稿人）
 ```
 
 ## Accounts & sessions

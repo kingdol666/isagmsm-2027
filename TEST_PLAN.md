@@ -6,7 +6,7 @@
 |---|---|---|---|
 | Unit | Vitest | pure logic (pricing) + provider signature handling | `pnpm test` |
 | Integration | Vitest | domain chain against a real PostgreSQL test DB (`pps2026_test`) | `pnpm test` |
-| E2E | Playwright | full user journey in a real browser | `pnpm test:e2e` |
+| E2E | Playwright | full user journey in real browsers（双应用：门户 3000 + 管理台 3001） | `pnpm test:e2e` |
 | Smoke script | tsx | service-level chain (no browser) | `pnpm tsx --env-file=.env scripts/smoke-services.ts` |
 
 The test database is created once with:
@@ -41,12 +41,15 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 |---|---|
 | `full-flow.spec.ts` | **THE critical smoke test**: homepage → gated register → email-code sign-up → conference registration (locked email, prefilled profile) → order → bank-transfer page (participant ID + 附言) → submit claim → admin approves in 缴费审批 → credential issued → verify page → `/account` shows paid → scanner check-in → admin list reflects it |
 | `auth.spec.ts` | wrong code rejected, resend cooldown (disabled + countdown), duplicate sign-up rejected, sign-out, forgot-password full recovery, wrong login rejected, `/account` gating |
-| `admin.spec.ts` | anonymous API 401, wrong admin password 401, dashboard counts + revenue, all five admin lists render, registrations table with per-row payment status + search filter, staff role separation (403 on admin APIs) |
-| `scanner.spec.ts` | staff login gate, unknown code → NOT RECOGNISED, valid credential (claim + admin approval fixture) → verify → confirm → duplicate blocked → record visible in admin check-ins |
+| `admin.spec.ts` | 独立管理台：匿名 401、错密码 401、staff 被拒 403、门户管理面已剥离（/api/admin/** 404）、仪表盘统计、会员-凭证绑定全链路（非会员收款不发证 → 设会员下发 → 取消会员自动吊销） |
+| `scanner.spec.ts` | staff login gate, unknown code → NOT RECOGNISED, valid credential（管理台先设会员再审批的 fixture）→ verify → confirm → duplicate blocked → verify 页显示已签到 |
+| `admin-credential-flow.spec.ts` | 会员凭证闭环（多浏览器上下文）：管理台设会员 → 收款确认下发 → 用户头像区凭证 → 扫码有效 → 撤销 → 扫码已撤销 → 恢复 → 有效 → **取消会员自动吊销** → 扫码/verify 均被拒 |
 | `misc.spec.ts` | `/api/health` integrations report, styled 404 page, robots.txt + sitemap.xml, JSON-LD structured data + header nav, all seven conference pages render, profile save/persist, 390 px homepage zero overflow |
-| `abstract-flow.spec.ts` | 投稿送审闭环：在线投稿（动态添加作者行）→ 个人中心待审 + 历史 → 后台搜索/展开/返稿（意见必填）→ 投稿人看到返稿意见 → 修改重投（预填表单，版本 +1）→ 后台接收 → 投稿人看到已接收 + 完整历史（返稿/重投/接收） |
+| `abstract-flow.spec.ts` | 投稿送审闭环（审稿在管理台 3001）：在线投稿（动态添加作者行）→ 个人中心待审 + 历史 → 管理台搜索/展开/返稿（意见必填）→ 投稿人看到返稿意见 → 修改重投（预填表单，版本 +1）→ 管理台接收 → 投稿人看到已接收 + 完整历史（返稿/重投/接收） |
 
-Run against a dev server (`reuseExistingServer`); the suite sets `RATE_LIMIT_DISABLED=1` for the server it starts (test-only bypass, never active in production builds — see `server/utils/rate-limit.ts`).
+Run against BOTH dev servers (`reuseExistingServer`): the portal gets `RATE_LIMIT_DISABLED=1` + `MAIL_DRIVER=test`（devCode 显示在页面上），the console gets `MAIL_DRIVER=test`（审稿邮件写日志）。Playwright `webServer` 数组同时拉起两应用。
+
+单元层另覆盖：会员-凭证绑定（`abstract.service.test.ts`：取消会员自动吊销；`domain-chain.test.ts`：非会员 PAID 回调不签发凭证）。
 
 ## Manual verification checklist (per release)
 

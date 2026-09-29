@@ -1,14 +1,19 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { eq } from 'drizzle-orm'
 import { createDb } from '../../server/db'
-import { users } from '../../server/db/schema'
-import { submitAbstract, resubmitAbstract, reviewAbstract, listMyAbstractsWithEvents } from '../../server/services/abstract.service'
+import { credentials, registrationTypes, registrations, users } from '../../server/db/schema'
+import { submitAbstract, resubmitAbstract, listMyAbstractsWithEvents } from '../../server/services/abstract.service'
+import { reviewAbstract, setMembershipWithBinding } from '../../admin/server/services/console.service'
+import { ensureCredential } from '../../server/services/credential.service'
 import { DomainError } from '../../server/services/registration.service'
 import { reviewAbstractSchema } from '../../shared/schemas/abstract'
-import type { Mailer } from '../../server/services/mail.types'
+import type { ConsoleMailer } from '../../admin/server/services/mail.service'
 
 /**
- * AbstractReviewService integration tests against the dedicated test db
+ * Abstract submission/review integration tests against the dedicated test db
  * (schema applied via drizzle-kit migrate with DATABASE_URL_TEST).
+ * 审稿动作来自管理台服务（admin/server/services/console.service）——
+ * 与门户解耦后，审稿是管理台的职责。
  */
 
 const DATABASE_URL = process.env.DATABASE_URL_TEST
@@ -22,11 +27,10 @@ function fakeMailer() {
   return {
     sent,
     mailer: {
-      async sendVerificationCode() {},
       async sendAbstractDecision(mail: { email: string, action: 'accepted' | 'returned', comment: string, version: number }) {
         sent.push({ email: mail.email, action: mail.action, comment: mail.comment, version: mail.version })
       },
-    } satisfies Mailer,
+    } satisfies ConsoleMailer,
   }
 }
 
@@ -97,7 +101,7 @@ describe('AbstractReviewService (integration)', () => {
     const { mailer } = fakeMailer()
     await reviewAbstract(db, abstract.id, 'chief', { action: 'accept', comment: 'ok' }, mailer)
     await expect(reviewAbstract(db, abstract.id, 'chief', { action: 'accept', comment: 'again' }, mailer))
-      .rejects.toBeInstanceOf(DomainError)
+      .rejects.toThrow('不可审稿')
   })
 
   it('returns a submission with a mandatory comment, then resubmission bumps the version', async () => {
@@ -136,6 +140,42 @@ describe('AbstractReviewService (integration)', () => {
     const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
     await expect(resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, baseInput))
       .rejects.toBeInstanceOf(DomainError)
+  })
+
+  it('auto-revokes active credentials when membership is cancelled', async () => {
+    // 会员-凭证绑定：取消会员在同一事务内吊销全部 active 凭证
+    const [type] = await db.insert(registrationTypes).values({
+      code: `bind-${runId}`,
+      name: '绑定测试类型',
+      priceFen: 100000,
+    }).returning()
+    const [user] = await db.insert(users).values({
+      email: `bind-${runId}@example.test`,
+      fullName: '绑定测试',
+      emailVerifiedAt: new Date(),
+    }).returning()
+    const [registration] = await db.insert(registrations).values({
+      userId: user!.id,
+      typeId: type!.id,
+      status: 'confirmed',
+      displayId: `BIND-${runId}`,
+      fullName: '绑定测试',
+      email: user!.email,
+      affiliation: '绑定大学',
+      country: '中国',
+      isMember: true,
+    }).returning()
+
+    const credential = await ensureCredential(db, registration!.id)
+    expect(credential).not.toBeNull()
+    expect(credential!.status).toBe('active')
+
+    const result = await setMembershipWithBinding(db, registration!.id, false)
+    expect(result).toEqual({ isMember: false, revokedCredentials: 1 })
+
+    const after = await db.select().from(credentials).where(eq(credentials.registrationId, registration!.id))
+    expect(after).toHaveLength(1)
+    expect(after[0]!.status).toBe('revoked')
   })
 })
 

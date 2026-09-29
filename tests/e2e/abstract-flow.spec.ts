@@ -1,26 +1,14 @@
 import { expect, test } from '@playwright/test'
-import { base, createAccountViaApi, uniqueEmail } from './helpers'
+import { base, consoleBase, consoleUiLogin, createAccountViaApi, uniqueEmail } from './helpers'
 
 /**
- * 投稿送审全流程：
- * 注册用户投稿（含添加作者行）→ 后台查看并返稿（附意见，邮件通知）
- * → 投稿人看到返稿意见并修改重投（版本 +1）→ 后台接收
+ * 投稿送审全流程（管理台在独立应用 :3001）：
+ * 注册用户投稿（含添加作者行）→ 管理台查看并返稿（附意见，邮件通知）
+ * → 投稿人看到返稿意见并修改重投（版本 +1）→ 管理台接收
  * → 投稿人看到接收结果与完整历史记录。
  */
 
 const TITLE_V1 = () => `双网络离子凝胶界面增强研究-${Date.now()}`
-
-async function adminLogin(page: import('@playwright/test').Page) {
-  await page.goto(`${base}/admin/login`, { waitUntil: 'networkidle' })
-  await page.waitForLoadState('networkidle')
-  for (let attempt = 0; attempt < 6 && page.url().includes('/admin/login'); attempt++) {
-    await page.fill('input[name="username"]', 'admin')
-    await page.fill('input[name="password"]', 'pps26-admin')
-    await page.click('button[type="submit"]')
-    await page.waitForTimeout(1200)
-  }
-  await page.waitForURL(/\/admin$/)
-}
 
 test('abstract submission, return with comment, resubmit, accept, history', async ({ browser }) => {
   const email = uniqueEmail('abs')
@@ -65,10 +53,10 @@ test('abstract submission, return with comment, resubmit, accept, history', asyn
   /* 3. 后台：搜索、展开、返稿（附意见） */
   const adminCtx = await browser.newContext()
   const adminPage = await adminCtx.newPage()
-  await adminLogin(adminPage)
-  await adminPage.goto(`${base}/admin/abstracts`, { waitUntil: 'networkidle' })
+  await consoleUiLogin(adminPage)
+  await adminPage.goto(`${consoleBase}/abstracts`, { waitUntil: 'networkidle' })
 
-  await adminPage.fill('input.search', titleV1)
+  await adminPage.fill('.filter-input', titleV1)
   const row = adminPage.locator('.abs', { hasText: titleV1 })
   await expect(row).toHaveCount(1)
   await row.locator('.abs-head').click()
@@ -103,8 +91,8 @@ test('abstract submission, return with comment, resubmit, accept, history', asyn
   await expect(userPage.locator('.done-title')).toContainText('第 2 版')
 
   /* 5. 后台：接收第 2 版 */
-  await adminPage.goto(`${base}/admin/abstracts`, { waitUntil: 'networkidle' })
-  await adminPage.fill('input.search', titleV2)
+  await adminPage.goto(`${consoleBase}/abstracts`, { waitUntil: 'networkidle' })
+  await adminPage.fill('.filter-input', titleV2)
   const row2 = adminPage.locator('.abs', { hasText: titleV2 })
   await expect(row2).toHaveCount(1)
   await expect(row2.locator('.badge', { hasText: 'v2' })).toBeVisible()

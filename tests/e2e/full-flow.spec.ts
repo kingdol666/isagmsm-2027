@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { base } from './helpers'
+import { base, consoleBase, consoleUiLogin } from './helpers'
 
 /**
  * THE critical smoke test — account + bank-transfer edition:
@@ -68,18 +68,20 @@ test('sign-up → register → bank-transfer claim → approve → credential �
   await page.click('button:has-text("提交审核")')
   await expect(page.locator('.panel-title.ok')).toContainText('审核中', { timeout: 20_000 })
 
-  /* 5. admin reviews and approves → QR credential issued */
-  await page.goto(`${base}/admin/login`)
-  await page.waitForLoadState('networkidle')
-  for (let attempt = 0; attempt < 6 && page.url().includes('/admin/login'); attempt++) {
-    await page.fill('input[name="username"]', 'admin')
-    await page.fill('input[name="password"]', 'pps26-admin')
-    await page.click('button[type="submit"]')
-    await page.waitForTimeout(1200)
-  }
-  await page.waitForURL(/\/admin$/, { timeout: 20_000 })
+  /* 5. 管理台（独立应用 :3001）：先入会 → 审批通过 → 会员凭证自动下发 */
+  await consoleUiLogin(page)
 
-  await page.goto(`${base}/admin/approvals`, { waitUntil: 'networkidle' })
+  await page.goto(`${consoleBase}/participants`, { waitUntil: 'networkidle' })
+  await page.waitForFunction(() => Boolean(document.querySelector('#__nuxt')?.__vue_app__))
+  for (let attempt = 0; attempt < 8; attempt++) {
+    await page.fill('.filter-input', displayId!)
+    await page.waitForTimeout(900)
+    if ((await page.locator('.tbl tbody tr').count()) === 1) break
+  }
+  await page.locator('.op.primary:has-text("设为会员")').click()
+  await expect(page.locator('.msg')).toContainText('已设为会员', { timeout: 15_000 })
+
+  await page.goto(`${consoleBase}/approvals`, { waitUntil: 'networkidle' })
   await expect(page.locator('.review').first()).toContainText(displayId!)
   await page.locator('.review .r-actions button:has-text("核对无误")').first().click()
   await expect(page.locator('.msg')).toContainText('电子凭证已下发', { timeout: 20_000 })
@@ -100,9 +102,13 @@ test('sign-up → register → bank-transfer claim → approve → credential �
   await expect(page.locator('.verdict.good')).toBeVisible()
   await expect(page.locator('.verdict')).toContainText('Valid credential')
 
-  /* 8. scanner check-in (admin session works at the scan gate) */
+  /* 8. scanner check-in (staff login at the portal scan gate) */
   await page.goto('/scan')
   await page.waitForLoadState('networkidle')
+  await expect(page.locator('input[name="username"]')).toBeVisible({ timeout: 30_000 })
+  await page.fill('input[name="username"]', 'staff')
+  await page.fill('input[name="password"]', 'pps26-staff')
+  await page.click('button:has-text("登录")')
   await expect(page.locator('#manual-token')).toBeVisible({ timeout: 30_000 })
   for (let attempt = 0; attempt < 6; attempt++) {
     await page.fill('#manual-token', token)
@@ -114,8 +120,8 @@ test('sign-up → register → bank-transfer claim → approve → credential �
   await page.click('button:has-text("确认签到")')
   await expect(page.locator('.log-row').first()).toContainText('checked in')
 
-  /* 9. admin participants management shows the participant + payment */
-  await page.goto(`${base}/admin/participants`, { waitUntil: 'networkidle' })
+  /* 9. console participants shows the participant + payment */
+  await page.goto(`${consoleBase}/participants`, { waitUntil: 'networkidle' })
   await expect(page.locator('.tbl')).toContainText(fullName)
   await expect(page.locator('.tbl')).toContainText('已缴费')
 })

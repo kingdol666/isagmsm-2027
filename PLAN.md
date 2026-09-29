@@ -20,6 +20,8 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | M8 | Real payment adapters (WeChat Pay / Alipay, ready-for-keys) | ✅ Done |
 | M9 | Tests, polish, SEO, performance, docs | ✅ Done |
 | M10 | Accounts: header sign-in, email-code sign-up, forgot password, profile, account-gated registration, admin payment column | ✅ Done |
+| M11 | Abstract review (投稿送审)：/submit 投稿、管理台审稿（接收/返稿 + 意见邮件）、版本与历史 | ✅ Done |
+| M12 | **管理台解耦**：独立应用 admin/（端口 3001、pps_console 会话、独立密钥），门户剥离全部管理面；会员-凭证强绑定（仅会员发证、取消会员自动吊销、仅 admin 可操作入会） | ✅ Done |
 
 All milestones verified: `pnpm lint` ✓ · `pnpm typecheck` ✓ · `pnpm test` (24) ✓ · `pnpm test:e2e` (2) ✓ · `pnpm build` ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
 

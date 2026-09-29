@@ -2,7 +2,7 @@ import { createHmac } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
 import { createDb } from '../../server/db'
-import { registrationTypes, siteSettings, users } from '../../server/db/schema'
+import { credentials, registrationTypes, registrations, siteSettings, users } from '../../server/db/schema'
 import { submitRegistration } from '../../server/services/registration.service'
 import { createOrderForRegistration, markOrderPaidInTx } from '../../server/services/order.service'
 import { createPaymentForOrder, handlePaymentCallback } from '../../server/services/payment.service'
@@ -49,7 +49,7 @@ afterAll(async () => {
   await (db as unknown as { $client: { end: () => Promise<void> } }).$client.end()
 })
 
-async function registerAndOrder(tag: string) {
+async function registerAndOrder(tag: string, member = true) {
   const types = await listActiveTypes(db)
   const academic = types.find(t => t.code === 'academic')!
   // registrations belong to signed-in accounts — create one per scenario
@@ -65,6 +65,10 @@ async function registerAndOrder(tag: string) {
     affiliation: 'Vitest University',
     country: 'China',
   }, { id: user.id, email: user.email, fullName: user.fullName })
+  if (member) {
+    // 会员-凭证绑定：默认走会员路径（非会员路径由专门用例覆盖）
+    await db.update(registrations).set({ isMember: true }).where(eq(registrations.id, registration.id))
+  }
   const order = await createOrderForRegistration(db, registration.id)
   return { registration, order, type: academic }
 }
@@ -180,5 +184,30 @@ describe('domain chain (integration)', () => {
     const result = await verifyByToken(db, `no-such-token-${runId}-${'x'.repeat(40)}`)
     expect(result.valid).toBe(false)
     expect(result.reason).toBe('not_found')
+  })
+
+  it('withholds credentials from non-members even after a PAID callback', async () => {
+    // 会员-凭证绑定：非会员支付成功 → 订单已支付，但不签发凭证
+    const { registration, order } = await registerAndOrder('nonmember', false)
+    const payment = await createPaymentForOrder(db, order.id, 'mock', SECRET)
+
+    const body = JSON.stringify({
+      eventId: `evt-${runId}-nonmember`,
+      providerPaymentNo: payment.providerPaymentNo,
+      orderNo: order.orderNo,
+      result: 'paid',
+      amountFen: order.totalFen,
+    })
+    const result = await handlePaymentCallback(db, 'mock', provider.verifyCallback(
+      { 'x-mock-signature': createHmac('sha256', SECRET).update(body).digest('hex') },
+      body,
+    )!)
+    expect(result).toEqual({ duplicate: false, status: 'paid' })
+
+    const stored = await findOrderById(db, order.id)
+    expect(stored?.status).toBe('paid')
+
+    const issued = await db.select().from(credentials).where(eq(credentials.registrationId, registration.id))
+    expect(issued).toHaveLength(0)
   })
 })

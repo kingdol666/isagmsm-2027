@@ -1,0 +1,25 @@
+{
+  "name": "isagmsm-admin-console",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "drizzle-orm": "^0.45.3",
+    "nodemailer": "^10.0.10",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "nuxt": "^4.5.2",
+    "typescript": "~5.9.0",
+    "vue": "^3.5.0"
+  }
+}

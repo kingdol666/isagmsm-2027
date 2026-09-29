@@ -81,5 +81,7 @@ bank: {
 - [ ] `NUXT_SESSION_SECRET`：改为随机长字符串（`openssl rand -hex 32`）
 - [ ] `ADMIN_PASSWORD` / `STAFF_PASSWORD`：设置强密码后重新 `pnpm db:seed`（或直接改库）
 - [ ] `NUXT_PUBLIC_SITE_URL`：改为正式域名（影响二维码内容、验证链接、邮件链接）
-- [ ] 生产环境务必不要设置 `RATE_LIMIT_DISABLED=1`
+- [ ] **管理台（admin/）**：复制 `admin/.env.example` 为 `admin/.env`，填 `DATABASE_URL` 与
+      `NUXT_CONSOLE_SESSION_SECRET`（**必须与门户的 NUXT_SESSION_SECRET 不同**）；审稿邮件按需填 `MAIL_SMTP_*`
+- [ ] 生产环境务必不要设置 `RATE_LIMIT_DISABLED=1` / `MAIL_DRIVER=test`（门户与管理台都是）
 - [ ] 检查 `GET /api/health`：payments 应显示 wechat/alipay 中已配置者，mail 应显示 smtp

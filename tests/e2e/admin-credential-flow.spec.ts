@@ -1,51 +1,30 @@
 import { expect, test } from '@playwright/test'
-import { base, uniqueEmail } from './helpers'
+import { base, consoleBase, consoleUiLogin, createRegistrationWithClaimViaApi } from './helpers'
 
 /**
- * REAL END-TO-END CREDENTIAL LOOP (multi-context):
- *  admin 下发凭证 → 用户头像区查看 QR/token → 现场扫码核验 →
- *  admin 撤销（QR 立即失效）→ 恢复（重新有效）
+ * 会员-凭证完整闭环（多上下文真实浏览器）：
+ *  管理台设会员 → 收款确认下发凭证 → 用户头像区查看 QR/token → 现场扫码核验 →
+ *  管理台撤销（QR 立即失效）→ 恢复（重新有效）→ 取消会员（自动吊销，扫码被拒）
  */
-test('admin issues credential, user sees it via avatar, scanner verifies, revoke/restore works', async ({ browser }) => {
+test('member credential loop: issue via console, scan verify, revoke/restore, cancel auto-revokes', async ({ browser }) => {
   const runTag = `cf${Date.now().toString(36)}`
-  const email = uniqueEmail('credflow')
-  const password = `cred-${Date.now()}-pass!`
   const fullName = `凭证闭环 ${runTag}`
 
   /* ---------- fixtures via API on the participant context ---------- */
   const userCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
-  const codeRes = await userCtx.request.post(`${base}/api/auth/send-code`, {
-    data: { email, purpose: 'signup' },
-  }).then(r => r.json())
-  expect(codeRes.devCode).toMatch(/^\d{6}$/)
+  await createRegistrationWithClaimViaApi(
+    { request: userCtx.request },
+    fullName,
+    '闭环测试大学',
+    `E2E-CF-${runTag}`,
+  )
 
-  const reg = await userCtx.request.post(`${base}/api/auth/register`, {
-    data: { email, code: codeRes.devCode, password, fullName },
-  })
-  expect(reg.status()).toBe(201)
-
-  await userCtx.request.post(`${base}/api/auth/login`, { data: { email, password } })
-
-  const types = await userCtx.request.get(`${base}/api/registration-types`).then(r => r.json())
-  const studentId = types.find((t: { code: string }) => t.code === 'student').id
-  const created = await userCtx.request.post(`${base}/api/registrations`, {
-    data: { participant: { typeId: studentId, fullName, email, phone: '13800007777', affiliation: '闭环测试大学', country: '中国' } },
-  })
-  expect(created.status()).toBe(201)
-  const { order } = await created.json() as { order: { id: string } }
-
-  const claim = await userCtx.request.post(`${base}/api/orders/${order.id}/claim`, {
-    data: { reference: `E2E-CF-${runTag}` },
-  })
-  expect(claim.status()).toBe(200)
-
-  /* ---------- admin reviews and issues the credential ---------- */
+  /* ---------- 管理台：设会员 → 收款确认（自动下发凭证） ---------- */
   const adminCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const adminPage = await adminCtx.newPage()
-  await adminPage.goto(`${base}/admin/login`, { waitUntil: 'networkidle' })
-  await pageLoginAdmin(adminPage)
+  await consoleUiLogin(adminPage)
 
-  await adminPage.goto(`${base}/admin/participants`, { waitUntil: 'networkidle' })
+  await adminPage.goto(`${consoleBase}/participants`, { waitUntil: 'networkidle' })
   await adminPage.waitForFunction(() => Boolean(document.querySelector('#__nuxt')?.__vue_app__))
   for (let attempt = 0; attempt < 6; attempt++) {
     await adminPage.fill('.filter-input', runTag)
@@ -53,11 +32,16 @@ test('admin issues credential, user sees it via avatar, scanner verifies, revoke
     if ((await adminPage.locator('.tbl tbody tr').count()) === 1) break
   }
   await expect(adminPage.locator('.tbl tbody tr')).toHaveCount(1)
-  await expect(adminPage.locator('.tbl')).toContainText('审核中')
+  const row = adminPage.locator('.tbl tbody tr')
+  await expect(row).toContainText('审核中')
 
-  await adminPage.locator('.op.primary:has-text("收款确认")').first().click()
-  await expect(adminPage.locator('.msg')).toContainText('凭证已下发', { timeout: 15_000 })
-  await expect(adminPage.locator('.tbl')).toContainText('有效')
+  // 先入会（会员才可持有凭证），再收款确认 → 凭证自动下发
+  await row.locator('.op.primary:has-text("设为会员")').click()
+  await expect(adminPage.locator('.msg')).toContainText('已设为会员', { timeout: 15_000 })
+
+  await row.locator('.op.primary:has-text("收款确认")').click()
+  await expect(adminPage.locator('.msg')).toContainText('已确认收款并下发凭证', { timeout: 15_000 })
+  await expect(row).toContainText('有效')
 
   /* ---------- participant sees the credential via the avatar menu ---------- */
   const userPage = await userCtx.newPage()
@@ -91,8 +75,8 @@ test('admin issues credential, user sees it via avatar, scanner verifies, revoke
   await scanPage.click('.manual button[type="submit"]')
   await expect(scanPage.locator('.kicker.good')).toContainText('凭证有效')
 
-  /* ---------- admin revokes → QR invalidates immediately ---------- */
-  await adminPage.goto(`${base}/admin/participants`, { waitUntil: 'networkidle' })
+  /* ---------- 管理台撤销 → QR 立即失效 ---------- */
+  await adminPage.goto(`${consoleBase}/participants`, { waitUntil: 'networkidle' })
   await adminPage.waitForFunction(() => Boolean(document.querySelector('#__nuxt')?.__vue_app__))
   await adminPage.fill('.filter-input', runTag)
   await adminPage.waitForTimeout(900)
@@ -108,8 +92,8 @@ test('admin issues credential, user sees it via avatar, scanner verifies, revoke
   await scanPage.click('.manual button[type="submit"]')
   await expect(scanPage.locator('.kicker.bad')).toContainText('已撤销', { timeout: 20_000 })
 
-  /* ---------- admin restores → valid again ---------- */
-  await adminPage.goto(`${base}/admin/participants`, { waitUntil: 'networkidle' })
+  /* ---------- 管理台恢复 → 重新有效 ---------- */
+  await adminPage.goto(`${consoleBase}/participants`, { waitUntil: 'networkidle' })
   await adminPage.waitForFunction(() => Boolean(document.querySelector('#__nuxt')?.__vue_app__))
   await adminPage.fill('.filter-input', runTag)
   await adminPage.waitForTimeout(900)
@@ -118,16 +102,18 @@ test('admin issues credential, user sees it via avatar, scanner verifies, revoke
 
   await userPage.goto(`/verify/${token}`, { waitUntil: 'networkidle' })
   await expect(userPage.locator('.verdict.good')).toBeVisible()
-})
 
-/** Admin UI login helper. */
-async function pageLoginAdmin(page: import('@playwright/test').Page) {
-  await page.waitForLoadState('networkidle')
-  for (let attempt = 0; attempt < 6 && page.url().includes('/admin/login'); attempt++) {
-    await page.fill('input[name="username"]', 'admin')
-    await page.fill('input[name="password"]', 'pps26-admin')
-    await page.click('button[type="submit"]')
-    await page.waitForTimeout(1200)
-  }
-  await page.waitForURL(/\/admin$/, { timeout: 20_000 })
-}
+  /* ---------- 取消会员 → 凭证自动吊销，扫码被拒 ---------- */
+  await adminPage.locator('button:has-text("取消会员")').first().click()
+  await expect(adminPage.locator('.msg')).toContainText('自动吊销', { timeout: 15_000 })
+  await expect(adminPage.locator('.tbl tbody tr')).toContainText('已撤销')
+
+  await scanPage.reload({ waitUntil: 'networkidle' })
+  await expect(scanPage.locator('#manual-token')).toBeVisible({ timeout: 30_000 })
+  await scanPage.fill('#manual-token', token)
+  await scanPage.click('.manual button[type="submit"]')
+  await expect(scanPage.locator('.kicker.bad')).toContainText('已撤销', { timeout: 20_000 })
+
+  await userPage.goto(`/verify/${token}`, { waitUntil: 'networkidle' })
+  await expect(userPage.locator('.verdict.bad')).toContainText('Revoked')
+})

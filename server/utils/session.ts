@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { H3Event } from 'h3'
 
-const ADMIN_COOKIE = 'pps_admin'
+const ADMIN_COOKIE = 'pps_staff'
 const USER_COOKIE = 'pps_user'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000 // 12h
 
@@ -64,14 +64,16 @@ function clearSessionCookie(event: H3Event, name: string) {
   deleteCookie(event, name, { path: '/' })
 }
 
-/* ---- admin/staff sessions ---- */
+/* ---- staff sessions（现场扫码端；管理台在独立的 admin 项目，用 pps_console cookie） ----
+ * 门户只保留扫码所需的 staff 会话：staff/admin 皆可登录扫码，但管理台入口不在本应用。
+ */
 
-export function setAdminSessionCookie(event: H3Event, session: AdminSession) {
+export function setStaffSessionCookie(event: H3Event, session: AdminSession) {
   const config = useRuntimeConfig(event)
   setSessionCookie(event, ADMIN_COOKIE, createSessionToken(session, config.sessionSecret))
 }
 
-export function clearAdminSessionCookie(event: H3Event) {
+export function clearStaffSessionCookie(event: H3Event) {
   clearSessionCookie(event, ADMIN_COOKIE)
 }
 
@@ -84,14 +86,6 @@ export function requireSession(event: H3Event): AdminSession {
   const session = getSession(event)
   if (!session) {
     throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
-  }
-  return session
-}
-
-export function requireAdmin(event: H3Event): AdminSession {
-  const session = requireSession(event)
-  if (session.role !== 'admin') {
-    throw createError({ statusCode: 403, statusMessage: 'Admin role required' })
   }
   return session
 }

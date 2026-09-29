@@ -19,7 +19,7 @@ const loginBusy = ref(false)
 
 async function checkAuth() {
   try {
-    const res = await $fetch<{ user: { username: string, role: string } }>('/api/admin/me')
+    const res = await $fetch<{ user: { username: string, role: string } }>('/api/staff/me')
     authUser.value = res.user
     authState.value = 'staff'
   }
@@ -32,7 +32,7 @@ async function login() {
   loginBusy.value = true
   loginError.value = ''
   try {
-    const res = await $fetch<{ user: { username: string, role: string } }>('/api/admin/login', {
+    const res = await $fetch<{ user: { username: string, role: string } }>('/api/staff/login', {
       method: 'POST',
       body: { username: loginUsername.value, password: loginPassword.value },
     })
@@ -49,7 +49,7 @@ async function login() {
 }
 
 async function logout() {
-  await $fetch('/api/admin/logout', { method: 'POST' }).catch(() => {})
+  await $fetch('/api/staff/logout', { method: 'POST' }).catch(() => {})
   stopCamera()
   authUser.value = null
   authState.value = 'anon'

@@ -3,7 +3,12 @@
 > The 5th International Symposium for Advanced Gel Materials & Soft Matters
 > 2027年4月24—26日 · 合肥滨湖国际会展中心 · 中国
 
-Full-stack conference platform: public symposium website, email registration, orders, payments (mock + WeChat/Alipay adapters), abstract submission & review (投稿送审，接收/返稿意见邮件通知), electronic credentials with QR verification, on-site check-in scanner, and an admin dashboard.
+双应用会议平台（pnpm workspace）：
+
+- **门户** `.`（端口 **3000**）— 公开会议网站、邮箱注册、报名、对公转账审批流、在线投稿（投稿人侧）、电子凭证与 QR、现场扫码签到（staff 端）。**不含任何管理界面与管理 API**。
+- **管理台** [`admin/`](admin/README.md)（端口 **3001**，独立应用/独立会话/独立密钥）— 组织委员会后台：会员与凭证管理（绑定规则见下）、缴费审批、稿件审稿（接收/返稿邮件通知）。
+
+两应用仅通过共享的 PostgreSQL 交换数据（迁移由门户拥有）。
 
 Built with **Nuxt 4 · Vue 3 · TypeScript · Nitro · Nuxt UI 4 · Tailwind CSS 4 · Drizzle ORM · PostgreSQL · Vitest · Playwright**.
 
@@ -16,7 +21,8 @@ pnpm install
 docker compose up -d          # PostgreSQL 17 on localhost:5433
 pnpm db:migrate               # create schema
 pnpm db:seed                  # demo data (speakers, program, participants, admin accounts)
-pnpm dev                      # http://localhost:3000
+pnpm dev                      # 门户 http://localhost:3000
+pnpm dev:admin                # 管理台 http://localhost:3001（复制 admin/.env.example → admin/.env）
 ```
 
 ## Commands
@@ -48,7 +54,9 @@ Services smoke script (no browser): `pnpm tsx --env-file=.env scripts/smoke-serv
 7. `/account` — your registrations with **payment status**, resume-payment links, credentials, **your abstract submissions with review results & history**, and your participant profile.
 8. `/submit` — 在线投稿（标题 / 主题方向 / 报告类别 / 摘要 / 姓名 / 机构 / 作者列表，每位作者机构必填）；返稿后可修改重投，审稿结果邮件通知。
 9. `/scan` — staff sign-in (`staff / pps26-staff`) → scan the QR with a phone camera (or manual entry) → confirm check-in; duplicates are blocked.
-10. `/admin` (`admin / pps26-admin`) — dashboard, registrations (**with per-row payment status**), 缴费审批, **稿件审稿（接收 / 返稿 + 意见邮件）**, orders, payments, credentials, check-ins.
+10. **管理台** `http://localhost:3001`（`admin / pps26-admin`，与门户独立会话）— 参会管理（**会员开关**）、缴费审批、**稿件审稿（接收/返稿 + 意见邮件）**。
+
+> **会员-凭证绑定规则**：凭证只发给会员 —— 管理台**设为会员**后，收款确认/手动下发才会发放 QR 凭证；**取消会员**会在同一事务内自动吊销其全部有效凭证（旧 QR 扫码立即失效）。入会操作仅限管理员（staff 只能扫码）。
 
 > Camera QR scanning requires a secure context (https, or localhost during development). On phones without camera access the manual-entry path works identically.
 > Forgot password? `/forgot-password` sends a reset code to the account email.
