@@ -55,6 +55,7 @@ Run against BOTH dev servers (`reuseExistingServer`): the portal gets `RATE_LIMI
 ## Manual verification checklist (per release)
 
 - [ ] `pnpm lint` · `pnpm typecheck` · `pnpm test` · `pnpm test:e2e` · `pnpm build` all green
+- [x] **三身份真实浏览器全场景走查**（2026-09-29，张三 ISAGMSM-000269）：普通用户注册→报名→投稿 ✓；管理台设为会员→收款确认自动下发凭证 ✓；用户电子卡「有效凭证/正式会员」→ 扫码核验「凭证有效」✓；管理台取消会员→同事务自动吊销凭证→用户电子卡「已撤销」→ 旧 token 扫码「已撤销」被拒 ✓；普通用户/会员投稿 ✓；管理台返稿（邮件通知）→ 重投 v2（预填+快照）→ 接收 → 双侧完整历史（含版本快照）✓
 - [ ] Responsive pass at 375 / 390 / 414 / 768 / 1024 / 1280 / 1440 / 1920 (scripts/shoot.mjs, scripts/shoot-flow.mjs, scripts/shoot-qa.mjs capture these)
 - [ ] Visual QA against Direction C (rail/footer separation, palette, no forbidden aesthetics)
 - [ ] PDF downloads and opens; QR in the PDF decodes to the verify URL
