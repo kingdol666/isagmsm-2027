@@ -13,6 +13,35 @@ SMTP 邮件、对公转账、地图等。两种运行方式：
 
 ## 1. pm2 一键部署（阿里云 / 任意服务器）
 
+### 1.0 从零完整流程（新服务器复制粘贴版）
+
+```bash
+# ── ① 系统依赖（一次性）─────────────────────────────
+node -v                         # ≥ 20
+npm i -g pnpm
+# Docker 安装并启动（阿里云 Linux）：
+#   dnf install -y docker-ce docker-ce-cli containerd.io && systemctl enable --now docker
+
+# ── ② 拉取项目 ──────────────────────────────────────
+git clone https://github.com/kingdol666/isagmsm-2027.git
+cd isagmsm-2027
+
+# ── ③ 一键部署（二选一）─────────────────────────────
+pnpm deploy:pm2                 # 默认模式：无需构建，直接托管 pnpm start 管道（推荐先用这个验证）
+# 或
+pnpm deploy:prod                # 生产构建模式：构建后托管（2G 内存机型先看 1.7 加 swap）
+
+# ── ④ 验证 ──────────────────────────────────────
+pnpm smoke:prod                 # 13 项自检全过即可对外服务
+
+# ── ⑤ 开机自启（一次性）────────────────────────────
+pnpm pm2:save && pm2 startup    # 按 pm2 打印的提示执行那条命令
+```
+
+部署后按需改配置：编辑 `.env` / `admin/.env`（SMTP、站点地址等，见第 2/3/5 节），
+然后 `pnpm pm2:restart`（默认模式）或 `pnpm pm2:restart:prod`（生产构建模式）。
+改了代码则重新执行 `pnpm deploy:prod`（自动重建+热重载，数据不受影响）。
+
 ### 1.1 前置要求
 
 ```bash
