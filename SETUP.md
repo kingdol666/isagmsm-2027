@@ -93,6 +93,24 @@ pnpm deploy:pm2        # 幂等：重建 → pm2 热重载，数据不受影响
 4. 已绑定 `0.0.0.0`，局域网内直接 `http://<内网IP>:3000` 访问
 5. 正式域名建议加 nginx 反向代理 + HTTPS：`proxy_pass http://127.0.0.1:3000;` 并在 .env 设 `TRUST_PROXY=1`（限流分桶信任 X-Forwarded-For）
 
+### 1.7 小内存服务器构建 OOM（exit 134/137）
+
+`nuxt build` 需要约 1.5GB+ 内存；2G 内存 ECS 构建会以 exit 134（SIGABRT）失败。
+`pnpm deploy:pm2` 已自动处理：内存 <4G 时构建自动加 `NODE_OPTIONS=--max-old-space-size=1536`
+（实测下限），并在无 swap 的机器上打印预警。若仍失败：
+
+```bash
+# 给服务器加 2G swap（一次性，root 执行；重启后仍生效）
+dd if=/dev/zero of=/swapfile bs=1M count=2048
+chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+# 然后重新部署
+pnpm deploy:pm2
+```
+
+查看真实构建报错：部署脚本已直接透传构建输出（不再吞错）。
+
 ---
 
 ## 2. 默认账号
