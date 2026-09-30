@@ -3,6 +3,8 @@ import type { NuxtError } from '#app'
 
 const props = defineProps<{ error: NuxtError }>()
 
+const { t } = useI18n()
+
 const is404 = computed(() => props.error.statusCode === 404)
 
 function handleError() {
@@ -14,18 +16,18 @@ function handleError() {
   <div class="err">
     <div class="wrap err-inner">
       <p class="err-code mono">{{ error.statusCode }}</p>
-      <h1 v-if="is404" class="err-title">This station is <em>empty</em></h1>
-      <h1 v-else class="err-title">Process <em>interrupted</em></h1>
+      <h1 v-if="is404" class="err-title">{{ t('error.404A') }}<em>{{ t('error.404Em') }}</em></h1>
+      <h1 v-else class="err-title">{{ t('error.errA') }}<em>{{ t('error.errEm') }}</em></h1>
       <p class="err-body">
         {{
           is404
-            ? 'The page you requested does not exist on the ISAGMSM 2027 line.'
-            : (error.message || 'An unexpected error occurred. Our secretariat has been notified.')
+            ? t('error.body404')
+            : (error.statusMessage || t('error.bodyErr'))
         }}
       </p>
       <div class="err-actions">
-        <button class="btn btn-solid" type="button" @click="handleError">Back to the symposium</button>
-        <a class="btn btn-ghost" href="mailto:isagmsm@conference.example.org">Contact secretariat</a>
+        <button class="btn btn-solid" type="button" @click="handleError">{{ t('error.back') }}</button>
+        <a class="btn btn-ghost" href="mailto:isagmsm@conference.example.org">{{ t('error.contact') }}</a>
       </div>
       <div class="strata err-strata" aria-hidden="true"><span /><span /><span /><span /><span /></div>
     </div>
@@ -60,7 +62,7 @@ function handleError() {
   margin-bottom: 22px;
 }
 
-.err-title em { color: var(--copper-deep); }
+.err-title em { color: var(--copper-deep); font-style: normal; }
 
 .err-body {
   font-size: 16px;

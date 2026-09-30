@@ -9,6 +9,7 @@ import { submitMessages } from './slices/submit'
 import { scanMessages } from './slices/scan'
 import { credentialMessages } from './slices/credential'
 import { homeMessages } from './slices/home'
+import { errorMessages } from './slices/error'
 
 /**
  * 全部 UI 文案（按功能切片合并；zh/en 逐键同构，tests/unit/i18n.test.ts 奇偶校验）。
@@ -43,6 +44,7 @@ const slices = {
   scan: scanMessages,
   credential: credentialMessages,
   home: homeMessages,
+  error: errorMessages,
 }
 
 export const messages: Record<Locale, Record<string, unknown>> = {

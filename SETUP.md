@@ -58,6 +58,14 @@ pnpm deploy:pm2
 
 原生 pm2 亦可用：`pm2 monit`（资源监控）、`pm2 show isagmsm-portal`。
 
+### 1.3.1 日志轮转（建议一次性配置）
+
+pm2 日志默认无限增长，建议部署后执行一次：
+
+```bash
+pm2 install pm2-logrotate      # 默认每 10MB 轮转，保留 30 份
+```
+
 ### 1.4 开机自启（服务器重启后自动拉起）
 
 ```bash
@@ -123,6 +131,7 @@ pnpm deploy:pm2        # 幂等：重建 → pm2 热重载，数据不受影响
 | `WECHAT_MCH_ID` `WECHAT_APP_ID` `WECHAT_PRIVATE_KEY` `WECHAT_CERT_SERIAL` `WECHAT_API_V3_KEY` `WECHAT_PLATFORM_CERTS` `WECHAT_NOTIFY_URL` | 可选 | 空 = 微信支付关闭 | 全部填齐自动启用（见 PAYMENT.md） |
 | `ALIPAY_APP_ID` `ALIPAY_PRIVATE_KEY` `ALIPAY_PUBLIC_KEY` `ALIPAY_NOTIFY_URL` | 可选 | 空 = 支付宝关闭 | 同上 |
 | `RATE_LIMIT_SCALE` | 可选 | `1` | 接口限流整体倍率（只放大不缩小） |
+| `COOKIE_SECURE` | HTTPS 部署设 `1` | 按请求协议自动 | 会话 cookie 的 Secure 标志；已按请求协议自动（HTTPS 自动开启，HTTP 不加）；nginx 终止 TLS 时建议显式 `1` |
 | `TRUST_PROXY` | 反代时设 `1` | 不信任 XFF | nginx 等可信代理后开启 |
 
 ### 3.2 管理台 `admin/.env`

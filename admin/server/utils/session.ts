@@ -49,10 +49,13 @@ function verifySessionToken(token: string | undefined, secret: string): ConsoleS
 }
 
 function setSessionCookie(event: H3Event, name: string, token: string) {
+  // Secure 按实际请求协议决定（HTTP 部署不加，否则浏览器拒存、登录静默失败）；
+  // TLS 终止在反向代理时设 COOKIE_SECURE=1 强制开启。
+  const secure = getRequestURL(event).protocol === 'https:' || process.env.COOKIE_SECURE === '1'
   setCookie(event, name, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     path: '/',
     maxAge: SESSION_TTL_MS / 1000,
   })

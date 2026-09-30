@@ -18,7 +18,7 @@ test('health endpoint reports active integrations', async ({ request }) => {
 test('unknown routes render the styled 404 page', async ({ page }) => {
   await page.goto(`${base}/this-page-does-not-exist`)
   await expect(page.locator('.err-code')).toContainText('404')
-  await expect(page.locator('.err-title')).toContainText('empty')
+  await expect(page.locator('.err-title')).toContainText('此页')
 })
 
 test('robots.txt and sitemap.xml are served', async ({ request }) => {
