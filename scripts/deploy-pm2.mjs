@@ -352,7 +352,7 @@ async function main() {
   await waitForHttp(CONSOLE_PORT, '/api/me', '管理台健康检查')
   console.log('[deploy] 管理台健康检查通过 ✓')
 
-  /* 8. 样式资产自检：首页引用的 CSS 必须能以 text/css 正常返回（防"整页无样式"） */
+  /* 8. 样式资产自检：样式以内联 <style> 或可用的外部 CSS 到达页面（防"整页无样式"） */
   {
     const html = await new Promise((resolve) => {
       const req = spawn('curl', ['-s', '-m', '10', `http://127.0.0.1:${PORTAL_PORT}/`], { shell: IS_WIN, encoding: 'utf8' })
@@ -361,25 +361,31 @@ async function main() {
       req.on('exit', () => resolve(out))
       req.on('error', () => resolve(''))
     })
+    const inlineStyles = (html.match(/<style[^>]*>/g) || []).length
+    const inlineBytes = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) || []).reduce((n, b) => n + b.length, 0)
     const cssPath = (html.match(/href="(\/_nuxt\/[^"]+\.css)"/) || [])[1]
-    if (!cssPath) {
-      console.warn('[deploy] ⚠ 首页未找到 CSS 引用（可能构建异常）')
-    }
-    else {
-      const cssOk = await new Promise((resolve) => {
+    let cssOk = false
+    let cssDetail = ''
+    if (cssPath) {
+      const res = await new Promise((resolve) => {
         const req = spawn('curl', ['-s', '-m', '10', '-o', IS_WIN ? 'NUL' : '/dev/null', '-w', '%{http_code} %{content_type}', `http://127.0.0.1:${PORTAL_PORT}${cssPath}`], { shell: IS_WIN, encoding: 'utf8' })
         let out = ''
         req.stdout?.on('data', c => { out += c })
         req.on('exit', () => resolve(out))
         req.on('error', () => resolve(''))
       })
-      const [code, type] = cssOk.split(' ')
-      if (code === '200' && type.startsWith('text/css')) {
-        console.log('[deploy] 样式资产自检通过 ✓（' + cssPath + '）')
-      }
-      else {
-        throw new Error(`样式表 ${cssPath} 返回异常：${cssOk} —— 请检查反向代理是否透传 /_nuxt/ 路径`)
-      }
+      const [code, type] = res.split(' ')
+      cssOk = code === '200' && type.startsWith('text/css')
+      cssDetail = `${cssPath} → ${res}`
+    }
+    if (inlineStyles > 0 && inlineBytes > 10000) {
+      console.log(`[deploy] 样式资产自检通过 ✓（内联样式 ${inlineStyles} 块 / ${Math.round(inlineBytes / 1024)}KB）`)
+    }
+    else if (cssOk) {
+      console.log(`[deploy] 样式资产自检通过 ✓（外部样式表 ${cssPath}）`)
+    }
+    else {
+      throw new Error(`样式未随页面到达：内联 ${inlineStyles} 块/${inlineBytes}B，外部 CSS ${cssDetail || '无引用'} —— 检查构建产物或反向代理`)
     }
   }
 
