@@ -81,6 +81,17 @@ check('未知路由返回 404', notFound.status === 404)
 const cspNoSniff = health.headers['x-content-type-options']?.[0]
 check('安全响应头 x-content-type-options: nosniff', cspNoSniff === 'nosniff')
 
+/* 样式资产自检：首页引用的 CSS 必须能以 text/css 正常返回 */
+const cssPath = (home.stdout.match(/href="(\/_nuxt\/[^"]+\.css)"/) || [])[1]
+if (!cssPath) {
+  check('首页存在 CSS 引用', false, '未找到 /_nuxt/*.css 链接')
+}
+else {
+  const cssResp = request(`${PORTAL}${cssPath}`)
+  check(`样式表加载 ${cssPath}`, cssResp.status === 200 && /^text\/css/.test(cssResp.headers['content-type']?.[0] ?? ''),
+    `status=${cssResp.status} type=${cssResp.headers['content-type']?.[0] ?? '无'}`)
+}
+
 /* 演示账号真实登录（cookie 未加 Secure 才能被 curl 场景外的浏览器使用） */
 const demoLogin = request(`${PORTAL}/api/auth/login`, {
   method: 'POST',

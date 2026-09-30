@@ -352,6 +352,37 @@ async function main() {
   await waitForHttp(CONSOLE_PORT, '/api/me', '管理台健康检查')
   console.log('[deploy] 管理台健康检查通过 ✓')
 
+  /* 8. 样式资产自检：首页引用的 CSS 必须能以 text/css 正常返回（防"整页无样式"） */
+  {
+    const html = await new Promise((resolve) => {
+      const req = spawn('curl', ['-s', '-m', '10', `http://127.0.0.1:${PORTAL_PORT}/`], { shell: IS_WIN, encoding: 'utf8' })
+      let out = ''
+      req.stdout?.on('data', c => { out += c })
+      req.on('exit', () => resolve(out))
+      req.on('error', () => resolve(''))
+    })
+    const cssPath = (html.match(/href="(\/_nuxt\/[^"]+\.css)"/) || [])[1]
+    if (!cssPath) {
+      console.warn('[deploy] ⚠ 首页未找到 CSS 引用（可能构建异常）')
+    }
+    else {
+      const cssOk = await new Promise((resolve) => {
+        const req = spawn('curl', ['-s', '-m', '10', '-o', IS_WIN ? 'NUL' : '/dev/null', '-w', '%{http_code} %{content_type}', `http://127.0.0.1:${PORTAL_PORT}${cssPath}`], { shell: IS_WIN, encoding: 'utf8' })
+        let out = ''
+        req.stdout?.on('data', c => { out += c })
+        req.on('exit', () => resolve(out))
+        req.on('error', () => resolve(''))
+      })
+      const [code, type] = cssOk.split(' ')
+      if (code === '200' && type.startsWith('text/css')) {
+        console.log('[deploy] 样式资产自检通过 ✓（' + cssPath + '）')
+      }
+      else {
+        throw new Error(`样式表 ${cssPath} 返回异常：${cssOk} —— 请检查反向代理是否透传 /_nuxt/ 路径`)
+      }
+    }
+  }
+
   const nets = []
   for (const list of Object.values(os.networkInterfaces())) {
     for (const net of list ?? []) {
