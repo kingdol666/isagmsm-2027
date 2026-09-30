@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { accountProfileSchema } from '#shared/schemas/auth'
 import { formatAttachmentSize } from '#shared/schemas/abstract'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'flow' })
-useSeoMeta({ title: '个人中心' })
+const { t, locale, isEn } = useI18n()
+
+useSeoMeta({ title: () => t('account.seoTitle') })
 
 interface MyRegistration {
   id: string
@@ -103,38 +106,36 @@ const abstractsLoaded = ref(false)
 const expandedAbstract = ref<string | null>(null)
 const withdrawBusy = ref<string | null>(null)
 
-const abstractStatusZh: Record<string, string> = {
-  submitted: '待审',
-  accepted: '已接收',
-  returned: '已返稿',
-  withdrawn: '已撤回',
-}
+const content = computed(() => siteContent(locale.value))
 
-const abstractEventZh: Record<string, string> = {
-  submitted: '投稿',
-  resubmitted: '修改重投',
-  accepted: '接收',
-  returned: '返稿',
-  withdrawn: '撤回',
-}
+const abstractStatusZh = computed<Record<string, string>>(() => ({
+  submitted: t('account.abstracts.statusSubmitted'),
+  accepted: t('account.abstracts.statusAccepted'),
+  returned: t('account.abstracts.statusReturned'),
+  withdrawn: t('account.abstracts.statusWithdrawn'),
+}))
 
-const reportZh: Record<string, string> = {
-  oral: '口头报告',
-  poster: '墙报',
-  abstract_only: '仅提交摘要',
-}
+const abstractEventZh = computed<Record<string, string>>(() => ({
+  submitted: t('account.abstracts.eventSubmitted'),
+  resubmitted: t('account.abstracts.eventResubmitted'),
+  accepted: t('account.abstracts.eventAccepted'),
+  returned: t('account.abstracts.eventReturned'),
+  withdrawn: t('account.abstracts.eventWithdrawn'),
+}))
 
-const topicZh: Record<string, string> = {
-  A: '凝胶材料设计与合成',
-  B: '软物质物理与结构',
-  C: '刺激响应与智能凝胶',
-  D: '生物医用凝胶材料',
-  E: '表征、建模与人工智能',
-  F: '产业化与应用',
-}
+const reportZh = computed<Record<string, string>>(() => ({
+  oral: t('account.abstracts.reportOral'),
+  poster: t('account.abstracts.reportPoster'),
+  abstract_only: t('account.abstracts.reportAbstractOnly'),
+}))
+
+/* 主题方向编号 → 名称：跟随站点内容当前语言 */
+const topicZh = computed<Record<string, string>>(() =>
+  Object.fromEntries(content.value.themesContent.items.map(i => [i.no, i.title])),
+)
 
 function absZh(value: string) {
-  return abstractStatusZh[value] ?? value
+  return abstractStatusZh.value[value] ?? value
 }
 
 function toggleAbstract(id: string) {
@@ -142,7 +143,7 @@ function toggleAbstract(id: string) {
 }
 
 function fmtDate(value: string) {
-  return new Date(value).toLocaleString('zh-CN')
+  return new Date(value).toLocaleString(isEn.value ? 'en-US' : 'zh-CN')
 }
 
 /** 快照对应的版本号（事件为倒序，最早投稿 = 第 1 版）。 */
@@ -152,7 +153,7 @@ function snapshotVersion(abs: MyAbstract, ev: MyAbstract['events'][number]) {
 }
 
 async function withdrawAbstract(abs: MyAbstract) {
-  if (!window.confirm(`确认撤回《${abs.title}》？撤回后会务组将不再看到此稿件，且不可恢复。`)) return
+  if (!window.confirm(t('account.abstracts.withdrawConfirm', { title: abs.title }))) return
   withdrawBusy.value = abs.id
   try {
     await $fetch(`/api/abstracts/${abs.id}/withdraw`, { method: 'POST' })
@@ -160,7 +161,7 @@ async function withdrawAbstract(abs: MyAbstract) {
     abstracts.value = res.abstracts
   }
   catch (err: unknown) {
-    window.alert((err as { data?: { statusMessage?: string } }).data?.statusMessage ?? '撤回失败，请稍后再试。')
+    window.alert((err as { data?: { statusMessage?: string } }).data?.statusMessage ?? t('account.abstracts.withdrawFailed'))
   }
   finally {
     withdrawBusy.value = null
@@ -171,19 +172,19 @@ function yuan(fen: number) {
   return (fen / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })
 }
 
-const statusZh: Record<string, string> = {
-  submitted: '待缴费',
-  confirmed: '已确认',
-  cancelled: '已取消',
-  pending: '待支付',
-  reviewing: '审核中',
-  paid: '已缴费',
-  failed: '已失败',
-  expired: '已过期',
-}
+const statusZh = computed<Record<string, string>>(() => ({
+  submitted: t('account.status.submitted'),
+  confirmed: t('account.status.confirmed'),
+  cancelled: t('account.status.cancelled'),
+  pending: t('account.status.pending'),
+  reviewing: t('account.status.reviewing'),
+  paid: t('account.status.paid'),
+  failed: t('account.status.failed'),
+  expired: t('account.status.expired'),
+}))
 
 function zh(value: string) {
-  return statusZh[value] ?? value
+  return statusZh.value[value] ?? value
 }
 
 onMounted(async () => {
@@ -209,7 +210,7 @@ onMounted(async () => {
     profileLoaded.value = true
   }
   catch {
-    profileError.value = '资料加载失败。'
+    profileError.value = t('account.profile.loadFailed')
     profileLoaded.value = true
   }
 
@@ -242,17 +243,17 @@ async function saveProfile() {
         if (!fieldErrors[key]) fieldErrors[key] = issue.message
       }
       profileFieldErrors.value = fieldErrors
-      profileError.value = parsed.error.issues[0]?.message ?? '请检查表单。'
+      profileError.value = parsed.error.issues[0]?.message ?? t('account.profile.checkForm')
       return
     }
     await $fetch('/api/account/profile', { method: 'PUT', body: parsed.data })
     profileInitial.value = JSON.stringify(profileForm)
     profileSaved.value = true
-    profileSavedAt.value = new Date().toLocaleTimeString('zh-CN')
+    profileSavedAt.value = new Date().toLocaleTimeString(isEn.value ? 'en-US' : 'zh-CN')
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    profileError.value = e.data?.statusMessage ?? '保存失败。'
+    profileError.value = e.data?.statusMessage ?? t('account.profile.saveFailed')
   }
   finally {
     profileBusy.value = false
@@ -264,49 +265,49 @@ async function saveProfile() {
   <div class="account">
     <header class="sec-head">
       <div class="sec-meta">
-        <span class="sec-code">个人中心</span>
+        <span class="sec-code">{{ t('account.secCode') }}</span>
         <span class="sec-tag mono">{{ user?.email }}</span>
       </div>
-      <h1 class="sec-title">我的<em>参会</em></h1>
+      <h1 class="sec-title">{{ t('account.titleA') }}<em>{{ t('account.titleEm') }}</em></h1>
     </header>
 
     <!-- 锚点子导航：长页面快速跳转 -->
-    <nav class="subnav mono" aria-label="个人中心导航">
-      <a v-if="activeCredential" href="#my-credential">我的凭证</a>
-      <a href="#registrations">我的报名</a>
-      <a href="#abstracts">我的投稿<sup v-if="abstractSummary.total">{{ abstractSummary.total }}</sup></a>
-      <a href="#profile">参会资料</a>
+    <nav class="subnav mono" :aria-label="t('account.subnav.label')">
+      <a v-if="activeCredential" href="#my-credential">{{ t('account.subnav.credential') }}</a>
+      <a href="#registrations">{{ t('account.subnav.registrations') }}</a>
+      <a href="#abstracts">{{ t('account.subnav.abstracts') }}<sup v-if="abstractSummary.total">{{ abstractSummary.total }}</sup></a>
+      <a href="#profile">{{ t('account.subnav.profile') }}</a>
     </nav>
 
     <!-- 电子会议卡：深色徽章设计，含会员ID/姓名/机构/QR/token -->
-    <section v-if="activeCredential" id="my-credential" class="ecard-section" aria-label="电子会议卡">
+    <section v-if="activeCredential" id="my-credential" class="ecard-section" :aria-label="t('account.ecard.sectionLabel')">
       <div class="ecard" :class="{ revoked: activeCredential.credentialStatus === 'revoked' }">
         <div class="ecard-main">
           <div class="ec-top">
             <p class="ec-mark">ISAGMSM<i>·</i>27</p>
             <span class="ec-badge mono" :class="{ off: activeCredential.credentialStatus !== 'active' }">
-              {{ activeCredential.credentialStatus === 'active' ? '有效凭证' : '已撤销' }}
+              {{ activeCredential.credentialStatus === 'active' ? t('account.ecard.badgeActive') : t('account.ecard.badgeRevoked') }}
             </span>
           </div>
-          <p class="ec-conf mono">第五届先进凝胶材料与软物质国际学术研讨会</p>
+          <p class="ec-conf mono">{{ t('account.ecard.confName') }}</p>
           <div class="ec-id-row">
-            <p class="ec-label ec-id-label mono">电子会员证 · 会员 ID</p>
-            <span v-if="activeCredential.isMember" class="ec-member mono">正式会员</span>
+            <p class="ec-label ec-id-label mono">{{ t('account.ecard.idLabel') }}</p>
+            <span v-if="activeCredential.isMember" class="ec-member mono">{{ t('account.ecard.memberBadge') }}</span>
           </div>
           <p class="ec-id mono">{{ activeCredential.displayId }}</p>
           <p class="ec-name">{{ user?.fullName || profileForm.fullName || activeCredential.typeName }}</p>
           <p class="ec-aff">{{ activeCredential.affiliation }}</p>
           <dl class="ec-facts">
-            <div class="ec-fact"><dt>会员类型</dt><dd>{{ activeCredential.typeName }}</dd></div>
-            <div class="ec-fact"><dt>有效期</dt><dd>2027年4月24—26日</dd></div>
-            <div class="ec-fact"><dt>地点</dt><dd>中国 · 合肥</dd></div>
+            <div class="ec-fact"><dt>{{ t('account.ecard.memberType') }}</dt><dd>{{ activeCredential.typeName }}</dd></div>
+            <div class="ec-fact"><dt>{{ t('account.ecard.validDates') }}</dt><dd>{{ t('account.ecard.dates') }}</dd></div>
+            <div class="ec-fact"><dt>{{ t('account.ecard.locationLabel') }}</dt><dd>{{ t('account.ecard.location') }}</dd></div>
           </dl>
         </div>
         <div class="ec-qr-side">
           <figure class="ec-qr">
             <img
               :src="`/api/credentials/${activeToken}/qr`"
-              alt="会议签到二维码"
+              :alt="t('account.ecard.qrAlt')"
               width="150"
               height="150"
             >
@@ -319,30 +320,30 @@ async function saveProfile() {
         <div class="ec-strata strata" aria-hidden="true"><span /><span /><span /><span /><span /></div>
       </div>
       <div class="ecard-actions">
-        <a class="btn btn-solid" :href="`/api/credentials/${activeToken}/pdf`" download>下载 PDF 凭证</a>
-        <NuxtLink class="btn btn-ghost" :to="`/credential/${activeToken}`">凭证详情 / 打印</NuxtLink>
+        <a class="btn btn-solid" :href="`/api/credentials/${activeToken}/pdf`" download>{{ t('account.ecard.downloadPdf') }}</a>
+        <NuxtLink class="btn btn-ghost" :to="`/credential/${activeToken}`">{{ t('account.ecard.detailPrint') }}</NuxtLink>
       </div>
     </section>
 
     <!-- 我的投稿（含审稿结果与历史记录） -->
-    <section id="abstracts" class="section" aria-label="我的投稿">
-      <h2 class="s-title">我的投稿</h2>
+    <section id="abstracts" class="section" :aria-label="t('account.abstracts.title')">
+      <h2 class="s-title">{{ t('account.abstracts.title') }}</h2>
       <p v-if="abstractsLoaded && abstracts.length" class="ab-summary mono">
-        共 {{ abstractSummary.total }} 篇有效投稿 · 待审 {{ abstractSummary.pending }} · 已接收 {{ abstractSummary.accepted }} · 已返稿 {{ abstractSummary.returned }}
-        <span class="ab-cap">（同时待审最多 3 篇 · 累计最多 20 篇，已撤回不计）</span>
+        {{ t('account.abstracts.summary', { total: abstractSummary.total, pending: abstractSummary.pending, accepted: abstractSummary.accepted, returned: abstractSummary.returned }) }}
+        <span class="ab-cap">{{ t('account.abstracts.summaryCap') }}</span>
       </p>
       <p v-if="abstractsLoaded && abstracts.length === 0" class="note mono">
-        还没有投稿记录。
-        <NuxtLink class="link" href="/submit">进入在线投稿 →</NuxtLink>
+        {{ t('account.abstracts.empty') }}
+        <NuxtLink class="link" href="/submit">{{ t('account.abstracts.submitLink') }}</NuxtLink>
       </p>
-      <p v-else-if="!abstractsLoaded" class="note mono">正在加载投稿记录…</p>
+      <p v-else-if="!abstractsLoaded" class="note mono">{{ t('account.abstracts.loading') }}</p>
 
       <ul v-else class="ab-list">
         <li v-for="abs in abstracts" :key="abs.id" class="ab-item">
           <div class="ab-head">
             <button class="ab-toggle" type="button" :aria-expanded="expandedAbstract === abs.id" @click="toggleAbstract(abs.id)">
               <span class="ab-title">{{ abs.title }}</span>
-              <span class="mono ab-meta">第 {{ abs.version }} 版 · {{ fmtDate(abs.createdAt) }}</span>
+              <span class="mono ab-meta">{{ t('account.abstracts.versionN', { n: abs.version }) }} · {{ fmtDate(abs.createdAt) }}</span>
             </button>
             <div class="ab-badges">
               <span class="badge">{{ reportZh[abs.reportType] ?? abs.reportType }}</span>
@@ -351,16 +352,16 @@ async function saveProfile() {
           </div>
 
           <dl class="ab-facts mono">
-            <div class="ab-fact"><dt>投稿人</dt><dd>{{ abs.submitterName }} · {{ abs.submitterAffiliation }}</dd></div>
-            <div class="ab-fact"><dt>作者</dt><dd>{{ abs.authors.map((a, i) => `${i + 1}. ${a.name}（${a.affiliation}）`).join('；') }}</dd></div>
+            <div class="ab-fact"><dt>{{ t('account.abstracts.submitter') }}</dt><dd>{{ abs.submitterName }} · {{ abs.submitterAffiliation }}</dd></div>
+            <div class="ab-fact"><dt>{{ t('account.abstracts.authors') }}</dt><dd>{{ abs.authors.map((a, i) => `${i + 1}. ${a.name}（${a.affiliation}）`).join('；') }}</dd></div>
           </dl>
 
           <!-- 最新审稿结果 -->
           <p v-if="abs.status === 'returned'" class="ab-verdict returned">
-            <b class="mono">返稿意见</b>{{ abs.events.find(e => e.kind === 'returned')?.comment || '（无具体意见）' }}
+            <b class="mono">{{ t('account.abstracts.verdictReturned') }}</b>{{ abs.events.find(e => e.kind === 'returned')?.comment || t('account.abstracts.noComment') }}
           </p>
           <p v-else-if="abs.status === 'accepted'" class="ab-verdict accepted">
-            <b class="mono">审稿意见</b>{{ abs.events.find(e => e.kind === 'accepted')?.comment || '（无具体意见）' }}
+            <b class="mono">{{ t('account.abstracts.verdictAccepted') }}</b>{{ abs.events.find(e => e.kind === 'accepted')?.comment || t('account.abstracts.noComment') }}
           </p>
 
           <div class="ab-actions">
@@ -370,23 +371,23 @@ async function saveProfile() {
               type="button"
               :disabled="withdrawBusy === abs.id"
               @click="withdrawAbstract(abs)"
-            >{{ withdrawBusy === abs.id ? '撤回中…' : '撤回稿件' }}</button>
-            <NuxtLink v-if="abs.status === 'returned'" class="btn btn-solid" :to="`/submit?id=${abs.id}`">修改重投</NuxtLink>
+            >{{ withdrawBusy === abs.id ? t('account.abstracts.withdrawing') : t('account.abstracts.withdraw') }}</button>
+            <NuxtLink v-if="abs.status === 'returned'" class="btn btn-solid" :to="`/submit?id=${abs.id}`">{{ t('account.abstracts.resubmit') }}</NuxtLink>
             <button class="btn btn-ghost" type="button" @click="toggleAbstract(abs.id)">
-              {{ expandedAbstract === abs.id ? '收起稿件与历史' : '稿件内容 / 历史' }}
+              {{ expandedAbstract === abs.id ? t('account.abstracts.collapseDetail') : t('account.abstracts.expandDetail') }}
             </button>
           </div>
 
           <!-- 稿件内容 + 历史时间线 -->
           <div v-if="expandedAbstract === abs.id" class="ab-detail">
-            <p class="ab-detail-label mono">当前稿件内容（第 {{ abs.version }} 版）</p>
+            <p class="ab-detail-label mono">{{ t('account.abstracts.currentVersion', { n: abs.version }) }}</p>
             <dl class="ab-facts mono">
-              <div class="ab-fact"><dt>主题方向</dt><dd>{{ topicZh[abs.topic] ?? abs.topic }}（{{ abs.topic }}）</dd></div>
-              <div class="ab-fact"><dt>报告类别</dt><dd>{{ reportZh[abs.reportType] ?? abs.reportType }}</dd></div>
+              <div class="ab-fact"><dt>{{ t('account.abstracts.topic') }}</dt><dd>{{ topicZh[abs.topic] ?? abs.topic }}（{{ abs.topic }}）</dd></div>
+              <div class="ab-fact"><dt>{{ t('account.abstracts.reportType') }}</dt><dd>{{ reportZh[abs.reportType] ?? abs.reportType }}</dd></div>
             </dl>
             <p class="ab-abstract">{{ abs.abstractText }}</p>
 
-            <p class="ab-detail-label mono">历史记录（含各版本内容）</p>
+            <p class="ab-detail-label mono">{{ t('account.abstracts.historyLabel') }}</p>
             <ol class="ab-timeline">
               <li v-for="ev in abs.events" :key="ev.id" class="ab-ev" :class="{ good: ev.kind === 'accepted', back: ev.kind === 'returned' }">
                 <div class="ev-row">
@@ -400,9 +401,9 @@ async function saveProfile() {
                   class="ev-file mono"
                   :href="`/api/abstracts/${abs.id}/files/${ev.version}`"
                   :download="ev.fileName"
-                >附件 · 第 {{ ev.version }} 版 · {{ ev.fileName }}<span v-if="ev.fileSize">（{{ formatAttachmentSize(ev.fileSize) }}）</span> ↓</a>
+                >{{ t('account.abstracts.attachment', { n: ev.version, name: ev.fileName }) }}<span v-if="ev.fileSize">（{{ formatAttachmentSize(ev.fileSize) }}）</span> ↓</a>
                 <div v-if="ev.snapshot" class="ev-snapshot">
-                  <p class="ev-snap-title">《{{ ev.snapshot.title }}》<span class="mono">· 第 {{ snapshotVersion(abs, ev) }} 版快照 · {{ reportZh[ev.snapshot.reportType] ?? ev.snapshot.reportType }}</span></p>
+                  <p class="ev-snap-title">《{{ ev.snapshot.title }}》<span class="mono">{{ t('account.abstracts.snapshotMeta', { n: snapshotVersion(abs, ev), report: reportZh[ev.snapshot.reportType] ?? ev.snapshot.reportType }) }}</span></p>
                   <p class="ev-comment pre">{{ ev.snapshot.abstractText }}</p>
                 </div>
               </li>
@@ -413,21 +414,21 @@ async function saveProfile() {
     </section>
 
     <!-- 我的报名 -->
-    <section id="registrations" class="section" aria-label="我的报名">
-      <h2 class="s-title">我的报名</h2>
+    <section id="registrations" class="section" :aria-label="t('account.registrations.title')">
+      <h2 class="s-title">{{ t('account.registrations.title') }}</h2>
       <ul v-if="registrations.length" class="reg-list">
         <li v-for="reg in registrations" :key="reg.id" class="reg-row">
           <div class="reg-main">
             <span class="mono reg-id">{{ reg.displayId }}</span>
             <span class="reg-type">{{ reg.typeName }}</span>
             <span class="badge" :class="{ ok: reg.status === 'confirmed' }">{{ zh(reg.status) }}</span>
-            <span v-if="reg.isMember" class="badge member">会员</span>
+            <span v-if="reg.isMember" class="badge member">{{ t('account.registrations.memberBadge') }}</span>
           </div>
           <div class="reg-sub">
-            <span class="mono">{{ new Date(reg.createdAt).toLocaleDateString('zh-CN') }}</span>
-            <span v-if="reg.order" class="mono">订单 {{ reg.order.orderNo }} · ¥{{ yuan(reg.order.totalFen) }}</span>
+            <span class="mono">{{ new Date(reg.createdAt).toLocaleDateString(isEn ? 'en-US' : 'zh-CN') }}</span>
+            <span v-if="reg.order" class="mono">{{ t('account.registrations.orderRef', { no: reg.order.orderNo, amount: yuan(reg.order.totalFen) }) }}</span>
             <span class="badge pay" :class="{ ok: reg.order?.status === 'paid', rev: reg.order?.status === 'reviewing' }">
-              {{ reg.order ? `缴费：${zh(reg.order.status)}` : '尚未生成订单' }}
+              {{ reg.order ? t('account.registrations.payStatus', { status: zh(reg.order.status) }) : t('account.registrations.noOrder') }}
             </span>
           </div>
           <div class="reg-actions">
@@ -435,74 +436,74 @@ async function saveProfile() {
               v-if="reg.order && (reg.order.status === 'pending' || reg.order.status === 'failed' || reg.order.status === 'expired')"
               class="btn btn-solid"
               :to="`/payment/${reg.order.id}`"
-            >继续缴费</NuxtLink>
+            >{{ t('account.registrations.continuePayment') }}</NuxtLink>
             <NuxtLink
               v-if="reg.credentialToken"
               class="btn btn-ghost"
               :to="`/credential/${reg.credentialToken}`"
-            >查看凭证</NuxtLink>
+            >{{ t('account.registrations.viewCredential') }}</NuxtLink>
           </div>
         </li>
       </ul>
       <p v-else-if="regsLoaded" class="note mono">
-        还没有报名记录。
-        <NuxtLink class="link" href="/register">立即报名 ISAGMSM 2027 →</NuxtLink>
+        {{ t('account.registrations.empty') }}
+        <NuxtLink class="link" href="/register">{{ t('account.registrations.registerLink') }}</NuxtLink>
       </p>
-      <p v-else class="note mono">正在加载报名记录…</p>
+      <p v-else class="note mono">{{ t('account.registrations.loading') }}</p>
     </section>
 
     <!-- 参会人资料 -->
-    <section id="profile" class="section" aria-label="参会人资料">
-      <h2 class="s-title">参会人资料</h2>
-      <p class="note mono">填写一次，报名时自动预填。</p>
+    <section id="profile" class="section" :aria-label="t('account.profile.title')">
+      <h2 class="s-title">{{ t('account.profile.title') }}</h2>
+      <p class="note mono">{{ t('account.profile.intro') }}</p>
       <form v-if="profileLoaded" class="form" @submit.prevent="saveProfile">
         <div class="grid">
           <label class="field">
-            <span class="f-label mono">姓名 *</span>
+            <span class="f-label mono">{{ t('account.profile.nameLabel') }}</span>
             <input v-model="profileForm.fullName" type="text" autocomplete="name">
             <span v-if="profileFieldErrors.fullName" class="f-err">{{ profileFieldErrors.fullName }}</span>
           </label>
           <label class="field">
-            <span class="f-label mono">英文名</span>
+            <span class="f-label mono">{{ t('account.profile.englishNameLabel') }}</span>
             <input v-model="profileForm.englishName" type="text">
           </label>
           <label class="field">
-            <span class="f-label mono">手机号</span>
+            <span class="f-label mono">{{ t('account.profile.phoneLabel') }}</span>
             <input v-model="profileForm.phone" type="tel" autocomplete="tel">
           </label>
           <label class="field">
-            <span class="f-label mono">国家 / 地区 *</span>
+            <span class="f-label mono">{{ t('account.profile.countryRegionLabel') }}</span>
             <input v-model="profileForm.country" type="text" autocomplete="country-name">
             <span v-if="profileFieldErrors.country" class="f-err">{{ profileFieldErrors.country }}</span>
           </label>
           <label class="field wide">
-            <span class="f-label mono">单位 *</span>
+            <span class="f-label mono">{{ t('account.profile.affiliationLabel') }}</span>
             <input v-model="profileForm.affiliation" type="text" autocomplete="organization">
             <span v-if="profileFieldErrors.affiliation" class="f-err">{{ profileFieldErrors.affiliation }}</span>
           </label>
           <label class="field">
-            <span class="f-label mono">院系 / 部门</span>
+            <span class="f-label mono">{{ t('account.profile.departmentLabel') }}</span>
             <input v-model="profileForm.department" type="text">
           </label>
           <label class="field">
-            <span class="f-label mono">职务</span>
+            <span class="f-label mono">{{ t('account.profile.positionLabel') }}</span>
             <input v-model="profileForm.position" type="text">
           </label>
           <label class="field wide">
-            <span class="f-label mono">饮食禁忌</span>
-            <input v-model="profileForm.dietary" type="text" placeholder="如：素食">
+            <span class="f-label mono">{{ t('account.profile.dietaryLabel') }}</span>
+            <input v-model="profileForm.dietary" type="text" :placeholder="t('account.profile.dietaryPlaceholder')">
           </label>
         </div>
-        <p v-if="profileSaved" class="msg ok mono">资料已保存 ✓ {{ profileSavedAt }}</p>
+        <p v-if="profileSaved" class="msg ok mono">{{ t('account.profile.savedMsg', { time: profileSavedAt }) }}</p>
         <p v-if="profileError" class="msg bad mono">{{ profileError }}</p>
         <div class="save-row">
           <button class="btn btn-solid" type="submit" :disabled="profileBusy || !profileDirty">
-            {{ profileBusy ? '保存中…' : profileDirty ? '保存修改' : '暂无修改' }}
+            {{ profileBusy ? t('account.profile.saving') : profileDirty ? t('account.profile.save') : t('account.profile.noChanges') }}
           </button>
-          <span v-if="profileDirty && !profileBusy" class="mono dirty-hint">有未保存的修改</span>
+          <span v-if="profileDirty && !profileBusy" class="mono dirty-hint">{{ t('account.profile.dirtyHint') }}</span>
         </div>
       </form>
-      <p v-else class="note mono">正在加载资料…</p>
+      <p v-else class="note mono">{{ t('account.profile.loading') }}</p>
     </section>
   </div>
 </template>

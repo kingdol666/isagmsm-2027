@@ -1,7 +1,10 @@
 <script setup lang="ts">
+const { locale } = useI18n()
+
 useHead({
   titleTemplate: (chunk?: string) =>
-    chunk ? `${chunk} · ISAGMSM 2027` : 'ISAGMSM — 第五届先进凝胶材料与软物质国际学术研讨会',
+    chunk ? `${chunk} · ISAGMSM 2027` : 'ISAGMSM — 第五届先进凝胶材料与软物质国际学术研讨会 | The 5th International Symposium for Advanced Gel Materials & Soft Matters',
+  htmlAttrs: { lang: computed(() => (locale.value === 'en' ? 'en' : 'zh-CN')) },
   link: [
     { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
   ],

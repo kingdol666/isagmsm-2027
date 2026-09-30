@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { sponsorshipContent as info } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'site' })
-useSeoMeta({ title: '参展赞助' })
+const { locale, t } = useI18n()
+const info = computed(() => siteContent(locale.value).sponsorshipContent)
+
+useSeoMeta({ title: () => t('content.sponsor.seoTitle') })
 </script>
 
 <template>
@@ -20,15 +23,15 @@ useSeoMeta({ title: '参展赞助' })
 
       <!-- 赞助级别 -->
       <section class="block">
-        <h2 class="b-title">赞助级别与权益</h2>
+        <h2 class="b-title">{{ t('content.sponsor.tiersTitle') }}</h2>
         <div class="tier-wrap">
           <table class="tier-table">
             <thead>
               <tr>
-                <th>级别</th>
-                <th>价格</th>
-                <th>名额</th>
-                <th>主要权益</th>
+                <th>{{ t('content.sponsor.thTier') }}</th>
+                <th>{{ t('content.sponsor.thPrice') }}</th>
+                <th>{{ t('content.sponsor.thQuota') }}</th>
+                <th>{{ t('content.sponsor.thBenefits') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -49,20 +52,20 @@ useSeoMeta({ title: '参展赞助' })
 
       <!-- 广告位与单项合作 -->
       <section class="block">
-        <h2 class="b-title">广告位与单项合作</h2>
+        <h2 class="b-title">{{ t('content.sponsor.adTitle') }}</h2>
         <ul class="ad-list">
           <li v-for="ad in info.adItems" :key="ad.item">
             <span class="ad-item">{{ ad.item }}</span>
             <span class="ad-benefit">{{ ad.benefit }}</span>
             <span class="ad-price mono">{{ ad.price }}</span>
-            <span class="ad-quota mono">限 {{ ad.quota }}</span>
+            <span class="ad-quota mono">{{ t('content.sponsor.quotaLimited', { quota: ad.quota }) }}</span>
           </li>
         </ul>
       </section>
 
       <!-- 联系与付款 -->
       <section class="block">
-        <h2 class="b-title">洽谈与付款</h2>
+        <h2 class="b-title">{{ t('content.sponsor.contactTitle') }}</h2>
         <div class="contact-box">
           <p class="c-line">{{ info.contact }}</p>
           <p class="c-line">{{ info.paymentNote }}</p>

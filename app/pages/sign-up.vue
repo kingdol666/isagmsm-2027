@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'flow' })
-useSeoMeta({ title: 'Create account' })
+const { t, ta } = useI18n()
+
+useSeoMeta({ title: () => t('auth.signUp.seoTitle') })
 
 const route = useRoute()
 const redirectTo = computed(() => {
@@ -19,6 +21,8 @@ const error = ref('')
 const busy = ref(false)
 const cooldown = ref(0)
 let cooldownTimer: ReturnType<typeof setInterval> | null = null
+
+const steps = computed(() => ta('auth.signUp.steps'))
 
 function startCooldown(seconds: number) {
   cooldown.value = seconds
@@ -50,7 +54,7 @@ async function sendCode() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    error.value = e.data?.statusMessage ?? '验证码发送失败，请稍后再试。'
+    error.value = e.data?.statusMessage ?? t('auth.signUp.sendFailed')
   }
   finally {
     busy.value = false
@@ -65,7 +69,7 @@ function errorMessage(err: unknown): string {
   const e = err as { data?: { statusMessage?: string, data?: { details?: Array<{ message: string }> } } }
   return e.data?.data?.details?.[0]?.message
     ?? e.data?.statusMessage
-    ?? '注册失败，请稍后再试。'
+    ?? t('auth.signUp.registerFailed')
 }
 
 async function completeSignup() {
@@ -94,43 +98,43 @@ async function completeSignup() {
     <header class="sec-head">
       <div class="sec-meta">
         <span class="sec-code">ACCOUNT · SIGN-UP</span>
-        <span class="sec-tag">邮箱验证注册</span>
+        <span class="sec-tag">{{ t('auth.signUp.tag') }}</span>
       </div>
-      <h1 class="sec-title">创建<em>账号</em></h1>
+      <h1 class="sec-title">{{ t('auth.signUp.titleA') }}<em>{{ t('auth.signUp.titleEm') }}</em></h1>
     </header>
 
-    <FlowSteps :steps="['邮箱', '验证并设置密码']" :current="step" />
+    <FlowSteps :steps="steps" :current="step" />
 
     <!-- STEP 0 — email + send code -->
     <section v-if="step === 0" aria-label="Request verification code">
       <form class="form" @submit.prevent="sendCode">
         <label class="field">
-          <span class="f-label mono">邮箱</span>
+          <span class="f-label mono">{{ t('auth.signUp.emailLabel') }}</span>
           <input v-model="email" type="email" name="email" autocomplete="email" inputmode="email" required>
         </label>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
         <button class="btn btn-solid" type="submit" :disabled="busy || !email">
-          {{ busy ? '发送中…' : '发送验证码' }}
+          {{ busy ? t('auth.signUp.sending') : t('auth.signUp.sendCode') }}
         </button>
       </form>
-      <p class="note mono">已有账号？<NuxtLink class="link" :href="`/login?redirect=${encodeURIComponent(redirectTo)}`">直接登录</NuxtLink></p>
+      <p class="note mono">{{ t('auth.signUp.haveAccount') }}<NuxtLink class="link" :href="`/login?redirect=${encodeURIComponent(redirectTo)}`">{{ t('auth.signUp.signInDirect') }}</NuxtLink></p>
     </section>
 
     <!-- STEP 1 — code + password + name -->
     <section v-else aria-label="Verify and set password">
-      <p class="sent mono">验证码已发送至 <strong>{{ email }}</strong></p>
+      <p class="sent mono">{{ t('auth.signUp.sentTo') }} <strong>{{ email }}</strong></p>
       <p v-if="devCode" class="dev-code mono">DEV MODE — your code: <strong>{{ devCode }}</strong></p>
       <form class="form" @submit.prevent="completeSignup">
         <label class="field">
-          <span class="f-label mono">6 位验证码</span>
+          <span class="f-label mono">{{ t('auth.signUp.codeLabel') }}</span>
           <input v-model="code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="code-input">
         </label>
         <label class="field">
-          <span class="f-label mono">您的姓名 *</span>
+          <span class="f-label mono">{{ t('auth.signUp.nameLabel') }}</span>
           <input v-model="fullName" type="text" name="fullName" autocomplete="name" required>
         </label>
         <label class="field">
-          <span class="f-label mono">密码 *（至少 8 位）</span>
+          <span class="f-label mono">{{ t('auth.signUp.pwdLabel') }}</span>
           <input v-model="password" type="password" name="password" autocomplete="new-password" minlength="8" required>
         </label>
         <!-- 蜜罐：对人类不可见；自动机填写即被服务端拒绝（反垃圾注册） -->
@@ -139,9 +143,9 @@ async function completeSignup() {
         </div>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
         <div class="actions">
-          <button class="btn btn-solid" type="submit" :disabled="busy">创建账号</button>
+          <button class="btn btn-solid" type="submit" :disabled="busy">{{ t('auth.signUp.create') }}</button>
           <button class="btn btn-ghost" type="button" :disabled="cooldown > 0 || busy" @click="resend">
-            {{ cooldown > 0 ? `重新发送 (${cooldown}s)` : '重新发送验证码' }}
+            {{ cooldown > 0 ? t('auth.signUp.resendCooldown', { seconds: cooldown }) : t('auth.signUp.resend') }}
           </button>
         </div>
       </form>

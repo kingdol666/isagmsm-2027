@@ -18,7 +18,9 @@ interface OrderCreated {
 }
 
 definePageMeta({ layout: 'flow', middleware: 'auth' })
-useSeoMeta({ title: 'Register' })
+const { t, ta } = useI18n()
+
+useSeoMeta({ title: () => t('register.seoTitle') })
 
 const { user } = useAuth()
 
@@ -41,7 +43,7 @@ onMounted(async () => {
 })
 
 const step = ref(0)
-const steps = ['选择票种', '填写信息', '确认提交']
+const steps = computed(() => ta('register.stepList'))
 
 const selectedType = ref<RegistrationTypeApi | null>(null)
 const form = reactive({
@@ -115,7 +117,7 @@ async function submit() {
       await navigateTo(`/login?redirect=${encodeURIComponent('/register')}`)
       return
     }
-    submitError.value = err.data?.message ?? 'Submission failed. Please check your details and retry.'
+    submitError.value = err.data?.message ?? t('register.submitFailed')
   }
   finally {
     submitting.value = false
@@ -127,21 +129,21 @@ async function submit() {
   <div class="register">
     <header class="sec-head">
       <div class="sec-meta">
-        <span class="sec-code">ISAGMSM—08 · 报名</span>
-        <span class="sec-tag">三步完成</span>
+        <span class="sec-code">{{ t('register.metaCode') }}</span>
+        <span class="sec-tag">{{ t('register.metaTag') }}</span>
       </div>
-      <h1 class="sec-title">Registration</h1>
+      <h1 class="sec-title">{{ t('register.title') }}</h1>
     </header>
 
     <FlowSteps :steps="steps" :current="step" />
 
     <p v-if="typesError" class="state-error">
-      Could not load registration types. <NuxtLink to="/register" class="retry">Retry</NuxtLink>
+      {{ t('register.typesError') }} <NuxtLink to="/register" class="retry">{{ t('register.retry') }}</NuxtLink>
     </p>
 
     <!-- STEP 1 — type -->
-    <section v-if="step === 0" aria-label="Choose registration type">
-      <p v-if="typesStatus === 'pending'" class="state-note">Loading registration types…</p>
+    <section v-if="step === 0" :aria-label="t('register.chooseSection')">
+      <p v-if="typesStatus === 'pending'" class="state-note">{{ t('register.loadingTypes') }}</p>
       <ul v-else class="type-list">
         <li v-for="type in types" :key="type.id">
           <button
@@ -156,60 +158,60 @@ async function submit() {
             <span class="t-price"><i>¥</i>{{ yuan(type.priceFen) }}</span>
             <span class="t-desc">{{ type.description }}</span>
             <span class="t-status" :class="{ inv: type.availability !== 'available' }">
-              {{ type.availability === 'available' ? 'Available' : 'On invitation' }}
+              {{ type.availability === 'available' ? t('register.available') : t('register.onInvitation') }}
             </span>
           </button>
         </li>
       </ul>
       <div class="actions">
-        <button class="btn btn-solid" type="button" :disabled="!selectedType" @click="next">Continue</button>
+        <button class="btn btn-solid" type="button" :disabled="!selectedType" @click="next">{{ t('register.continue') }}</button>
       </div>
     </section>
 
     <!-- STEP 2 — participant information -->
-    <section v-else-if="step === 1" aria-label="Participant information">
+    <section v-else-if="step === 1" :aria-label="t('register.infoSection')">
       <form class="form" novalidate @submit.prevent="next">
         <div class="grid">
           <label class="field">
-            <span class="f-label">姓名 *</span>
+            <span class="f-label">{{ t('register.form.fullName') }}</span>
             <input v-model="form.fullName" type="text" name="fullName" autocomplete="name">
             <span v-if="fieldErrors.fullName" class="f-error">{{ fieldErrors.fullName }}</span>
           </label>
           <label class="field">
-            <span class="f-label">英文名</span>
+            <span class="f-label">{{ t('register.form.englishName') }}</span>
             <input v-model="form.englishName" type="text" name="englishName">
           </label>
           <div class="field">
-            <span class="f-label">账户邮箱（锁定）</span>
-            <input type="email" :value="user?.email" disabled aria-label="Account email">
-            <span class="f-hint mono">报名信息将关联到当前登录账号</span>
+            <span class="f-label">{{ t('register.form.accountEmail') }}</span>
+            <input type="email" :value="user?.email" disabled :aria-label="t('register.form.accountEmailAria')">
+            <span class="f-hint mono">{{ t('register.form.accountEmailHint') }}</span>
           </div>
           <label class="field">
-            <span class="f-label">手机号 *</span>
+            <span class="f-label">{{ t('register.form.phone') }}</span>
             <input v-model="form.phone" type="tel" name="phone" autocomplete="tel" inputmode="tel">
             <span v-if="fieldErrors.phone" class="f-error">{{ fieldErrors.phone }}</span>
           </label>
           <label class="field wide">
-            <span class="f-label">单位 *</span>
+            <span class="f-label">{{ t('register.form.affiliation') }}</span>
             <input v-model="form.affiliation" type="text" name="affiliation" autocomplete="organization">
             <span v-if="fieldErrors.affiliation" class="f-error">{{ fieldErrors.affiliation }}</span>
           </label>
           <label class="field">
-            <span class="f-label">院系 / 部门</span>
+            <span class="f-label">{{ t('register.form.department') }}</span>
             <input v-model="form.department" type="text" name="department">
           </label>
           <label class="field">
-            <span class="f-label">职务</span>
+            <span class="f-label">{{ t('register.form.position') }}</span>
             <input v-model="form.position" type="text" name="position">
           </label>
           <label class="field">
-            <span class="f-label">国家 / 地区 *</span>
+            <span class="f-label">{{ t('register.form.country') }}</span>
             <input v-model="form.country" type="text" name="country" autocomplete="country-name">
             <span v-if="fieldErrors.country" class="f-error">{{ fieldErrors.country }}</span>
           </label>
           <label class="field">
-            <span class="f-label">饮食禁忌</span>
-            <input v-model="form.dietary" type="text" name="dietary" placeholder="如：素食">
+            <span class="f-label">{{ t('register.form.dietary') }}</span>
+            <input v-model="form.dietary" type="text" name="dietary" :placeholder="t('register.form.dietaryPlaceholder')">
           </label>
           <!-- 蜜罐：对人类不可见；自动机填写即被服务端拒绝（反垃圾报名） -->
           <div class="hp-field" aria-hidden="true">
@@ -217,36 +219,39 @@ async function submit() {
           </div>
           <label class="field wide check">
             <input v-model="form.invoiceRequired" type="checkbox" name="invoiceRequired">
-            <span class="f-label">需要发票</span>
+            <span class="f-label">{{ t('register.form.invoiceRequired') }}</span>
           </label>
           <label v-if="form.invoiceRequired" class="field wide">
-            <span class="f-label">发票抬头</span>
+            <span class="f-label">{{ t('register.form.invoiceTitle') }}</span>
             <input v-model="form.invoiceTitle" type="text" name="invoiceTitle">
           </label>
         </div>
-        <p class="form-note">带 * 为必填项；信息将在服务端再次校验。</p>
+        <p class="form-note">{{ t('register.form.note') }}</p>
         <div class="actions">
-          <button class="btn btn-ghost" type="button" @click="back">Back</button>
-          <button class="btn btn-solid" type="submit" @click="next">Continue</button>
+          <button class="btn btn-ghost" type="button" @click="back">{{ t('register.back') }}</button>
+          <button class="btn btn-solid" type="submit" @click="next">{{ t('register.continue') }}</button>
         </div>
       </form>
     </section>
 
     <!-- STEP 3 — confirmation -->
-    <section v-else aria-label="Confirm and submit">
+    <section v-else :aria-label="t('register.confirmSection')">
       <dl class="confirm">
-        <div class="c-row"><dt>Type</dt><dd>{{ selectedType?.name }}</dd></div>
-        <div class="c-row"><dt>Name</dt><dd>{{ form.fullName }}</dd></div>
-        <div class="c-row"><dt>Email</dt><dd>{{ form.email }}</dd></div>
-        <div class="c-row"><dt>Affiliation</dt><dd>{{ form.affiliation }}</dd></div>
-        <div class="c-row"><dt>Country</dt><dd>{{ form.country }}</dd></div>
-        <div class="c-row c-total"><dt>Fee (server-calculated at order)</dt><dd>≈ ¥{{ selectedType ? yuan(selectedType.priceFen) : '' }}</dd></div>
+        <div class="c-row"><dt>{{ t('register.confirm.type') }}</dt><dd>{{ selectedType?.name }}</dd></div>
+        <div class="c-row"><dt>{{ t('register.confirm.name') }}</dt><dd>{{ form.fullName }}</dd></div>
+        <div class="c-row"><dt>{{ t('register.confirm.email') }}</dt><dd>{{ form.email }}</dd></div>
+        <div class="c-row"><dt>{{ t('register.confirm.affiliation') }}</dt><dd>{{ form.affiliation }}</dd></div>
+        <div class="c-row"><dt>{{ t('register.confirm.country') }}</dt><dd>{{ form.country }}</dd></div>
+        <div class="c-row c-total">
+          <dt>{{ t('register.confirm.fee') }}</dt>
+          <dd>{{ t('register.confirm.feeValue', { amount: selectedType ? yuan(selectedType.priceFen) : '' }) }}</dd>
+        </div>
       </dl>
       <p v-if="submitError" class="state-error">{{ submitError }}</p>
       <div class="actions">
-        <button class="btn btn-ghost" type="button" :disabled="submitting" @click="back">Back</button>
+        <button class="btn btn-ghost" type="button" :disabled="submitting" @click="back">{{ t('register.back') }}</button>
         <button class="btn btn-solid" type="button" :disabled="submitting" @click="submit">
-          {{ submitting ? 'Submitting…' : 'Create order' }}
+          {{ submitting ? t('register.confirm.submitting') : t('register.confirm.createOrder') }}
         </button>
       </div>
     </section>

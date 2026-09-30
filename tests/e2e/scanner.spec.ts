@@ -87,5 +87,5 @@ test('check-in state persists on the public verify page', async ({ page }) => {
 
   // user-visible persistence: the public verify page shows the check-in
   await page.goto(`/verify/${token}`, { waitUntil: 'networkidle' })
-  await expect(page.locator('.verdict.good')).toContainText('Valid — checked in')
+  await expect(page.locator('.verdict.good')).toContainText('凭证有效 · 已签到')
 })

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { siteMeta, siteNav } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
 
 const open = ref(false)
 
@@ -25,10 +28,11 @@ onUnmounted(close)
     <!-- brand + auth row -->
     <div class="h-top">
       <NuxtLink class="h-brand" href="/">
-        <span class="h-mark">{{ siteMeta.shortName }}</span>
-        <span class="h-full">{{ siteMeta.fullNameZh }}</span>
+        <span class="h-mark">{{ content.siteMeta.shortName }}</span>
+        <span class="h-full">{{ content.siteMeta.fullName }}</span>
       </NuxtLink>
       <div class="h-auth">
+        <LocaleToggle />
         <ClientOnly>
           <AuthChip />
           <template #fallback>
@@ -42,15 +46,15 @@ onUnmounted(close)
           aria-controls="nav-overlay"
           @click="toggle"
         >
-          {{ open ? '关闭' : '菜单' }}
+          {{ open ? t('common.menu.close') : t('common.menu.open') }}
         </button>
       </div>
     </div>
 
     <!-- desktop nav row -->
-    <nav class="h-nav" aria-label="会议栏目">
+    <nav class="h-nav" :aria-label="t('common.menu.navLabel')">
       <NuxtLink
-        v-for="item in siteNav"
+        v-for="item in content.siteNav"
         :key="item.code"
         :to="item.href"
         class="h-nav-link"
@@ -61,9 +65,9 @@ onUnmounted(close)
 
     <!-- mobile overlay -->
     <div class="nav-overlay" :class="{ 'is-open': open }" :aria-hidden="!open" :inert="!open">
-      <nav class="ov-nav" aria-label="会议栏目">
+      <nav class="ov-nav" :aria-label="t('common.menu.navLabel')">
         <NuxtLink
-          v-for="item in siteNav"
+          v-for="item in content.siteNav"
           :key="item.code"
           :to="item.href"
           @click="close"
@@ -72,8 +76,8 @@ onUnmounted(close)
         </NuxtLink>
       </nav>
       <div class="ov-foot">
-        <NuxtLink class="btn btn-solid" href="/register" @click="close">立即报名</NuxtLink>
-        <p class="mono ov-note">{{ siteMeta.fullNameZh }}<br>{{ siteMeta.dates }} · {{ siteMeta.location }}</p>
+        <NuxtLink class="btn btn-solid" href="/register" @click="close">{{ t('common.nav.registerNow') }}</NuxtLink>
+        <p class="mono ov-note">{{ content.siteMeta.fullName }}<br>{{ content.siteMeta.dates }} · {{ content.siteMeta.location }}</p>
       </div>
     </div>
   </header>

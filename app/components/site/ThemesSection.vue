@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { themesContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
   <!-- 02 · RESEARCH THEMES — the index, not cards -->
   <section id="themes" class="sec">
     <div class="wrap">
-      <SecHead :code="themesContent.code" :tag="themesContent.tag" :title="themesContent.title" :title-em="themesContent.titleEm" />
+      <SecHead :code="content.themesContent.code" :tag="content.themesContent.tag" :title="content.themesContent.title" :title-em="content.themesContent.titleEm" />
       <!-- Editorial index — a table of contents, not a card wall.
            Numbers read as batch codes on a process sheet. -->
       <ol class="theme-index">
-        <li v-for="theme in themesContent.items" :key="theme.no">
+        <li v-for="theme in content.themesContent.items" :key="theme.no">
           <span class="t-no">{{ theme.no }}</span>
           <h3 class="t-title">{{ theme.title }}</h3>
           <p class="t-desc">{{ theme.desc }}</p>

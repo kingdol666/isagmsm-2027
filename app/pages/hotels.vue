@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { hotelsContent as info } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'site' })
-useSeoMeta({ title: '酒店预定' })
+const { locale, t } = useI18n()
+const info = computed(() => siteContent(locale.value).hotelsContent)
+
+useSeoMeta({ title: () => t('content.hotels.seoTitle') })
 </script>
 
 <template>
@@ -19,7 +22,7 @@ useSeoMeta({ title: '酒店预定' })
       <p class="intro">{{ info.intro }}</p>
 
       <section class="block">
-        <h2 class="b-title">协作酒店</h2>
+        <h2 class="b-title">{{ t('content.hotels.partnerHotels') }}</h2>
         <ul class="hotel-list">
           <li v-for="hotel in info.hotels" :key="hotel.name" class="hotel">
             <div class="h-head">
@@ -34,12 +37,12 @@ useSeoMeta({ title: '酒店预定' })
       </section>
 
       <section class="block">
-        <h2 class="b-title">酒店位置地图</h2>
+        <h2 class="b-title">{{ t('content.hotels.mapTitle') }}</h2>
         <MapLibreView :pois="info.hotels" height="420px" />
       </section>
 
       <section class="block">
-        <h2 class="b-title">预订方式</h2>
+        <h2 class="b-title">{{ t('content.hotels.bookingTitle') }}</h2>
         <div class="booking-box">
           <p class="b-channel">{{ info.booking.channel }}</p>
           <p class="b-note mono">{{ info.booking.note }}</p>

@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { organizationContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'site' })
-useSeoMeta({ title: '组织机构' })
+const { locale, t } = useI18n()
+const info = computed(() => siteContent(locale.value).organizationContent)
+
+useSeoMeta({ title: () => t('content.org.seoTitle') })
 </script>
 
 <template>
@@ -10,13 +13,13 @@ useSeoMeta({ title: '组织机构' })
     <div class="wrap">
       <header class="sec-head">
         <div class="sec-meta">
-          <span class="sec-code">{{ organizationContent.code }}</span>
-          <span class="sec-tag">{{ organizationContent.tag }}</span>
+          <span class="sec-code">{{ info.code }}</span>
+          <span class="sec-tag">{{ info.tag }}</span>
         </div>
-        <h1 class="sec-title">{{ organizationContent.title }}</h1>
+        <h1 class="sec-title">{{ info.title }}</h1>
       </header>
 
-      <section v-for="section in organizationContent.sections" :key="section.title" class="org-section">
+      <section v-for="section in info.sections" :key="section.title" class="org-section">
         <h2 class="o-title">{{ section.title }}</h2>
         <ul class="o-list" :class="{ people: section.kind === 'people' }">
           <li v-for="entry in section.entries" :key="section.title + (entry.role ?? '') + entry.name">
@@ -28,7 +31,7 @@ useSeoMeta({ title: '组织机构' })
       </section>
 
       <p class="page-note mono">
-        名单以会议第二轮通知为准。如需更新单位或委员信息，请联系会务组。
+        {{ t('content.org.note') }}
       </p>
     </div>
   </main>

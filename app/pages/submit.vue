@@ -7,10 +7,14 @@ import {
   MAX_ATTACHMENT_BYTES,
   formatAttachmentSize,
 } from '#shared/schemas/abstract'
-import { themesContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'flow' })
-useSeoMeta({ title: '在线投稿' })
+const { t, locale } = useI18n()
+
+useSeoMeta({ title: () => t('submit.seoTitle') })
+
+const content = computed(() => siteContent(locale.value))
 
 interface MyAbstract {
   id: string
@@ -51,12 +55,12 @@ const done = ref<{ resubmitted: boolean, version: number } | null>(null)
 const myPending = ref<number | null>(null)
 const myTotal = ref<number | null>(null)
 
-const topicLabels = new Map(themesContent.items.map(item => [item.no, `${item.no} · ${item.title}`]))
-const reportLabels: Record<string, string> = {
-  oral: '口头报告',
-  poster: '墙报',
-  abstract_only: '仅提交摘要',
-}
+const topicLabels = computed(() => new Map(content.value.themesContent.items.map(item => [item.no, `${item.no} · ${item.title}`])))
+const reportLabels = computed<Record<string, string>>(() => ({
+  oral: t('submit.reportOral'),
+  poster: t('submit.reportPoster'),
+  abstract_only: t('submit.reportAbstractOnly'),
+}))
 
 onMounted(async () => {
   const current = user.value === undefined ? await fetchUser() : user.value
@@ -129,13 +133,13 @@ function onFileChange(event: Event) {
   if (!ATTACHMENT_EXTENSIONS.includes(ext as (typeof ATTACHMENT_EXTENSIONS)[number])) {
     file.value = null
     input.value = ''
-    fileError.value = '附件仅支持 PDF 或 Word（.pdf / .doc / .docx）'
+    fileError.value = t('submit.errors.fileFormat')
     return
   }
   if (picked.size > MAX_ATTACHMENT_BYTES) {
     file.value = null
     input.value = ''
-    fileError.value = `附件大小不能超过 10MB（当前 ${formatAttachmentSize(picked.size)}）`
+    fileError.value = t('submit.errors.fileSize', { size: formatAttachmentSize(picked.size) })
     return
   }
   file.value = picked
@@ -159,12 +163,12 @@ async function send() {
         const key = String(issue.path[0] ?? 'form')
         if (!fieldErrors.value[key]) fieldErrors.value[key] = issue.message
       }
-      errorMsg.value = '请检查表单中标红的字段。'
+      errorMsg.value = t('submit.errors.formInvalid')
       return
     }
     if (!file.value) {
-      fileError.value = '请上传稿件附件（Word 或 PDF，≤10MB）'
-      errorMsg.value = '请检查表单中标红的字段。'
+      fileError.value = t('submit.errors.fileRequired')
+      errorMsg.value = t('submit.errors.formInvalid')
       return
     }
 
@@ -195,7 +199,7 @@ async function send() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    errorMsg.value = e.data?.statusMessage ?? '提交失败，请稍后再试。'
+    errorMsg.value = e.data?.statusMessage ?? t('submit.errors.submitFailed')
   }
   finally {
     busy.value = false
@@ -207,37 +211,37 @@ async function send() {
   <div class="submit-page">
     <header class="sec-head">
       <div class="sec-meta">
-        <span class="sec-code">ISAGMSM—07 · 在线投稿</span>
-        <span class="sec-tag mono">摘要截止 2027年3月25日</span>
+        <span class="sec-code">{{ t('submit.secCode') }}</span>
+        <span class="sec-tag mono">{{ t('submit.secTag') }}</span>
       </div>
       <h1 class="sec-title">
-        <template v-if="editAbstract">修改<em>重投</em></template>
-        <template v-else>论文<em>投稿</em></template>
+        <template v-if="editAbstract">{{ t('submit.titleEditA') }}<em>{{ t('submit.titleEditEm') }}</em></template>
+        <template v-else>{{ t('submit.titleNewA') }}<em>{{ t('submit.titleNewEm') }}</em></template>
       </h1>
     </header>
 
     <!-- 提交成功 -->
     <section v-if="done" class="done" aria-live="polite">
-      <p class="done-title">{{ done.resubmitted ? `已重新提交（第 ${done.version} 版）` : '投稿成功' }}</p>
+      <p class="done-title">{{ done.resubmitted ? t('submit.done.resubmitted', { n: done.version }) : t('submit.done.success') }}</p>
       <p class="done-body">
-        {{ done.resubmitted ? '稿件已回到待审队列，会务组将再次审稿。' : '稿件已进入待审队列，审稿结果将发送至您的注册邮箱，也可在个人中心查看。' }}
+        {{ done.resubmitted ? t('submit.done.bodyResubmitted') : t('submit.done.bodySuccess') }}
       </p>
       <div class="done-actions">
-        <NuxtLink class="btn btn-solid" href="/account#abstracts">查看我的投稿</NuxtLink>
-        <NuxtLink class="btn btn-ghost" href="/">返回首页</NuxtLink>
+        <NuxtLink class="btn btn-solid" href="/account#abstracts">{{ t('submit.done.viewMine') }}</NuxtLink>
+        <NuxtLink class="btn btn-ghost" href="/">{{ t('submit.done.backHome') }}</NuxtLink>
       </div>
     </section>
 
     <template v-else-if="loaded">
       <!-- 返稿意见（重投模式） -->
-      <section v-if="editAbstract" class="return-note" aria-label="返稿意见">
-        <p class="rn-tag mono">返稿意见 · 第 {{ editAbstract.version }} 版</p>
-        <p class="rn-body">{{ lastReturnComment || '（无具体意见）' }}</p>
+      <section v-if="editAbstract" class="return-note" :aria-label="t('submit.returnNote.ariaLabel')">
+        <p class="rn-tag mono">{{ t('submit.returnNote.tag', { n: editAbstract.version }) }}</p>
+        <p class="rn-body">{{ lastReturnComment || t('submit.returnNote.none') }}</p>
       </section>
 
       <p v-if="!editAbstract && myPending !== null" class="quota mono" aria-live="polite">
-        当前待审 {{ myPending }}/3 篇 · 累计有效 {{ myTotal }}/20 篇
-        <span v-if="myPending >= 3" class="quota-full">（待审已满，请等待审稿结果）</span>
+        {{ t('submit.quota.line', { pending: myPending ?? 0, total: myTotal ?? 0 }) }}
+        <span v-if="myPending >= 3" class="quota-full">{{ t('submit.quota.full') }}</span>
       </p>
 
       <form class="form" @submit.prevent="send">
@@ -246,24 +250,24 @@ async function send() {
           <label>Website<input v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off"></label>
         </div>
         <label class="field">
-          <span class="f-label mono">稿件标题 *</span>
-          <input v-model="form.title" type="text" name="title" placeholder="稿件完整标题">
+          <span class="f-label mono">{{ t('submit.form.titleLabel') }}</span>
+          <input v-model="form.title" type="text" name="title" :placeholder="t('submit.form.titlePlaceholder')">
           <span v-if="fieldErrors.title" class="f-err">{{ fieldErrors.title }}</span>
         </label>
 
         <div class="grid2">
           <label class="field">
-            <span class="f-label mono">主题方向 *</span>
+            <span class="f-label mono">{{ t('submit.form.topicLabel') }}</span>
             <select v-model="form.topic" name="topic">
-              <option value="" disabled>请选择研究方向</option>
+              <option value="" disabled>{{ t('submit.form.topicPlaceholder') }}</option>
               <option v-for="[no, label] in topicLabels" :key="no" :value="no">{{ label }}</option>
             </select>
             <span v-if="fieldErrors.topic" class="f-err">{{ fieldErrors.topic }}</span>
           </label>
           <label class="field">
-            <span class="f-label mono">报告类别 *</span>
+            <span class="f-label mono">{{ t('submit.form.reportLabel') }}</span>
             <select v-model="form.reportType" name="reportType">
-              <option value="" disabled>请选择类别</option>
+              <option value="" disabled>{{ t('submit.form.reportPlaceholder') }}</option>
               <option v-for="rt in ABSTRACT_REPORT_TYPES" :key="rt" :value="rt">{{ reportLabels[rt] }}</option>
             </select>
             <span v-if="fieldErrors.reportType" class="f-err">{{ fieldErrors.reportType }}</span>
@@ -271,26 +275,26 @@ async function send() {
         </div>
 
         <label class="field">
-          <span class="f-label mono">摘要正文 *（30—8000 字）</span>
-          <textarea v-model="form.abstractText" name="abstractText" rows="8" placeholder="摘要正文（中英文均可）" />
+          <span class="f-label mono">{{ t('submit.form.abstractLabel') }}</span>
+          <textarea v-model="form.abstractText" name="abstractText" rows="8" :placeholder="t('submit.form.abstractPlaceholder')" />
           <span v-if="fieldErrors.abstractText" class="f-err">{{ fieldErrors.abstractText }}</span>
         </label>
 
         <!-- 稿件附件：Word/PDF ≤10MB，每版独立存档（先传 OSS 再落库） -->
         <label class="field file-field">
-          <span class="f-label mono">稿件附件 *（PDF / Word，≤10MB；每一版附件独立存档）</span>
+          <span class="f-label mono">{{ t('submit.form.fileLabel') }}</span>
           <span class="file-row" :class="{ picked: !!file }">
-            <span class="file-btn mono">{{ file ? '重新选择' : '选择文件' }}</span>
+            <span class="file-btn mono">{{ file ? t('submit.form.fileRepick') : t('submit.form.filePick') }}</span>
             <span v-if="file" class="file-name">{{ file.name }} · {{ formatAttachmentSize(file.size) }}</span>
-            <span v-else class="file-name empty">尚未选择文件（.pdf / .doc / .docx）</span>
-            <button v-if="file" class="file-clear" type="button" aria-label="移除附件" @click.prevent="clearFile">×</button>
+            <span v-else class="file-name empty">{{ t('submit.form.fileNone') }}</span>
+            <button v-if="file" class="file-clear" type="button" :aria-label="t('submit.form.fileRemove')" @click.prevent="clearFile">×</button>
           </span>
           <input
             class="file-input"
             type="file"
             name="file"
             :accept="ATTACHMENT_ACCEPT"
-            aria-label="稿件附件"
+            :aria-label="t('submit.form.fileField')"
             @change="onFileChange"
           >
           <span v-if="fileError" class="f-err">{{ fileError }}</span>
@@ -298,12 +302,12 @@ async function send() {
 
         <div class="grid2">
           <label class="field">
-            <span class="f-label mono">姓名（投稿人）*</span>
+            <span class="f-label mono">{{ t('submit.form.submitterNameLabel') }}</span>
             <input v-model="form.submitterName" type="text" name="submitterName" autocomplete="name">
             <span v-if="fieldErrors.submitterName" class="f-err">{{ fieldErrors.submitterName }}</span>
           </label>
           <label class="field">
-            <span class="f-label mono">机构（投稿人）*</span>
+            <span class="f-label mono">{{ t('submit.form.submitterAffLabel') }}</span>
             <input v-model="form.submitterAffiliation" type="text" name="submitterAffiliation">
             <span v-if="fieldErrors.submitterAffiliation" class="f-err">{{ fieldErrors.submitterAffiliation }}</span>
           </label>
@@ -311,41 +315,41 @@ async function send() {
 
         <!-- 作者列表 -->
         <fieldset class="authors">
-          <legend class="f-label mono">作者列表 *（每位作者的姓名与机构均为必填）</legend>
+          <legend class="f-label mono">{{ t('submit.form.authorsLegend') }}</legend>
           <div v-for="(author, index) in form.authors" :key="index" class="author-row">
             <span class="a-no mono">{{ index + 1 }}</span>
             <label class="a-cell">
-              <span class="a-label mono">姓名</span>
-              <input v-model="author.name" type="text" :name="`author-name-${index}`" :placeholder="index === 0 ? '第一作者姓名' : '作者姓名'">
+              <span class="a-label mono">{{ t('submit.form.authorNameLabel') }}</span>
+              <input v-model="author.name" type="text" :name="`author-name-${index}`" :placeholder="index === 0 ? t('submit.form.firstNamePlaceholder') : t('submit.form.authorNamePlaceholder')">
             </label>
             <label class="a-cell a-wide">
-              <span class="a-label mono">机构</span>
-              <input v-model="author.affiliation" type="text" :name="`author-aff-${index}`" placeholder="作者所在机构">
+              <span class="a-label mono">{{ t('submit.form.authorAffLabel') }}</span>
+              <input v-model="author.affiliation" type="text" :name="`author-aff-${index}`" :placeholder="t('submit.form.authorAffPlaceholder')">
             </label>
             <button
               v-if="form.authors.length > 1"
               class="a-remove"
               type="button"
-              :aria-label="`删除作者 ${index + 1}`"
+              :aria-label="t('submit.form.removeAuthor', { no: index + 1 })"
               @click="removeAuthor(index)"
             >×</button>
           </div>
           <p v-if="fieldErrors.authors" class="f-err">{{ fieldErrors.authors }}</p>
-          <button class="btn btn-ghost add-btn" type="button" @click="addAuthor">+ 添加作者</button>
+          <button class="btn btn-ghost add-btn" type="button" @click="addAuthor">{{ t('submit.form.addAuthor') }}</button>
         </fieldset>
 
         <p v-if="errorMsg" class="msg bad" role="alert">{{ errorMsg }}</p>
 
         <div class="actions">
           <button class="btn btn-solid" type="submit" :disabled="busy">
-            {{ busy ? '提交中…' : (editAbstract ? '提交新版本' : '提交稿件') }}
+            {{ busy ? t('submit.actions.submitting') : (editAbstract ? t('submit.actions.submitNew') : t('submit.actions.submit')) }}
           </button>
-          <NuxtLink class="btn btn-ghost" href="/account#abstracts">我的投稿记录</NuxtLink>
+          <NuxtLink class="btn btn-ghost" href="/account#abstracts">{{ t('submit.actions.myRecords') }}</NuxtLink>
         </div>
       </form>
     </template>
 
-    <p v-else class="state mono">正在加载…</p>
+    <p v-else class="state mono">{{ t('submit.loading') }}</p>
   </div>
 </template>
 

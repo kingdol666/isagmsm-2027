@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const { user, credentialToken, fetchUser, logout } = useAuth()
 const menuOpen = ref(false)
 
@@ -33,9 +34,9 @@ const initial = computed(() => {
 
     <!-- anonymous: sign in / register links -->
     <template v-else-if="!user">
-      <NuxtLink class="chip-link mono" href="/login">登录</NuxtLink>
+      <NuxtLink class="chip-link mono" href="/login">{{ t('common.auth.signIn') }}</NuxtLink>
       <span class="sep" aria-hidden="true">/</span>
-      <NuxtLink class="chip-link mono accent" href="/sign-up">注册</NuxtLink>
+      <NuxtLink class="chip-link mono accent" href="/sign-up">{{ t('common.auth.signUp') }}</NuxtLink>
     </template>
 
     <!-- logged in: avatar + dropdown -->
@@ -55,12 +56,12 @@ const initial = computed(() => {
           :href="`/credential/${credentialToken}`"
           @click="closeMenu"
         >
-          <span class="mi-dot" aria-hidden="true" />我的会议凭证
+          <span class="mi-dot" aria-hidden="true" />{{ t('common.auth.myCredential') }}
         </NuxtLink>
-        <NuxtLink class="menu-item" role="menuitem" href="/submit" @click="closeMenu">在线投稿</NuxtLink>
-        <NuxtLink class="menu-item" role="menuitem" href="/account#abstracts" @click="closeMenu">我的投稿</NuxtLink>
-        <NuxtLink class="menu-item" role="menuitem" href="/account" @click="closeMenu">个人中心</NuxtLink>
-        <button class="menu-item as-button" role="menuitem" type="button" @click="signOut">退出登录</button>
+        <NuxtLink class="menu-item" role="menuitem" href="/submit" @click="closeMenu">{{ t('common.auth.submitAbstract') }}</NuxtLink>
+        <NuxtLink class="menu-item" role="menuitem" href="/account#abstracts" @click="closeMenu">{{ t('common.auth.myAbstracts') }}</NuxtLink>
+        <NuxtLink class="menu-item" role="menuitem" href="/account" @click="closeMenu">{{ t('common.auth.account') }}</NuxtLink>
+        <button class="menu-item as-button" role="menuitem" type="button" @click="signOut">{{ t('common.auth.signOut') }}</button>
       </div>
     </template>
   </div>

@@ -7,6 +7,8 @@
  */
 import type { Map as MapLibreMap, Marker as MapLibreMarker, Popup as MapLibrePopup } from 'maplibre-gl'
 
+const { t } = useI18n()
+
 export interface MapPoi {
   name: string
   detail?: string
@@ -136,7 +138,7 @@ onMounted(async () => {
     map.on('move', readout)
   }
   catch (error) {
-    mapError.value = error instanceof Error ? error.message : '地图加载失败'
+      mapError.value = error instanceof Error ? error.message : t('common.map.loadFailed')
   }
 })
 
@@ -190,7 +192,7 @@ onUnmounted(() => {
     <div ref="mapEl" class="map-box" />
     <p v-if="mapReady" class="coords mono" data-testid="map-coords" aria-hidden="true">{{ coords }}</p>
     <div v-if="!mapReady" class="loading" data-testid="map-loading">
-      <p class="l-text mono">{{ mapError ? '地图加载失败' : '地图加载中…' }}</p>
+      <p class="l-text mono">{{ mapError ? t('common.map.loadFailed') : t('common.map.loading') }}</p>
       <p v-if="mapError" class="l-sub mono">{{ mapError }}</p>
     </div>
   </div>

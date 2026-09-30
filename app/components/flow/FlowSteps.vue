@@ -4,11 +4,13 @@ const props = defineProps<{
   current: number
 }>()
 
+const { t } = useI18n()
+
 const code = (n: number) => String(n).padStart(2, '0')
 </script>
 
 <template>
-  <ol class="steps" aria-label="Progress">
+  <ol class="steps" :aria-label="t('register.steps.ariaLabel')">
     <li
       v-for="(label, index) in props.steps"
       :key="label"

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'flow' })
-useSeoMeta({ title: '找回密码' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('auth.forgot.seoTitle') })
 
 const route = useRoute()
 
@@ -31,7 +33,7 @@ async function sendResetCode() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    error.value = e.data?.statusMessage ?? '重置码发送失败，请稍后再试。'
+    error.value = e.data?.statusMessage ?? t('auth.forgot.sendFailed')
   }
   finally {
     busy.value = false
@@ -50,7 +52,7 @@ async function resetPassword() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    error.value = e.data?.statusMessage ?? '重置失败，请核对验证码后重试。'
+    error.value = e.data?.statusMessage ?? t('auth.forgot.resetFailed')
   }
   finally {
     busy.value = false
@@ -63,51 +65,51 @@ async function resetPassword() {
     <header class="sec-head">
       <div class="sec-meta">
         <span class="sec-code">ACCOUNT · RECOVERY</span>
-        <span class="sec-tag">密码找回</span>
+        <span class="sec-tag">{{ t('auth.forgot.tag') }}</span>
       </div>
-      <h1 class="sec-title">找回<em>密码</em></h1>
+      <h1 class="sec-title">{{ t('auth.forgot.titleA') }}<em>{{ t('auth.forgot.titleEm') }}</em></h1>
     </header>
 
     <!-- done -->
     <section v-if="done" class="pane" aria-live="polite">
-      <p class="ok mono">密码已更新 ✓</p>
-      <NuxtLink class="btn btn-solid" :href="`/login?redirect=${encodeURIComponent(safeRedirect())}`">使用新密码登录</NuxtLink>
+      <p class="ok mono">{{ t('auth.forgot.done') }}</p>
+      <NuxtLink class="btn btn-solid" :href="`/login?redirect=${encodeURIComponent(safeRedirect())}`">{{ t('auth.forgot.signInWithNew') }}</NuxtLink>
     </section>
 
     <!-- step 0: email -->
     <section v-else-if="step === 0" aria-label="Request reset code">
-      <p class="note mono">输入注册邮箱，我们将发送 6 位重置码（10 分钟内有效）。</p>
+      <p class="note mono">{{ t('auth.forgot.intro') }}</p>
       <form class="form" @submit.prevent="sendResetCode">
         <label class="field">
-          <span class="f-label mono">邮箱</span>
+          <span class="f-label mono">{{ t('auth.forgot.emailLabel') }}</span>
           <input v-model="email" type="email" name="email" autocomplete="email" required>
         </label>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
         <button class="btn btn-solid" type="submit" :disabled="busy || !email">
-          {{ busy ? '发送中…' : '发送重置码' }}
+          {{ busy ? t('auth.forgot.sending') : t('auth.forgot.sendResetCode') }}
         </button>
       </form>
     </section>
 
     <!-- step 1: code + new password -->
     <section v-else aria-label="Set new password">
-      <p class="note mono">重置码已发送至 <strong>{{ email }}</strong></p>
+      <p class="note mono">{{ t('auth.forgot.sentTo') }} <strong>{{ email }}</strong></p>
       <p v-if="devCode" class="dev-code mono">DEV MODE — your reset code: <strong>{{ devCode }}</strong></p>
       <form class="form" @submit.prevent="resetPassword">
         <label class="field">
-          <span class="f-label mono">6 位重置码</span>
+          <span class="f-label mono">{{ t('auth.forgot.codeLabel') }}</span>
           <input v-model="code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="code-input">
         </label>
         <label class="field">
-          <span class="f-label mono">新密码 *（至少 8 位）</span>
+          <span class="f-label mono">{{ t('auth.forgot.newPwdLabel') }}</span>
           <input v-model="password" type="password" name="password" autocomplete="new-password" minlength="8" required>
         </label>
         <p v-if="error" class="msg bad mono">{{ error }}</p>
-        <button class="btn btn-solid" type="submit" :disabled="busy">更新密码</button>
+        <button class="btn btn-solid" type="submit" :disabled="busy">{{ t('auth.forgot.update') }}</button>
       </form>
     </section>
 
-    <p class="note mono"><NuxtLink class="link" href="/login">返回登录</NuxtLink></p>
+    <p class="note mono"><NuxtLink class="link" href="/login">{{ t('auth.forgot.backToLogin') }}</NuxtLink></p>
   </div>
 </template>
 

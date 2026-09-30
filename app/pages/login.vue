@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'flow' })
-useSeoMeta({ title: '登录' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('auth.login.seoTitle') })
 
 const route = useRoute()
 
@@ -17,8 +19,8 @@ const busy = ref(false)
 function errorMessage(err: unknown): string {
   const e = err as { data?: { statusMessage?: string } }
   const msg = e.data?.statusMessage ?? ''
-  if (msg.includes('Invalid') || msg.includes('invalid')) return '邮箱或密码不正确。'
-  return msg || '登录失败，请稍后再试。'
+  if (msg.includes('Invalid') || msg.includes('invalid')) return t('auth.login.errorInvalid')
+  return msg || t('auth.login.errorFallback')
 }
 
 async function login() {
@@ -46,33 +48,33 @@ async function login() {
     <header class="sec-head">
       <div class="sec-meta">
         <span class="sec-code">ACCOUNT · SIGN-IN</span>
-        <span class="sec-tag">参会人登录</span>
+        <span class="sec-tag">{{ t('auth.login.tag') }}</span>
       </div>
-      <h1 class="sec-title">登<em>录</em></h1>
+      <h1 class="sec-title">{{ t('auth.login.titleA') }}<em>{{ t('auth.login.titleEm') }}</em></h1>
     </header>
 
     <form class="form" @submit.prevent="login">
       <label class="field">
-        <span class="f-label mono">邮箱</span>
+        <span class="f-label mono">{{ t('auth.login.emailLabel') }}</span>
         <input v-model="email" type="email" name="email" autocomplete="email" required>
       </label>
       <label class="field">
-        <span class="f-label mono">密码</span>
+        <span class="f-label mono">{{ t('auth.login.pwdLabel') }}</span>
         <input v-model="password" type="password" name="password" autocomplete="current-password" required>
       </label>
       <p v-if="error" class="msg bad mono" role="alert">{{ error }}</p>
       <button class="btn btn-solid" type="submit" :disabled="busy">
-        {{ busy ? '登录中…' : '登录' }}
+        {{ busy ? t('auth.login.submitting') : t('auth.login.submit') }}
       </button>
     </form>
 
     <p class="note mono">
-      <NuxtLink class="link" :href="`/forgot-password?redirect=${encodeURIComponent(safeRedirect())}`">忘记密码？</NuxtLink>
+      <NuxtLink class="link" :href="`/forgot-password?redirect=${encodeURIComponent(safeRedirect())}`">{{ t('auth.login.forgot') }}</NuxtLink>
     </p>
     <p class="note mono">
-      还没有账号？
-      <NuxtLink class="link accent" :href="`/sign-up?redirect=${encodeURIComponent(safeRedirect())}`">立即注册</NuxtLink>
-      —— 只需一个邮箱和验证码。
+      {{ t('auth.login.noAccount') }}
+      <NuxtLink class="link accent" :href="`/sign-up?redirect=${encodeURIComponent(safeRedirect())}`">{{ t('auth.login.registerNow') }}</NuxtLink>
+      {{ t('auth.login.registerNote') }}
     </p>
   </div>
 </template>

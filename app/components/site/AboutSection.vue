@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { aboutContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
   <!-- 01 · ABOUT — margin column + offset measure -->
   <section id="about" class="sec">
     <div class="wrap">
-      <SecHead :code="aboutContent.code" :tag="aboutContent.tag" :title="aboutContent.title" />
+      <SecHead :code="content.aboutContent.code" :tag="content.aboutContent.tag" :title="content.aboutContent.title" />
       <div class="about-body">
         <ul class="about-note" aria-label="Symposium facts">
-          <li v-for="fact in aboutContent.facts" :key="fact.label">
+          <li v-for="fact in content.aboutContent.facts" :key="fact.label">
             <b>{{ fact.label.toUpperCase() }}</b> — {{ fact.value }}
           </li>
         </ul>
         <div class="about-copy">
-          <p class="lede">{{ aboutContent.paragraphs[0] }}</p>
-          <p>{{ aboutContent.paragraphs[1] }}</p>
+          <p class="lede">{{ content.aboutContent.paragraphs[0] }}</p>
+          <p>{{ content.aboutContent.paragraphs[1] }}</p>
         </div>
       </div>
     </div>

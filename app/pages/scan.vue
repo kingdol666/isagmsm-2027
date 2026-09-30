@@ -2,9 +2,11 @@
 import type { Html5Qrcode } from 'html5-qrcode'
 
 definePageMeta({ layout: 'bare' })
+const { t } = useI18n()
+
 useSeoMeta({
-  title: 'ISAGMSM · 签到核验端',
-  description: 'ISAGMSM 现场签到核验端。',
+  title: () => t('scan.seoTitle'),
+  description: () => t('scan.seoDescription'),
   robots: 'noindex, nofollow',
 })
 
@@ -41,7 +43,7 @@ async function login() {
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    loginError.value = e.data?.statusMessage ?? 'Login failed.'
+    loginError.value = e.data?.statusMessage ?? t('scan.gate.loginFailed')
   }
   finally {
     loginBusy.value = false
@@ -97,8 +99,8 @@ async function checkToken(token: string) {
     verify.value = null
     mode.value = 'result'
     actionMessage.value = e.data?.statusMessage === 'Authentication required'
-      ? 'Session expired — please sign in again.'
-      : 'Verification failed. Check the code and retry.'
+      ? t('scan.messages.sessionExpired')
+      : t('scan.messages.verifyFailed')
     return null
   }
 }
@@ -112,19 +114,19 @@ async function confirmCheckin() {
       body: { token: lastToken },
     })
     if (res.duplicate) {
-      actionMessage.value = `Already checked in at ${new Date(res.checkedInAt).toLocaleTimeString('en-GB')}.`
-      log(verify.value.participant.fullName, false, 'duplicate')
+      actionMessage.value = t('scan.messages.duplicate', { time: new Date(res.checkedInAt).toLocaleTimeString('en-GB') })
+      log(verify.value.participant.fullName, false, t('scan.log.noteDuplicate'))
     }
     else {
       actionMessage.value = ''
       verify.value.checkedInAt = res.checkedInAt
-      log(verify.value.participant.fullName, true, 'checked in')
+      log(verify.value.participant.fullName, true, t('scan.log.noteCheckedIn'))
     }
   }
   catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string } }
-    actionMessage.value = e.data?.statusMessage ?? 'Check-in failed.'
-    log(verify.value?.participant?.fullName ?? '?', false, 'error')
+    actionMessage.value = e.data?.statusMessage ?? t('scan.messages.checkinFailed')
+    log(verify.value?.participant?.fullName ?? '?', false, t('scan.log.noteError'))
   }
   finally {
     actionBusy.value = false
@@ -171,8 +173,8 @@ async function startCamera() {
   catch (err: unknown) {
     cameraAvailable.value = false
     cameraError.value = err instanceof Error
-      ? `摄像头不可用 (${err.message.slice(0, 60)}). 请使用手动输入。`
-      : '摄像头不可用. 请使用手动输入。'
+      ? t('scan.camera.unavailableDetail', { detail: err.message.slice(0, 60) })
+      : t('scan.camera.unavailable')
     mode.value = 'idle'
   }
 }
@@ -223,32 +225,32 @@ onUnmounted(stopCamera)
     <header class="s-bar">
       <span class="s-brand">ISAGMSM <span class="s-app">SCAN</span></span>
       <span v-if="authUser" class="s-user mono">{{ authUser.username }} · {{ authUser.role }}</span>
-      <button v-if="authState === 'staff'" class="s-exit mono" type="button" @click="logout">退出</button>
+      <button v-if="authState === 'staff'" class="s-exit mono" type="button" @click="logout">{{ t('scan.exit') }}</button>
     </header>
 
     <!-- anonymous: inline staff login -->
     <section v-if="authState === 'checking'" class="pane">
-      <p class="state">Checking session…</p>
+      <p class="state">{{ t('scan.checking') }}</p>
     </section>
 
     <section v-else-if="authState === 'anon'" class="pane">
-      <p class="kicker mono">STAFF ACCESS REQUIRED</p>
-      <h1 class="title">Check-in scanner</h1>
+      <p class="kicker mono">{{ t('scan.gate.kicker') }}</p>
+      <h1 class="title">{{ t('scan.gate.title') }}</h1>
       <form class="login" @submit.prevent="login">
         <label class="field">
-          <span class="f-label mono">Username</span>
+          <span class="f-label mono">{{ t('scan.gate.usernameLabel') }}</span>
           <input v-model="loginUsername" type="text" name="username" autocomplete="username">
         </label>
         <label class="field">
-          <span class="f-label mono">Password</span>
+          <span class="f-label mono">{{ t('scan.gate.pwdLabel') }}</span>
           <input v-model="loginPassword" type="password" name="password" autocomplete="current-password">
         </label>
         <p v-if="loginError" class="msg bad mono">{{ loginError }}</p>
         <button class="btn btn-solid wide" type="submit" :disabled="loginBusy">
-          {{ loginBusy ? 'Signing in…' : '登录' }}
+          {{ loginBusy ? t('scan.gate.submitting') : t('scan.gate.submit') }}
         </button>
       </form>
-      <p v-if="isDev" class="hint mono">Dev accounts — admin / pps26-admin · staff / pps26-staff</p>
+      <p v-if="isDev" class="hint mono">{{ t('scan.gate.devHint') }}</p>
     </section>
 
     <!-- staff: scanner -->
@@ -257,11 +259,11 @@ onUnmounted(stopCamera)
       <section v-if="mode === 'scanning' || mode === 'idle'" class="pane">
         <div class="reader-box" :class="{ live: mode === 'scanning' }">
           <div id="scan-reader" class="reader" />
-          <p v-if="mode === 'idle'" class="reader-idle mono">{{ cameraError || '正在启动摄像头…' }}</p>
+          <p v-if="mode === 'idle'" class="reader-idle mono">{{ cameraError || t('scan.camera.starting') }}</p>
         </div>
 
         <form class="manual" @submit.prevent="submitManual">
-          <label class="f-label mono" for="manual-token">Manual entry — registration ID or verification link</label>
+          <label class="f-label mono" for="manual-token">{{ t('scan.manual.label') }}</label>
           <div class="manual-row">
             <input
               id="manual-token"
@@ -270,9 +272,9 @@ onUnmounted(stopCamera)
               inputmode="text"
               autocomplete="off"
               spellcheck="false"
-              placeholder="e.g. https://…/verify/<token> or token"
+              :placeholder="t('scan.manual.placeholder')"
             >
-            <button class="btn btn-solid" type="submit">Verify</button>
+            <button class="btn btn-solid" type="submit">{{ t('scan.manual.verify') }}</button>
           </div>
         </form>
       </section>
@@ -281,16 +283,16 @@ onUnmounted(stopCamera)
       <section v-else class="pane result">
         <template v-if="verify?.valid && verify.participant">
           <p class="kicker mono" :class="verify.checkedInAt ? 'bad' : 'good'">
-            {{ verify.checkedInAt ? '已签到' : '凭证有效' }}
+            {{ verify.checkedInAt ? t('scan.verdict.checkedIn') : t('scan.verdict.valid') }}
           </p>
           <p class="p-name">{{ verify.participant.fullName }}</p>
           <p class="p-aff">{{ verify.participant.affiliation }}</p>
           <dl class="p-facts">
-            <div class="p-row"><dt>Registration</dt><dd class="mono">{{ verify.participant.displayId }}</dd></div>
-            <div class="p-row"><dt>Type</dt><dd>{{ verify.participant.typeName }}</dd></div>
-            <div class="p-row"><dt>Country</dt><dd>{{ verify.participant.country }}</dd></div>
+            <div class="p-row"><dt>{{ t('scan.facts.registration') }}</dt><dd class="mono">{{ verify.participant.displayId }}</dd></div>
+            <div class="p-row"><dt>{{ t('scan.facts.type') }}</dt><dd>{{ verify.participant.typeName }}</dd></div>
+            <div class="p-row"><dt>{{ t('scan.facts.country') }}</dt><dd>{{ verify.participant.country }}</dd></div>
             <div v-if="verify.checkedInAt" class="p-row">
-              <dt>已签到</dt><dd>{{ new Date(verify.checkedInAt).toLocaleTimeString('en-GB') }}</dd>
+              <dt>{{ t('scan.facts.checkedIn') }}</dt><dd>{{ new Date(verify.checkedInAt).toLocaleTimeString('en-GB') }}</dd>
             </div>
           </dl>
           <p v-if="actionMessage" class="msg bad mono">{{ actionMessage }}</p>
@@ -302,27 +304,27 @@ onUnmounted(stopCamera)
               :disabled="actionBusy"
               @click="confirmCheckin"
             >
-              {{ actionBusy ? 'Confirming…' : '确认签到' }}
+              {{ actionBusy ? t('scan.actions.confirming') : t('scan.actions.confirm') }}
             </button>
-            <button class="btn btn-ghost wide" type="button" @click="resetToScan">扫下一个</button>
+            <button class="btn btn-ghost wide" type="button" @click="resetToScan">{{ t('scan.actions.scanNext') }}</button>
           </div>
         </template>
 
         <template v-else>
           <p class="kicker mono bad">
-            {{ verify?.reason === 'not_found' ? '未识别' : verify?.reason === 'registration_not_confirmed' ? '未确认缴费' : verify?.reason === 'revoked' ? '已撤销' : '核验失败' }}
+            {{ verify?.reason === 'not_found' ? t('scan.verdict.notRecognized') : verify?.reason === 'registration_not_confirmed' ? t('scan.verdict.unconfirmed') : verify?.reason === 'revoked' ? t('scan.verdict.revoked') : t('scan.verdict.failed') }}
           </p>
-          <p class="p-name">{{ actionMessage || '该二维码不是有效的 ISAGMSM 参会凭证。' }}</p>
+          <p class="p-name">{{ actionMessage || t('scan.verdict.invalidBody') }}</p>
           <p v-if="verify?.participant" class="p-aff">{{ verify.participant.fullName }} · {{ verify.participant.displayId }} · status: {{ verify.reason }}</p>
           <div class="actions">
-            <button class="btn btn-solid wide" type="button" @click="resetToScan">扫下一个</button>
+            <button class="btn btn-solid wide" type="button" @click="resetToScan">{{ t('scan.actions.scanNext') }}</button>
           </div>
         </template>
       </section>
 
       <!-- recent log -->
       <section v-if="recentLogs.length" class="pane log">
-        <p class="f-label mono">Recent (this device)</p>
+        <p class="f-label mono">{{ t('scan.log.title') }}</p>
         <ul>
           <li v-for="(entry, index) in recentLogs" :key="index" class="log-row">
             <span class="mono log-time">{{ entry.time }}</span>

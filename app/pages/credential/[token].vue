@@ -21,10 +21,11 @@ interface CredentialResponse {
 
 definePageMeta({ layout: 'flow' })
 
+const { t } = useI18n()
 const route = useRoute()
 const token = computed(() => String(route.params.token))
 
-useSeoMeta({ title: 'Your Credential' })
+useSeoMeta({ title: () => t('credential.seoTitle') })
 
 const { data, error } = await useFetch<CredentialResponse>(`/api/credentials/${token.value}`)
 const credential = computed(() => data.value?.credential)
@@ -36,54 +37,54 @@ function printPage() {
 
 <template>
   <div class="cred">
-    <p v-if="error" class="state">Credential not found. Check the link from your confirmation.</p>
+    <p v-if="error" class="state">{{ t('credential.notFound') }}</p>
 
     <template v-else-if="credential">
       <header class="sec-head">
         <div class="sec-meta">
-          <span class="sec-code">ISAGMSM—09 · 凭证</span>
+          <span class="sec-code">{{ t('credential.secCode') }}</span>
           <span class="sec-tag">ACADEMIC EVENT PASS</span>
         </div>
         <h1 class="sec-title">
-          <template v-if="credential.checkedInAt">已完成<em>签到</em></template>
-          <template v-else>报名<em>已确认</em></template>
+          <template v-if="credential.checkedInAt">{{ t('credential.titleCheckedInA') }}<em>{{ t('credential.titleCheckedInEm') }}</em></template>
+          <template v-else>{{ t('credential.titleConfirmedA') }}<em>{{ t('credential.titleConfirmedEm') }}</em></template>
         </h1>
       </header>
 
       <!-- the pass -->
-      <article class="pass" aria-label="ISAGMSM 2027 会议凭证">
+      <article class="pass" :aria-label="t('credential.ariaPass')">
         <header class="pass-top">
           <div>
             <p class="pass-mark">ISAGMSM<i>·</i>27</p>
-            <p class="pass-event">第五届先进凝胶材料与软物质国际学术研讨会</p>
+            <p class="pass-event">{{ t('credential.passEvent') }}</p>
           </div>
           <p class="pass-status" :class="{ ok: credential.status === 'active' }">
-            {{ credential.status === 'active' ? 'VALID' : 'REVOKED' }}
+            {{ credential.status === 'active' ? t('credential.statusValid') : t('credential.statusRevoked') }}
           </p>
         </header>
 
         <div class="pass-body">
           <div class="pass-who">
-            <p class="label">参会人</p>
+            <p class="label">{{ t('credential.holder') }}</p>
             <p class="name">{{ credential.registration.fullName }}</p>
             <p class="aff">{{ credential.registration.affiliation }}</p>
             <p class="country">{{ credential.registration.country }}</p>
 
             <dl class="facts">
               <div class="fact">
-                <dt>报名类型</dt>
+                <dt>{{ t('credential.typeLabel') }}</dt>
                 <dd>{{ credential.type.name }}</dd>
               </div>
               <div class="fact">
-                <dt>参会 ID</dt>
+                <dt>{{ t('credential.participantId') }}</dt>
                 <dd class="mono">{{ credential.registration.displayId }}</dd>
               </div>
               <div class="fact">
-                <dt>签到状态</dt>
+                <dt>{{ t('credential.checkinStatusLabel') }}</dt>
                 <dd>
                   {{ credential.checkedInAt
-                    ? `Checked in ${new Date(credential.checkedInAt).toLocaleString('en-GB')}`
-                    : '尚未签到' }}
+                    ? t('credential.checkedInAt', { time: new Date(credential.checkedInAt).toLocaleString('en-GB') })
+                    : t('credential.notCheckedIn') }}
                 </dd>
               </div>
             </dl>
@@ -92,11 +93,11 @@ function printPage() {
           <figure class="pass-qr">
             <img
               :src="`/api/credentials/${token}/qr`"
-              alt="Credential verification QR code"
+              :alt="t('credential.qrAlt')"
               width="200"
               height="200"
             >
-            <figcaption class="mono">扫码核验</figcaption>
+            <figcaption class="mono">{{ t('credential.qrCaption') }}</figcaption>
           </figure>
         </div>
 
@@ -107,15 +108,15 @@ function printPage() {
       </article>
 
       <div class="actions">
-        <a class="btn btn-solid" :href="`/api/credentials/${token}/pdf`" download>下载 PDF</a>
-        <NuxtLink class="btn btn-ghost" :to="`/verify/${token}`">核验凭证</NuxtLink>
-        <button class="btn btn-ghost" type="button" @click="printPage">打印</button>
+        <a class="btn btn-solid" :href="`/api/credentials/${token}/pdf`" download>{{ t('credential.downloadPdf') }}</a>
+        <NuxtLink class="btn btn-ghost" :to="`/verify/${token}`">{{ t('credential.verifyCred') }}</NuxtLink>
+        <button class="btn btn-ghost" type="button" @click="printPage">{{ t('credential.print') }}</button>
       </div>
 
-      <p class="state small">Keep this page safe — the link contains your personal verification QR. A copy was generated for the email {{ credential.registration.email }}.</p>
+      <p class="state small">{{ t('credential.keepSafe', { email: credential.registration.email }) }}</p>
     </template>
 
-    <p v-else class="state">Loading credential…</p>
+    <p v-else class="state">{{ t('credential.loading') }}</p>
   </div>
 </template>
 

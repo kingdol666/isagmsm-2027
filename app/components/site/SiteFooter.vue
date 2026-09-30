@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { footerContent, siteMeta, siteNav } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
@@ -7,15 +10,15 @@ import { footerContent, siteMeta, siteNav } from '#shared/content/site'
        content column (see layouts/site.vue) so the fixed rail never covers it. -->
   <footer id="colophon" class="colophon">
     <div class="wrap">
-      <p class="f-mark">ISAGMSM<span>{{ siteMeta.fullNameEn }}</span></p>
+      <p class="f-mark">ISAGMSM<span>{{ content.siteMeta.fullNameEn }}</span></p>
       <div class="f-grid">
         <div>
-          <p class="f-line">{{ footerContent.line }}</p>
-          <a class="f-mail" :href="`mailto:${siteMeta.email}`">{{ siteMeta.email }}</a>
-          <p class="f-host">{{ footerContent.hostNote }}</p>
+          <p class="f-line">{{ content.footerContent.line }}</p>
+          <a class="f-mail" :href="`mailto:${content.siteMeta.email}`">{{ content.siteMeta.email }}</a>
+          <p class="f-host">{{ content.footerContent.hostNote }}</p>
         </div>
-        <nav class="f-nav" aria-label="页脚导航">
-          <NuxtLink v-for="item in siteNav" :key="item.code" :to="item.href">{{ item.label }}</NuxtLink>
+        <nav class="f-nav" :aria-label="t('common.menu.footerNavLabel')">
+          <NuxtLink v-for="item in content.siteNav" :key="item.code" :to="item.href">{{ item.label }}</NuxtLink>
         </nav>
       </div>
       <!-- utility row: participant + staff entry points -->
@@ -35,7 +38,7 @@ import { footerContent, siteMeta, siteNav } from '#shared/content/site'
       <div class="f-strata strata" aria-hidden="true">
         <span /><span /><span /><span /><span />
       </div>
-      <p class="f-copy">{{ siteMeta.copyright }}</p>
+      <p class="f-copy">{{ content.siteMeta.copyright }}</p>
     </div>
   </footer>
 </template>

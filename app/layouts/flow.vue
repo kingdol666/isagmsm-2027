@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { siteMeta } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
   <div class="flow">
     <header class="flow-bar">
-      <NuxtLink class="flow-brand" href="/">{{ siteMeta.shortName }}</NuxtLink>
-      <span class="flow-note">{{ siteMeta.fullNameZh }}</span>
+      <NuxtLink class="flow-brand" href="/">{{ content.siteMeta.shortName }}</NuxtLink>
+      <span class="flow-note">{{ content.siteMeta.fullName }}</span>
       <div class="flow-right">
+        <LocaleToggle />
         <ClientOnly>
           <AuthChip />
           <template #fallback>
@@ -21,7 +25,7 @@ import { siteMeta } from '#shared/content/site'
       <slot />
     </main>
     <footer class="flow-foot wrap">
-      <p class="mono">{{ siteMeta.dates }} · {{ siteMeta.location }}</p>
+      <p class="mono">{{ content.siteMeta.dates }} · {{ content.siteMeta.location }}</p>
     </footer>
   </div>
 </template>

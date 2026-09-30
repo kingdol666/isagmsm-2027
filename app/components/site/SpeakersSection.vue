@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { speakersContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
   <!-- 03 · KEYNOTE SPEAKERS — 4/2/1, monogram plates -->
   <section id="speakers" class="sec">
     <div class="wrap">
-      <SecHead :code="speakersContent.code" :tag="speakersContent.tag" :title="'拟邀大会报告'" />
+      <SecHead :code="content.speakersContent.code" :tag="content.speakersContent.tag" :title="t('home.speakers.title')" />
       <!-- Placeholder note: portraits are letter monograms by design —
            no real photographs are used (honesty rule). Sample data. -->
       <div class="sp-grid">
-        <article v-for="speaker in speakersContent.items" :key="speaker.code" class="speaker">
-          <p class="sp-head"><b>{{ speaker.code }}</b><span>大会报告</span></p>
+        <article v-for="speaker in content.speakersContent.items" :key="speaker.code" class="speaker">
+          <p class="sp-head"><b>{{ speaker.code }}</b><span>{{ t('home.speakers.headBadge') }}</span></p>
           <figure class="sp-plate" role="img" :aria-label="`Monogram placeholder for ${speaker.name}`">
             <span aria-hidden="true">{{ speaker.monogram }}</span>
           </figure>

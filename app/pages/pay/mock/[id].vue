@@ -10,11 +10,12 @@ interface PaymentView {
 }
 
 definePageMeta({ layout: 'flow' })
+const { t } = useI18n()
 
 const route = useRoute()
 const paymentId = computed(() => String(route.params.id))
 
-useSeoMeta({ title: 'Mock Cashier' })
+useSeoMeta({ title: () => t('payment.mock.seoTitle') })
 
 const { data, error, refresh } = await useFetch<PaymentView>(`/api/payments/${paymentId.value}`)
 const busy = ref<'paid' | 'failed' | null>(null)
@@ -35,13 +36,13 @@ async function act(result: 'paid' | 'failed') {
       body: { paymentId: paymentId.value, result },
     })
     resultMessage.value = res.duplicate
-      ? 'This payment was already processed.'
-      : `Simulated ${res.status ?? result}. The signed webhook has been processed.`
+      ? t('payment.mock.alreadyProcessed')
+      : t('payment.mock.simulated', { status: res.status ?? result })
     await refresh()
   }
   catch (error: unknown) {
     const err = error as { data?: { statusMessage?: string } }
-    resultMessage.value = err.data?.statusMessage ?? 'Action failed.'
+    resultMessage.value = err.data?.statusMessage ?? t('payment.mock.actionFailed')
   }
   finally {
     busy.value = null
@@ -53,39 +54,39 @@ async function act(result: 'paid' | 'failed') {
   <div class="cashier">
     <header class="sec-head">
       <div class="sec-meta">
-        <span class="sec-code">MOCK CASHIER</span>
-        <span class="sec-tag">DEMO PAYMENT TERMINAL</span>
+        <span class="sec-code">{{ t('payment.mock.code') }}</span>
+        <span class="sec-tag">{{ t('payment.mock.tag') }}</span>
       </div>
-      <h1 class="sec-title">Simulated Payment</h1>
+      <h1 class="sec-title">{{ t('payment.mock.title') }}</h1>
     </header>
 
-    <p v-if="error" class="state">Payment not found.</p>
+    <p v-if="error" class="state">{{ t('payment.mock.notFound') }}</p>
 
     <template v-else-if="data?.payment">
       <dl class="summary">
-        <div class="row"><dt>Reference</dt><dd class="mono">{{ data.payment.payload?.orderNo ?? data.payment.id }}</dd></div>
-        <div class="row"><dt>Provider</dt><dd class="mono">MOCK PAY</dd></div>
-        <div class="row total"><dt>Amount</dt><dd>¥{{ yuan(data.payment.amountFen) }}</dd></div>
+        <div class="row"><dt>{{ t('payment.mock.reference') }}</dt><dd class="mono">{{ data.payment.payload?.orderNo ?? data.payment.id }}</dd></div>
+        <div class="row"><dt>{{ t('payment.mock.provider') }}</dt><dd class="mono">{{ t('payment.mock.providerName') }}</dd></div>
+        <div class="row total"><dt>{{ t('payment.mock.amount') }}</dt><dd>¥{{ yuan(data.payment.amountFen) }}</dd></div>
       </dl>
 
-      <p class="state small">This page stands in for the payment app a participant would open after scanning the QR. Actions fire a signed webhook through the exact same verification and idempotency path as a real provider callback.</p>
+      <p class="state small">{{ t('payment.mock.explainer') }}</p>
 
       <div v-if="data.payment.status === 'pending'" class="actions">
         <button class="btn btn-solid" type="button" :disabled="busy !== null" @click="act('paid')">
-          {{ busy === 'paid' ? 'Processing…' : 'Simulate successful payment' }}
+          {{ busy === 'paid' ? t('payment.mock.processing') : t('payment.mock.simulatePaid') }}
         </button>
         <button class="btn btn-ghost" type="button" :disabled="busy !== null" @click="act('failed')">
-          Simulate failure
+          {{ t('payment.mock.simulateFailed') }}
         </button>
       </div>
 
-      <p v-else class="state done">Payment status: {{ data.payment.status.toUpperCase() }}</p>
+      <p v-else class="state done">{{ t('payment.mock.statusLine', { status: data.payment.status.toUpperCase() }) }}</p>
 
       <p v-if="resultMessage" class="state result">{{ resultMessage }}</p>
 
       <p class="state small back">
-        Result is reflected on the payment page automatically via status polling.
-        <button class="link" type="button" @click="goBack">← Back</button>
+        {{ t('payment.mock.pollNote') }}
+        <button class="link" type="button" @click="goBack">{{ t('payment.mock.back') }}</button>
       </p>
     </template>
   </div>

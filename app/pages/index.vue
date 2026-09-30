@@ -1,14 +1,28 @@
 <script setup lang="ts">
-import { siteMeta, transportationContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'site' })
 
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
+
 useSeoMeta({
-  title: `${siteMeta.fullNameZh} · ${siteMeta.dates} · ${siteMeta.location}`,
-  description:
-    `${siteMeta.fullNameEn}（${siteMeta.fullNameZh}），${siteMeta.dates}，${siteMeta.location}。围绕凝胶材料设计合成、软物质物理、智能响应体系、生物医用转化与产业化交流最新进展。`,
-  ogTitle: `ISAGMSM 2027 — ${siteMeta.fullNameZh}`,
-  ogDescription: `${siteMeta.dates} · ${siteMeta.location} · 立即报名`,
+  title: () => t('home.seo.title', {
+    name: content.value.siteMeta.fullName,
+    dates: content.value.siteMeta.dates,
+    location: content.value.siteMeta.location,
+  }),
+  description: () => t('home.seo.description', {
+    nameEn: content.value.siteMeta.fullNameEn,
+    nameZh: content.value.siteMeta.fullNameZh,
+    dates: content.value.siteMeta.dates,
+    location: content.value.siteMeta.location,
+  }),
+  ogTitle: () => t('home.seo.ogTitle', { name: content.value.siteMeta.fullName }),
+  ogDescription: () => t('home.seo.ogDescription', {
+    dates: content.value.siteMeta.dates,
+    location: content.value.siteMeta.location,
+  }),
   ogType: 'website',
   twitterCard: 'summary_large_image',
 })
@@ -20,8 +34,8 @@ useHead({
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'ConferenceEvent',
-        name: siteMeta.fullNameEn,
-        alternateName: siteMeta.fullNameZh,
+        name: content.value.siteMeta.fullNameEn,
+        alternateName: content.value.siteMeta.fullNameZh,
         description: '第五届先进凝胶材料与软物质国际学术研讨会',
         startDate: '2027-04-24',
         endDate: '2027-04-26',
@@ -29,7 +43,7 @@ useHead({
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         location: {
           '@type': 'Place',
-          name: transportationContent.venueName,
+          name: content.value.transportationContent.venueName,
           address: {
             '@type': 'PostalAddress',
             addressLocality: '合肥',
@@ -40,7 +54,7 @@ useHead({
         organizer: {
           '@type': 'Organization',
           name: 'ISAGMSM 组织委员会',
-          email: siteMeta.email,
+          email: content.value.siteMeta.email,
         },
       }),
     },

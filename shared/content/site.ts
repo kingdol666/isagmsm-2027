@@ -19,6 +19,8 @@ import type {
 export const siteMeta = {
   shortName: 'ISAGMSM',
   name: 'ISAGMSM 2027',
+  /** 当前语言的会议全称（zh 中文 / en 英文，i18n 用） */
+  fullName: '第五届先进凝胶材料与软物质国际学术研讨会',
   fullNameZh: '第五届先进凝胶材料与软物质国际学术研讨会',
   fullNameEn: 'The 5th International Symposium for Advanced Gel Materials & Soft Matters',
   theme: '凝胶赋能 · 软物智造',

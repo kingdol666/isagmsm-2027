@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { programContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale } = useI18n()
+const content = computed(() => siteContent(locale.value))
 
 const activeIndex = ref(0)
 const tabsEl = ref<HTMLDivElement | null>(null)
@@ -16,7 +19,7 @@ function onKeydown(event: KeyboardEvent, index: number) {
   const dir = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
   if (!dir) return
   event.preventDefault()
-  const days = programContent.days.length
+  const days = content.value.programContent.days.length
   const next = (index + dir + days) % days
   activeIndex.value = next
   focusTab(next)
@@ -27,10 +30,10 @@ function onKeydown(event: KeyboardEvent, index: number) {
   <!-- 04 · PROGRAM — the inverted spread -->
   <section id="program" class="sec">
     <div class="wrap">
-      <SecHead :code="programContent.code" :tag="programContent.tag" :title="programContent.title" />
+      <SecHead :code="content.programContent.code" :tag="content.programContent.tag" :title="content.programContent.title" />
       <div ref="tabsEl" class="day-tabs" role="tablist" aria-label="Programme days">
         <button
-          v-for="(day, index) in programContent.days"
+          v-for="(day, index) in content.programContent.days"
           :key="day.id"
           class="day-tab"
           :class="{ active: activeIndex === index }"
@@ -47,7 +50,7 @@ function onKeydown(event: KeyboardEvent, index: number) {
       </div>
 
       <div
-        v-for="(day, index) in programContent.days"
+        v-for="(day, index) in content.programContent.days"
         v-show="activeIndex === index"
         :id="day.id"
         :key="day.id"

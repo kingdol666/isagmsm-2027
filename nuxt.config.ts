@@ -49,13 +49,11 @@ export default defineNuxtConfig({
     },
   },
 
-  routeRules: {
-    '/': { swr: 60 },
-  },
-
+  // 注意：不要对页面路由启用 swr/isr 缓存 —— 站点语言随 pps_locale cookie 变化，
+  // 页面级缓存会把某一种语言的 HTML 串给所有用户（曾导致首页 cookie 语言失效）。
   app: {
     head: {
-      htmlAttrs: { lang: 'en' },
+      htmlAttrs: { lang: 'zh-CN' },
       meta: [
         { name: 'color-scheme', content: 'light' },
       ],

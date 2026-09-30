@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { registrationInfoContent as info } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'site' })
-useSeoMeta({ title: '参会注册' })
+const { t, locale } = useI18n()
+
+useSeoMeta({ title: () => t('register.info.seoTitle') })
+
+const content = computed(() => siteContent(locale.value).registrationInfoContent)
 </script>
 
 <template>
@@ -10,70 +14,70 @@ useSeoMeta({ title: '参会注册' })
     <div class="wrap">
       <header class="sec-head">
         <div class="sec-meta">
-          <span class="sec-code">{{ info.code }}</span>
-          <span class="sec-tag">{{ info.tag }}</span>
+          <span class="sec-code">{{ content.code }}</span>
+          <span class="sec-tag">{{ content.tag }}</span>
         </div>
-        <h1 class="sec-title">{{ info.title }}</h1>
+        <h1 class="sec-title">{{ content.title }}</h1>
       </header>
 
       <!-- 注册费表 -->
       <section class="block">
-        <h2 class="b-title">注册费标准</h2>
+        <h2 class="b-title">{{ t('register.info.feeTitle') }}</h2>
         <div class="fee-wrap">
           <table class="fee-table">
             <thead>
               <tr>
-                <th v-for="h in info.feeTable.headers" :key="h">{{ h }}</th>
+                <th v-for="h in content.feeTable.headers" :key="h">{{ h }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in info.feeTable.rows" :key="row[0]">
+              <tr v-for="row in content.feeTable.rows" :key="row[0]">
                 <td v-for="cell in row" :key="cell">{{ cell }}</td>
               </tr>
             </tbody>
           </table>
-          <p class="fee-note mono">{{ info.feeTable.note }}</p>
+          <p class="fee-note mono">{{ content.feeTable.note }}</p>
         </div>
       </section>
 
       <!-- 注册流程 -->
       <section class="block">
-        <h2 class="b-title">注册流程</h2>
+        <h2 class="b-title">{{ t('register.info.flowTitle') }}</h2>
         <ol class="step-list">
-          <li v-for="(step, index) in info.steps" :key="index">
+          <li v-for="(step, index) in content.steps" :key="index">
             <span class="r-no mono">{{ String(index + 1).padStart(2, '0') }}</span>
             <span class="r-text">{{ step }}</span>
           </li>
         </ol>
         <div class="cta-row">
-          <NuxtLink class="btn btn-solid" href="/register">立即报名 · 获取参会 ID</NuxtLink>
+          <NuxtLink class="btn btn-solid" href="/register">{{ t('register.info.ctaNow') }}</NuxtLink>
         </div>
       </section>
 
       <!-- 对公转账 -->
       <section class="block">
-        <h2 class="b-title">缴费方式 · 对公转账</h2>
+        <h2 class="b-title">{{ t('register.info.payTitle') }}</h2>
         <div class="bank-box">
           <dl class="bank-grid">
-            <div class="bank-row"><dt>开户名称</dt><dd>{{ info.bank.accountName }}</dd></div>
-            <div class="bank-row"><dt>开户银行</dt><dd>{{ info.bank.bank }}</dd></div>
-            <div class="bank-row"><dt>银行账号</dt><dd class="mono">{{ info.bank.accountNumber }}</dd></div>
+            <div class="bank-row"><dt>{{ t('register.info.bankAccountName') }}</dt><dd>{{ content.bank.accountName }}</dd></div>
+            <div class="bank-row"><dt>{{ t('register.info.bankName') }}</dt><dd>{{ content.bank.bank }}</dd></div>
+            <div class="bank-row"><dt>{{ t('register.info.bankAccountNumber') }}</dt><dd class="mono">{{ content.bank.accountNumber }}</dd></div>
           </dl>
           <div class="remark">
-            <p class="rk-label mono">转账附言必注</p>
-            <p class="rk-format"><span class="mono">{{ info.bank.remarkFormat }}</span><span class="rk-eg">（例：ISAGMSM-000012-张三）</span></p>
-            <p class="rk-note">请务必在附言中注明参会 ID 与姓名，会务组将以此核对转账记录并下发电子凭证。</p>
+            <p class="rk-label mono">{{ t('register.info.remarkLabel') }}</p>
+            <p class="rk-format"><span class="mono">{{ content.bank.remarkFormat }}</span><span class="rk-eg">{{ t('register.info.remarkExample') }}</span></p>
+            <p class="rk-note">{{ t('register.info.remarkNote') }}</p>
           </div>
-          <p class="deadline mono">{{ info.bank.deadline }}</p>
+          <p class="deadline mono">{{ content.bank.deadline }}</p>
         </div>
       </section>
 
       <!-- 发票与须知 -->
       <section class="block">
-        <h2 class="b-title">发票与须知</h2>
+        <h2 class="b-title">{{ t('register.info.invoiceTitle') }}</h2>
         <ul class="notice-list">
-          <li>{{ info.invoice }}</li>
-          <li>{{ info.notice }}</li>
+          <li>{{ content.invoice }}</li>
+          <li>{{ content.notice }}</li>
         </ul>
       </section>
     </div>

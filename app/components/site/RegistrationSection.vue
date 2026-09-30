@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { registrationContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale } = useI18n()
+const content = computed(() => siteContent(locale.value))
 
 function formatPrice(price: number): string {
   return price.toLocaleString('en-US')
@@ -11,9 +14,9 @@ function formatPrice(price: number): string {
        server-side registration_types table is the pricing source of truth) -->
   <section id="registration" class="sec">
     <div class="wrap">
-      <SecHead :code="registrationContent.code" :tag="registrationContent.tag" :title="registrationContent.title" />
+      <SecHead :code="content.registrationContent.code" :tag="content.registrationContent.tag" :title="content.registrationContent.title" />
       <div class="tier-grid">
-        <article v-for="tier in registrationContent.types" :key="tier.code" class="tier">
+        <article v-for="tier in content.registrationContent.types" :key="tier.code" class="tier">
           <span class="t-code">{{ tier.code }}</span>
           <h3>{{ tier.name }}</h3>
           <p class="price">
@@ -27,7 +30,7 @@ function formatPrice(price: number): string {
       </div>
       <div class="reg-foot">
         <NuxtLink class="btn btn-solid" href="/register">Register Now</NuxtLink>
-        <p class="reg-note">{{ registrationContent.note }}</p>
+        <p class="reg-note">{{ content.registrationContent.note }}</p>
       </div>
     </div>
   </section>

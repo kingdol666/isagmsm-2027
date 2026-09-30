@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { datesContent, siteMeta } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
   <!-- 05 · IMPORTANT DATES — the ledger -->
   <section id="dates" class="sec">
     <div class="wrap">
-      <SecHead :code="datesContent.code" :tag="datesContent.tag" :title="datesContent.title" />
+      <SecHead :code="content.datesContent.code" :tag="content.datesContent.tag" :title="content.datesContent.title" />
       <ul class="date-ledger">
-        <li v-for="item in datesContent.items" :key="item.label" :class="{ 'is-hot': item.hot }">
+        <li v-for="item in content.datesContent.items" :key="item.label" :class="{ 'is-hot': item.hot }">
           <span class="dl-label">{{ item.label }}</span>
           <span class="dl-date">{{ item.date }}</span>
         </li>
@@ -16,12 +19,12 @@ import { datesContent, siteMeta } from '#shared/content/site'
       <!-- 征稿 CTA -->
       <div class="cfp">
         <p class="cfp-text">
-          <b>征稿启事</b> — 欢迎围绕六大研究方向投稿，摘要提交截止 2027年3月25日。
+          <b>{{ t('home.dates.cfpTag') }}</b>{{ t('home.dates.cfpText') }}
         </p>
         <a
           class="btn btn-ghost"
-          :href="`mailto:${siteMeta.abstractsEmail}?subject=ISAGMSM%E6%8A%95%E7%A8%BF`"
-        >提交摘要</a>
+          :href="`mailto:${content.siteMeta.abstractsEmail}?subject=ISAGMSM%E6%8A%95%E7%A8%BF`"
+        >{{ t('home.dates.cfpCta') }}</a>
       </div>
     </div>
   </section>

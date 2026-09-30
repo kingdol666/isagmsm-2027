@@ -24,6 +24,7 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 - `mock-provider.test.ts` — webhook signature: valid, wrong, tampered body, unknown result, malformed JSON.
 - `auth.service.test.ts` — sign-up with code (account created + verified), duplicate sign-up rejected, wrong codes and the 5-attempt burn, resend cooldown, login (ok / wrong password / unknown user), password reset (code works, old password dies, wrong codes rejected).
 - `abstract.service.test.ts` — 投稿状态机：submit + 事件记录、接收（附意见 + 邮件 spy）、已审结不可再审、返稿 → 重投版本 +1 → 再接收、他人重投 403、未返稿重投 409、返稿意见 ≥5 字校验；**版本内容快照**（投稿/重投各存一份）、**撤回**（仅本人/仅待审与已返稿、管理台列表不可见、不可逆、历史与快照保留）。
+- `i18n.test.ts` — i18n 完整性：zh/en 字典逐键奇偶校验（切片文案）、叶子值非空校验、site-en.ts 内容镜像结构奇偶校验（导出名/键/数组长度）与翻译有效性抽查。
 - `attachment.test.ts` — 投稿附件校验：魔数嗅探（pdf/docx/doc）、文件名净化（去路径/控制字符/限长）、全量校验（413 超限 / 422 空文件·扩展名白名单·内容与扩展名不符）、对象键唯一性、RFC 5987 下载头。
 
 ## Integration coverage (`domain-chain.test.ts`)
@@ -47,6 +48,7 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 | `admin-credential-flow.spec.ts` | 会员凭证闭环（多浏览器上下文）：管理台设会员 → 收款确认下发 → 用户头像区凭证 → 扫码有效 → 撤销 → 扫码已撤销 → 恢复 → 有效 → **取消会员自动吊销** → 扫码/verify 均被拒 |
 | `misc.spec.ts` | `/api/health` integrations report, styled 404 page, robots.txt + sitemap.xml, JSON-LD structured data + header nav, all seven conference pages render, profile save/persist, 390 px homepage zero overflow |
 | `abstract-flow.spec.ts` | 投稿送审闭环（审稿在管理台 3001）：在线投稿（动态添加作者行）→ 个人中心待审 + 历史 → 管理台搜索/展开/返稿（意见必填）→ 投稿人看到返稿意见 → 修改重投（预填表单，版本 +1）→ 管理台接收 → 投稿人看到已接收 + 完整历史（返稿/重投/接收） |
+| `locale.spec.ts` | 中英文切换：默认中文（导航/横幅/登录页 + html lang=zh-CN）→ 点 LocaleToggle 即时切英文（无刷新）→ 刷新后 cookie 保持英文（SSR 直出）→ 切回中文；账号菜单入口同步 |
 | `abstract-attachment.spec.ts` | 投稿附件 OSS 全链路：用户投 Word 附件 → 个人中心历史附件可见、属主可下载（字节一致）；匿名 401 / 他人 404；管理台展开可见附件并按版本下载（字节一致）→ 返稿（意见）→ 用户修改重投（PDF 新附件，v2）→ 管理台下载 v2 附件（v1 仍可下载）→ 接收 → 用户看到两版附件；附件边界：伪装 PDF 422、>10MB 413、缺附件 422、零副作用 |
 | `abstract-withdraw.spec.ts` | | 投稿完整设计：同一账号**多论文投递**（两篇连续投稿）→ 投稿人展开查看**当前稿件内容 + 投稿版本快照** → **撤回稿件 A**（确认弹窗 → 已撤回徽章 + 撤回事件，撤回/重投按钮消失）→ **管理台搜索 A 不再显示**、B 正常待审且管理台可见其投稿快照历史 |
 

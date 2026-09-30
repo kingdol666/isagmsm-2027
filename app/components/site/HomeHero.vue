@@ -1,42 +1,45 @@
 <script setup lang="ts">
-import { siteMeta } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
   <!-- 00 · HERO — the poster；动效预算：一次入场编排 + FIG 仪器持续运转（全部 transform/opacity，prefers-reduced-motion 全局禁用） -->
-  <section id="home" class="hero" aria-label="ISAGMSM 2027 — 第五届先进凝胶材料与软物质国际学术研讨会">
+  <section id="home" class="hero" :aria-label="t('home.hero.ariaLabel')">
     <div class="hero-grid-bg" aria-hidden="true" />
     <div class="hero-sweep" aria-hidden="true" />
     <div class="wrap hero-inner">
       <div class="hero-copy">
-        <p class="hero-kicker"><b>ISAGMSM—00</b> · 第五届 · 国际学术研讨会</p>
+        <p class="hero-kicker"><b>{{ t('home.hero.kickerCode') }}</b>{{ t('home.hero.kickerRest') }}</p>
         <h1 class="hero-title">
-          <span class="t1">先进凝胶材料</span>
-          <span class="t2">与软物质</span>
+          <span class="t1">{{ t('home.hero.titleA') }}</span>
+          <span class="t2">{{ t('home.hero.titleB') }}</span>
         </h1>
-        <p class="hero-sub">国际学术研讨会 · 2027</p>
-        <p class="hero-en">{{ siteMeta.fullNameEn }}</p>
+        <p class="hero-sub">{{ t('home.hero.sub') }}</p>
+        <p class="hero-en">{{ content.siteMeta.fullNameEn }}</p>
         <dl class="hero-meta">
           <div class="meta-cell">
-            <dt class="mono">会议时间 / DATES</dt>
-            <dd>{{ siteMeta.dates }}</dd>
+            <dt class="mono">{{ t('home.hero.metaDates') }}</dt>
+            <dd>{{ content.siteMeta.dates }}</dd>
           </div>
           <div class="meta-cell">
-            <dt class="mono">参会地址 / VENUE</dt>
+            <dt class="mono">{{ t('home.hero.metaVenue') }}</dt>
             <dd>
-              {{ siteMeta.venue }}
-              <small class="venue-note mono">{{ siteMeta.venueAddress }} · {{ siteMeta.venueNote }}</small>
+              {{ content.siteMeta.venue }}
+              <small class="venue-note mono">{{ content.siteMeta.venueAddress }} · {{ content.siteMeta.venueNote }}</small>
             </dd>
           </div>
         </dl>
         <div class="hero-cta">
-          <NuxtLink class="btn btn-solid" href="/register">立即报名</NuxtLink>
-          <NuxtLink class="btn btn-ghost" href="/abstracts">征文投稿</NuxtLink>
+          <NuxtLink class="btn btn-solid" href="/register">{{ t('home.hero.ctaRegister') }}</NuxtLink>
+          <NuxtLink class="btn btn-ghost" href="/abstracts">{{ t('home.hero.ctaAbstract') }}</NuxtLink>
         </div>
       </div>
       <!-- FIG. 00 — 凝胶网络与软物质流动（仪器 dial：转子 · 虚线环 · 雷达指针 · 脉冲核心） -->
       <figure class="hero-fig">
-        <svg viewBox="0 0 520 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="凝胶网络与流动示意图形（动态仪器）">
+        <svg viewBox="0 0 520 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" :aria-label="t('home.hero.figAria')">
           <!-- 静止骨架：竖基线 + 同心圆 -->
           <line x1="260" y1="10" x2="260" y2="510" stroke="#111111" stroke-opacity=".18" />
           <g stroke="#111111" stroke-opacity=".30" stroke-width="1">
@@ -67,7 +70,7 @@ import { siteMeta } from '#shared/content/site'
           <circle class="dial-halo" cx="260" cy="260" r="10" fill="none" stroke="#B45F3A" stroke-width="1.5" />
           <circle cx="260" cy="260" r="4.5" fill="#B45F3A" />
         </svg>
-        <figcaption>FIG. 00 — 凝胶网络与软物质流动（动态示意）</figcaption>
+        <figcaption>{{ t('home.hero.figCaption') }}</figcaption>
       </figure>
     </div>
     <!-- film cross-section strata -->

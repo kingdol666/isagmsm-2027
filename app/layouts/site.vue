@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { siteMeta } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
@@ -8,8 +11,8 @@ import { siteMeta } from '#shared/content/site'
 
     <!-- 重要日期横幅 — 参照学术会议官网形态 -->
     <div class="date-strip" role="note">
-      <span class="ds-label mono">重要日期</span>
-      <span v-for="item in siteMeta.bannerDates" :key="item" class="ds-item">{{ item }}</span>
+      <span class="ds-label mono">{{ t('common.datesBanner.label') }}</span>
+      <span v-for="item in content.siteMeta.bannerDates" :key="item" class="ds-item">{{ item }}</span>
     </div>
 
     <!-- Footer lives INSIDE the main column so no fixed element can cover it. -->

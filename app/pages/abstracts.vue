@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { abstractsContent, themesContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'site' })
-useSeoMeta({ title: '征文投稿' })
+const { t, locale } = useI18n()
+const content = computed(() => siteContent(locale.value))
+
+useSeoMeta({ title: () => t('submit.info.seoTitle') })
 </script>
 
 <template>
@@ -10,19 +13,19 @@ useSeoMeta({ title: '征文投稿' })
     <div class="wrap">
       <header class="sec-head">
         <div class="sec-meta">
-          <span class="sec-code">{{ abstractsContent.code }}</span>
-          <span class="sec-tag">{{ abstractsContent.tag }}</span>
+          <span class="sec-code">{{ content.abstractsContent.code }}</span>
+          <span class="sec-tag">{{ content.abstractsContent.tag }}</span>
         </div>
-        <h1 class="sec-title">{{ abstractsContent.title }}</h1>
+        <h1 class="sec-title">{{ content.abstractsContent.title }}</h1>
       </header>
 
-      <p class="intro">{{ abstractsContent.intro }}</p>
+      <p class="intro">{{ content.abstractsContent.intro }}</p>
 
       <!-- 征文主题 -->
       <section class="block">
-        <h2 class="b-title">征文主题</h2>
+        <h2 class="b-title">{{ t('submit.info.topicsTitle') }}</h2>
         <ol class="topic-index">
-          <li v-for="topic in themesContent.items" :key="topic.no">
+          <li v-for="topic in content.themesContent.items" :key="topic.no">
             <span class="t-no">{{ topic.no }}</span>
             <div>
               <h3 class="t-title">{{ topic.title }}</h3>
@@ -34,9 +37,9 @@ useSeoMeta({ title: '征文投稿' })
 
       <!-- 征文要求 -->
       <section class="block">
-        <h2 class="b-title">征文要求</h2>
+        <h2 class="b-title">{{ t('submit.info.reqsTitle') }}</h2>
         <ol class="req-list">
-          <li v-for="(req, index) in abstractsContent.requirements" :key="index">
+          <li v-for="(req, index) in content.abstractsContent.requirements" :key="index">
             <span class="r-no mono">{{ String(index + 1).padStart(2, '0') }}</span>
             <span class="r-text">{{ req }}</span>
           </li>
@@ -45,19 +48,19 @@ useSeoMeta({ title: '征文投稿' })
 
       <!-- 投稿方式 -->
       <section class="block">
-        <h2 class="b-title">投稿方式</h2>
+        <h2 class="b-title">{{ t('submit.info.submitWayTitle') }}</h2>
         <div class="submit-box">
-          <p class="s-text">推荐通过会议网站在线投稿（注册登录后填写稿件信息与作者列表，审稿结果将邮件通知）：</p>
-          <NuxtLink class="btn btn-solid" href="/submit">进入在线投稿</NuxtLink>
-          <p class="s-text alt">也可将摘要（Word 格式）发送至投稿邮箱，邮件标题注明「ISAGMSM投稿-姓名-主题方向」：</p>
-          <a class="s-mail" :href="`mailto:${abstractsContent.submit.email}?subject=ISAGMSM%E6%8A%95%E7%A8%BF`">
-            {{ abstractsContent.submit.email }}
+          <p class="s-text">{{ t('submit.info.onlineIntro') }}</p>
+          <NuxtLink class="btn btn-solid" href="/submit">{{ t('submit.info.enterOnline') }}</NuxtLink>
+          <p class="s-text alt">{{ t('submit.info.emailIntro') }}</p>
+          <a class="s-mail" :href="`mailto:${content.abstractsContent.submit.email}?subject=ISAGMSM%E6%8A%95%E7%A8%BF`">
+            {{ content.abstractsContent.submit.email }}
           </a>
-          <p class="s-deadline mono">截稿：{{ abstractsContent.submit.deadline }}</p>
+          <p class="s-deadline mono">{{ t('submit.info.deadline', { deadline: content.abstractsContent.submit.deadline }) }}</p>
         </div>
       </section>
 
-      <p class="page-note mono">{{ abstractsContent.contact }}</p>
+      <p class="page-note mono">{{ content.abstractsContent.contact }}</p>
     </div>
   </main>
 </template>

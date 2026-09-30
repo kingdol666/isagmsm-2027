@@ -84,7 +84,7 @@ test('member credential loop: issue via console, scan verify, revoke/restore, ca
   await expect(adminPage.locator('.msg')).toContainText('已撤销', { timeout: 15_000 })
 
   await userPage.goto(`/verify/${token}`, { waitUntil: 'networkidle' })
-  await expect(userPage.locator('.verdict.bad')).toContainText('Revoked')
+  await expect(userPage.locator('.verdict.bad')).toContainText('已撤销')
 
   await scanPage.reload({ waitUntil: 'networkidle' })
   await expect(scanPage.locator('#manual-token')).toBeVisible({ timeout: 30_000 })
@@ -115,5 +115,5 @@ test('member credential loop: issue via console, scan verify, revoke/restore, ca
   await expect(scanPage.locator('.kicker.bad')).toContainText('已撤销', { timeout: 20_000 })
 
   await userPage.goto(`/verify/${token}`, { waitUntil: 'networkidle' })
-  await expect(userPage.locator('.verdict.bad')).toContainText('Revoked')
+  await expect(userPage.locator('.verdict.bad')).toContainText('已撤销')
 })

@@ -18,10 +18,11 @@ interface CredentialResponse {
 
 definePageMeta({ layout: 'flow' })
 
+const { t } = useI18n()
 const route = useRoute()
 const token = computed(() => String(route.params.token))
 
-useSeoMeta({ title: 'Verify Credential' })
+useSeoMeta({ title: () => t('credential.verify.seoTitle') })
 
 const { data, error } = await useFetch<CredentialResponse>(`/api/credentials/${token.value}`)
 const credential = computed(() => data.value?.credential)
@@ -42,39 +43,39 @@ const state = computed(() => {
         <span class="sec-code">CREDENTIAL VERIFICATION</span>
         <span class="sec-tag">ISAGMSM 2027</span>
       </div>
-      <h1 class="sec-title">Verification <em>result</em></h1>
+      <h1 class="sec-title">{{ t('credential.verify.titleA') }}<em>{{ t('credential.verify.titleEm') }}</em></h1>
     </header>
 
-    <p v-if="state === 'loading'" class="state">Verifying…</p>
+    <p v-if="state === 'loading'" class="state">{{ t('credential.verify.loading') }}</p>
 
     <section v-else-if="state === 'not_found'" class="verdict bad" aria-live="polite">
-      <p class="v-title">Not found</p>
-      <p class="v-body">This credential link or QR content does not match any ISAGMSM 2027 registration. Check the code and try again.</p>
+      <p class="v-title">{{ t('credential.verify.notFoundTitle') }}</p>
+      <p class="v-body">{{ t('credential.verify.notFoundBody') }}</p>
     </section>
 
     <section v-else-if="state === 'revoked'" class="verdict bad" aria-live="polite">
-      <p class="v-title">Revoked</p>
-      <p class="v-body">This credential has been revoked by the organising committee. Contact the secretariat if you believe this is an error.</p>
+      <p class="v-title">{{ t('credential.verify.revokedTitle') }}</p>
+      <p class="v-body">{{ t('credential.verify.revokedBody') }}</p>
     </section>
 
     <section v-else class="verdict good" aria-live="polite">
-      <p class="v-title">{{ state === 'checked_in' ? 'Valid — checked in' : 'Valid credential' }}</p>
+      <p class="v-title">{{ state === 'checked_in' ? t('credential.verify.validCheckedInTitle') : t('credential.verify.validTitle') }}</p>
       <dl class="v-facts">
-        <div class="v-row"><dt>Participant</dt><dd>{{ credential?.registration.fullName }}</dd></div>
-        <div class="v-row"><dt>Affiliation</dt><dd>{{ credential?.registration.affiliation }}</dd></div>
-        <div class="v-row"><dt>Registration ID</dt><dd class="mono">{{ credential?.registration.displayId }}</dd></div>
-        <div class="v-row"><dt>Type</dt><dd>{{ credential?.type.name }}</dd></div>
+        <div class="v-row"><dt>{{ t('credential.verify.dtParticipant') }}</dt><dd>{{ credential?.registration.fullName }}</dd></div>
+        <div class="v-row"><dt>{{ t('credential.verify.dtAffiliation') }}</dt><dd>{{ credential?.registration.affiliation }}</dd></div>
+        <div class="v-row"><dt>{{ t('credential.verify.dtRegistrationId') }}</dt><dd class="mono">{{ credential?.registration.displayId }}</dd></div>
+        <div class="v-row"><dt>{{ t('credential.verify.dtType') }}</dt><dd>{{ credential?.type.name }}</dd></div>
         <div class="v-row">
-          <dt>Check-in</dt>
+          <dt>{{ t('credential.verify.dtCheckin') }}</dt>
           <dd>
             <template v-if="credential?.checkedInAt">
-              Checked in {{ new Date(credential.checkedInAt).toLocaleString('en-GB') }}
+              {{ t('credential.verify.checkedInAt', { time: new Date(credential.checkedInAt).toLocaleString('en-GB') }) }}
             </template>
-            <template v-else>Not yet checked in</template>
+            <template v-else>{{ t('credential.verify.notCheckedIn') }}</template>
           </dd>
         </div>
       </dl>
-      <p class="v-note">Verified live against the ISAGMSM 2027 registration system.</p>
+      <p class="v-note">{{ t('credential.verify.note') }}</p>
     </section>
   </div>
 </template>

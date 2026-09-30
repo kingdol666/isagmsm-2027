@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { transportationContent as info } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 definePageMeta({ layout: 'site' })
-useSeoMeta({ title: '会场交通' })
+const { locale, t } = useI18n()
+const info = computed(() => siteContent(locale.value).transportationContent)
+
+useSeoMeta({ title: () => t('content.transport.seoTitle') })
 
 /* 左侧列表点击 → 右侧地图切换到对应点位（null = 显示全部） */
 const activeIndex = ref<number | null>(null)
@@ -12,7 +15,7 @@ function select(index: number) {
 }
 
 function poiName(index: number) {
-  return info.transit[index]?.name ?? ''
+  return info.value.transit[index]?.name ?? ''
 }
 </script>
 
@@ -32,7 +35,7 @@ function poiName(index: number) {
           <h2 class="v-name">{{ info.venueName }}</h2>
           <p class="v-report">{{ info.reportPoint }}</p>
 
-          <p class="list-hint mono">点击任意地点，右侧地图将切换到对应位置</p>
+          <p class="list-hint mono">{{ t('content.transport.listHint') }}</p>
           <ul class="v-list">
             <li
               v-for="(item, index) in info.transit"
@@ -60,8 +63,8 @@ function poiName(index: number) {
           <p class="map-caption mono">
             {{
               activeIndex != null
-                ? `正在查看：${poiName(activeIndex)}`
-                : '当前显示全部交通节点 · 点击左侧列表聚焦单个地点'
+                ? t('content.transport.viewing', { name: poiName(activeIndex) })
+                : t('content.transport.showingAll')
             }}
           </p>
         </div>

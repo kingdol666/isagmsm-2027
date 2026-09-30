@@ -100,7 +100,7 @@ test('sign-up → register → bank-transfer claim → approve → credential �
   /* 7. QR verification page */
   await page.goto(`/verify/${token}`)
   await expect(page.locator('.verdict.good')).toBeVisible()
-  await expect(page.locator('.verdict')).toContainText('Valid credential')
+  await expect(page.locator('.verdict')).toContainText('凭证有效')
 
   /* 8. scanner check-in (staff login at the portal scan gate) */
   await page.goto('/scan')

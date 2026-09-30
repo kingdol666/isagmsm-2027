@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { registrationInfoContent, siteMeta } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
 
 interface OrderView {
   order: {
@@ -21,11 +21,12 @@ interface OrderView {
 }
 
 definePageMeta({ layout: 'flow' })
+const { t, locale } = useI18n()
 
 const route = useRoute()
 const orderId = computed(() => String(route.params.id))
 
-useSeoMeta({ title: '缴费 · 对公转账' })
+useSeoMeta({ title: () => t('payment.seoTitle') })
 
 const orderData = ref<OrderView | null>(null)
 const loadError = ref('')
@@ -33,7 +34,8 @@ const reference = ref('')
 const submitting = ref(false)
 const actionMessage = ref('')
 
-const bank = registrationInfoContent.bank
+const content = computed(() => siteContent(locale.value))
+const info = computed(() => content.value.registrationInfoContent)
 
 const yuan = (fen: number) => (fen / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -45,7 +47,7 @@ async function loadOrder() {
     }
   }
   catch {
-    loadError.value = '订单不存在。'
+    loadError.value = t('payment.notFound')
   }
 }
 
@@ -67,7 +69,7 @@ async function submitClaim() {
   }
   catch (error: unknown) {
     const err = error as { data?: { statusMessage?: string } }
-    actionMessage.value = err.data?.statusMessage ?? '提交失败，请稍后重试。'
+    actionMessage.value = err.data?.statusMessage ?? t('payment.claimFailed')
   }
   finally {
     submitting.value = false
@@ -114,10 +116,10 @@ watch(orderStatus, (status) => {
   <div class="pay">
     <header class="sec-head">
       <div class="sec-meta">
-        <span class="sec-code">{{ registrationInfoContent.code }} · PAYMENT</span>
-        <span class="sec-tag">对公转账 · 会务组审核</span>
+        <span class="sec-code">{{ info.code }} · PAYMENT</span>
+        <span class="sec-tag">{{ t('payment.metaTag') }}</span>
       </div>
-      <h1 class="sec-title">缴纳注册费</h1>
+      <h1 class="sec-title">{{ t('payment.title') }}</h1>
     </header>
 
     <p v-if="loadError" class="state">{{ loadError }}</p>
@@ -125,72 +127,72 @@ watch(orderStatus, (status) => {
     <template v-else-if="orderData">
       <!-- 订单摘要 -->
       <dl class="summary">
-        <div class="row"><dt>参会 ID</dt><dd class="mono aid">{{ orderData.order.displayId }}</dd></div>
-        <div class="row"><dt>订单号</dt><dd class="mono">{{ orderData.order.orderNo }}</dd></div>
-        <div class="row"><dt>Subtotal</dt><dd>¥{{ yuan(orderData.order.subtotalFen) }}</dd></div>
+        <div class="row"><dt>{{ t('payment.summary.regId') }}</dt><dd class="mono aid">{{ orderData.order.displayId }}</dd></div>
+        <div class="row"><dt>{{ t('payment.summary.orderNo') }}</dt><dd class="mono">{{ orderData.order.orderNo }}</dd></div>
+        <div class="row"><dt>{{ t('payment.summary.subtotal') }}</dt><dd>¥{{ yuan(orderData.order.subtotalFen) }}</dd></div>
         <div v-if="orderData.order.discountFen > 0" class="row">
-          <dt>会前优惠</dt><dd class="discount">−¥{{ yuan(orderData.order.discountFen) }}</dd>
+          <dt>{{ t('payment.summary.discount') }}</dt><dd class="discount">−¥{{ yuan(orderData.order.discountFen) }}</dd>
         </div>
-        <div class="row total"><dt>应缴金额</dt><dd>¥{{ yuan(orderData.order.totalFen) }}</dd></div>
+        <div class="row total"><dt>{{ t('payment.summary.total') }}</dt><dd>¥{{ yuan(orderData.order.totalFen) }}</dd></div>
       </dl>
 
       <!-- 已支付 -->
       <section v-if="orderStatus === 'paid'" class="panel" aria-live="polite">
-        <p class="panel-title ok">缴费已确认</p>
-        <p class="state">正在打开您的电子凭证…</p>
+        <p class="panel-title ok">{{ t('payment.paid.title') }}</p>
+        <p class="state">{{ t('payment.paid.opening') }}</p>
       </section>
 
       <!-- 审核中 -->
       <section v-else-if="orderStatus === 'reviewing'" class="panel" aria-live="polite">
-        <p class="panel-title ok">已提交 · 会务组审核中</p>
-        <p class="state">会务组将核对银行转账记录（通常 1—2 个工作日）。审批通过后，本页自动跳转您的电子凭证（含现场签到二维码）。</p>
+        <p class="panel-title ok">{{ t('payment.reviewing.title') }}</p>
+        <p class="state">{{ t('payment.reviewing.note') }}</p>
         <dl class="claim-info">
-          <div class="c-row"><dt>提交的转账参考</dt><dd class="mono">{{ orderData.order.reference || '—' }}</dd></div>
-          <div class="c-row"><dt>提交时间</dt><dd>{{ orderData.order.claimedAt ? new Date(orderData.order.claimedAt).toLocaleString('zh-CN') : '—' }}</dd></div>
+          <div class="c-row"><dt>{{ t('payment.reviewing.referenceLabel') }}</dt><dd class="mono">{{ orderData.order.reference || '—' }}</dd></div>
+          <div class="c-row"><dt>{{ t('payment.reviewing.claimedAtLabel') }}</dt><dd>{{ orderData.order.claimedAt ? new Date(orderData.order.claimedAt).toLocaleString('zh-CN') : '—' }}</dd></div>
         </dl>
-        <p class="state small">如需补充信息，请联系会务组：{{ siteMeta.email }}。</p>
+        <p class="state small">{{ t('payment.reviewing.contact', { email: content.siteMeta.email }) }}</p>
       </section>
 
       <!-- 待转账 -->
-      <section v-else-if="orderStatus === 'pending'" class="panel" aria-label="对公转账信息">
-        <p class="panel-title">第一步 · 对公转账</p>
+      <section v-else-if="orderStatus === 'pending'" class="panel" :aria-label="t('payment.pending.ariaLabel')">
+        <p class="panel-title">{{ t('payment.pending.stepOne') }}</p>
         <div class="bank-box">
           <dl class="bank-grid">
-            <div class="bank-row"><dt>开户名称</dt><dd>{{ bank.accountName }}</dd></div>
-            <div class="bank-row"><dt>开户银行</dt><dd>{{ bank.bank }}</dd></div>
-            <div class="bank-row"><dt>银行账号</dt><dd class="mono">{{ bank.accountNumber }}</dd></div>
+            <div class="bank-row"><dt>{{ t('payment.pending.accountName') }}</dt><dd>{{ info.bank.accountName }}</dd></div>
+            <div class="bank-row"><dt>{{ t('payment.pending.bankName') }}</dt><dd>{{ info.bank.bank }}</dd></div>
+            <div class="bank-row"><dt>{{ t('payment.pending.accountNumber') }}</dt><dd class="mono">{{ info.bank.accountNumber }}</dd></div>
           </dl>
-          <p class="deadline mono">{{ bank.deadline }}</p>
+          <p class="deadline mono">{{ info.bank.deadline }}</p>
         </div>
 
-        <p class="panel-title second">第二步 · 转账附言必注</p>
+        <p class="panel-title second">{{ t('payment.pending.stepTwo') }}</p>
         <div class="remark">
           <p class="rk-format mono">{{ remark }}</p>
-          <p class="rk-note">转账时请在附言中注明「参会ID-姓名」，会务组据此核对到账记录。</p>
+          <p class="rk-note">{{ t('payment.pending.remarkNote') }}</p>
         </div>
 
-        <p class="panel-title second">第三步 · 提交审核</p>
+        <p class="panel-title second">{{ t('payment.pending.stepThree') }}</p>
         <form class="claim" @submit.prevent="submitClaim">
           <label class="field">
-            <span class="f-label mono">转账流水号 / 凭证号（选填）</span>
-            <input v-model="reference" type="text" name="reference" autocomplete="off" placeholder="银行回单上的流水号">
+            <span class="f-label mono">{{ t('payment.pending.referenceLabel') }}</span>
+            <input v-model="reference" type="text" name="reference" autocomplete="off" :placeholder="t('payment.pending.referencePlaceholder')">
           </label>
           <p v-if="actionMessage" class="msg bad mono">{{ actionMessage }}</p>
-          <p v-if="orderData.order.reviewNote" class="msg bad mono">上次驳回原因：{{ orderData.order.reviewNote }}</p>
+          <p v-if="orderData.order.reviewNote" class="msg bad mono">{{ t('payment.pending.rejectNote', { note: orderData.order.reviewNote }) }}</p>
           <button class="btn btn-solid" type="submit" :disabled="submitting">
-            {{ submitting ? '提交中…' : '我已完成转账，提交审核' }}
+            {{ submitting ? t('payment.pending.submitting') : t('payment.pending.submit') }}
           </button>
         </form>
 
         <p class="state small">
-          提交后会务组核对银行记录（1—2 个工作日），审批通过即下发电子凭证。发票在会议现场凭参会 ID 领取。
+          {{ t('payment.pending.note') }}
         </p>
       </section>
 
-      <p v-else class="state">订单状态：{{ orderStatus }}。</p>
+      <p v-else class="state">{{ t('payment.statusLine', { status: orderStatus }) }}</p>
     </template>
 
-    <p v-else class="state">正在加载订单…</p>
+    <p v-else class="state">{{ t('payment.loading') }}</p>
   </div>
 </template>
 

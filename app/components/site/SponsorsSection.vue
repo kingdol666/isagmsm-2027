@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { sponsorshipContent } from '#shared/content/site'
+import { siteContent } from '#shared/content/localized'
+
+const { locale, t } = useI18n()
+const content = computed(() => siteContent(locale.value))
 </script>
 
 <template>
   <!-- 08 · 参展赞助预览 -->
   <section id="sponsorship" class="sec">
     <div class="wrap">
-      <SecHead :code="sponsorshipContent.code" :tag="sponsorshipContent.tag" :title="sponsorshipContent.title" />
-      <p class="sp-intro">{{ sponsorshipContent.intro }}</p>
+      <SecHead :code="content.sponsorshipContent.code" :tag="content.sponsorshipContent.tag" :title="content.sponsorshipContent.title" />
+      <p class="sp-intro">{{ content.sponsorshipContent.intro }}</p>
       <div class="tier-grid">
-        <article v-for="tier in sponsorshipContent.tiers" :key="tier.tier" class="tier">
+        <article v-for="tier in content.sponsorshipContent.tiers" :key="tier.tier" class="tier">
           <span class="t-name">{{ tier.tier }}</span>
           <p class="t-price">{{ tier.price }}</p>
           <p class="t-quota">{{ tier.quota }}</p>
@@ -19,8 +22,8 @@ import { sponsorshipContent } from '#shared/content/site'
         </article>
       </div>
       <div class="reg-foot">
-        <NuxtLink class="btn btn-solid" href="/sponsorship">赞助详情与洽谈</NuxtLink>
-        <p class="reg-note">{{ sponsorshipContent.paymentNote }}</p>
+        <NuxtLink class="btn btn-solid" href="/sponsorship">{{ t('home.sponsors.cta') }}</NuxtLink>
+        <p class="reg-note">{{ content.sponsorshipContent.paymentNote }}</p>
       </div>
     </div>
   </section>
