@@ -2,18 +2,18 @@
 /**
  * HTTPS 适配（自签名证书 + nginx 双协议代理）—— 在阿里云服务器上以 root 执行：
  *
- *   pnpm https:setup                      # 自动检测内网 IP，暴露 80/443 → 门户
- *   pnpm https:setup --ip 121.196.175.47  # 把公网 IP 写入证书 SAN（浏览器直连 IP 场景推荐）
- *   pnpm https:setup --console            # 额外暴露管理台 https://<IP>:8443
+ *   pnpm https:setup --ip <公网IP>          # 80/443 → 门户 + 8443(HTTPS) → 管理台（默认全含）
+ *   pnpm https:setup --ip <IP> --no-console # 不暴露管理台的 8443
  *
  * 行为：
  *   1. 生成自签名证书（SAN 含 IP/localhost，10 年）→ /etc/nginx/ssl/
  *   2. 写入 /etc/nginx/conf.d/isagmsm.conf：80(HTTP) 与 443(HTTPS) 同时代理门户 :3000；
- *      --console 时 8443(HTTPS) 代理管理台 :3001。HTTP 不强制跳转（双协议并存）。
+ *      默认 8443(HTTPS) 代理管理台 :3001（生产建议安全组把 8443 限制到管理员 IP）。
+ *      HTTP 不强制跳转（双协议并存）。
  *   3. nginx -t 校验并 reload
  *
  * 说明：自签名证书浏览器会提示"不安全"，点「高级 → 继续前往」一次即可（连接已加密）；
- *       要无警告的 HTTPS 需要域名 + Let's Encrypt（见 SETUP.md 1.8）。
+ *       要无警告的 HTTPS 需要域名 + Let's Encrypt（见 SETUP.md 1.6.1）。
  * 非 Linux / 未装 nginx 的环境：文件生成到 ./deploy-nginx/ 供手动部署。
  */
 import { spawnSync } from 'node:child_process'
@@ -24,7 +24,7 @@ const IS_WIN = process.platform === 'win32'
 const IS_LINUX = process.platform === 'linux'
 const ROOT = process.cwd()
 
-const WITH_CONSOLE = process.argv.includes('--console')
+const WITH_CONSOLE = !process.argv.includes('--no-console')
 
 function shOut(command, args) {
   const r = spawnSync(command, args, { stdio: 'pipe', shell: IS_WIN, encoding: 'utf8' })
