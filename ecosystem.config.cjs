@@ -1,13 +1,14 @@
- 
 /**
- * pm2 托管配置 —— 门户(:3000) + 管理台(:3001)，生产模式（nuxt build 产物）。
+ * pm2 托管配置 —— 直接托管 `pnpm start` 启动管道（scripts/start-all.mjs）。
  *
- * 由 `pnpm deploy:pm2`（scripts/deploy-pm2.mjs）调用：
- *   pm2 startOrReload ecosystem.config.cjs --update-env
+ * start-all.mjs 自身包含：Docker 三态拉起 PostgreSQL/OSS → 就绪等待 → 幂等迁移
+ * → 同时拉起门户(:3000)与管理台(:3001)，监听 0.0.0.0。崩溃时 pm2 自动重启整个管道。
  *
- * 环境变量：启动时从仓库根 `.env` 与 `admin/.env` 读取并全量注入进程；
- * DATABASE_URL 会同时桥接为 NUXT_DATABASE_URL（Nuxt runtimeConfig 的运行时覆盖名）。
- * 端口可用 PORTAL_PORT / CONSOLE_PORT 覆盖（默认 3000 / 3001），监听 0.0.0.0（公网/局域网可访问）。
+ *   pnpm pm2:start    →  pm2 startOrReload ecosystem.config.cjs --update-env
+ *   pnpm pm2:stop / restart / status / logs
+ *
+ * 环境变量：启动时从仓库根 `.env` 读取并注入进程（DATABASE_URL 桥接 NUXT_DATABASE_URL）。
+ * 需要生产构建托管时改用 ecosystem.prod.cjs（pnpm build:all 后 pnpm pm2:start:prod）。
  */
 const { readFileSync, existsSync } = require('node:fs')
 const { join } = require('node:path')
@@ -29,50 +30,24 @@ function loadEnvFile(rel) {
 }
 
 const portalEnv = loadEnvFile('.env')
-const adminEnv = loadEnvFile('admin/.env')
 
 const DEFAULT_DB = 'postgresql://pps:pps_dev_pw@localhost:5433/pps2026'
 
 module.exports = {
   apps: [
     {
-      name: 'isagmsm-portal',
+      name: 'isagmsm',
       cwd: __dirname,
-      script: '.output/server/index.mjs',
+      script: 'scripts/start-all.mjs', // = pnpm start 的内容
       exec_mode: 'fork',
       instances: 1,
-      max_memory_restart: '700M',
       time: true,
       env: {
-        NODE_ENV: 'production',
-        PORT: process.env.PORTAL_PORT || '3000',
-        NITRO_PORT: process.env.PORTAL_PORT || '3000',
-        HOST: '0.0.0.0',
-        NITRO_HOST: '0.0.0.0',
+        PORTAL_PORT: process.env.PORTAL_PORT || '3000',
+        CONSOLE_PORT: process.env.CONSOLE_PORT || '3001',
         ...portalEnv,
         NUXT_DATABASE_URL: portalEnv.DATABASE_URL || DEFAULT_DB,
         DATABASE_URL: portalEnv.DATABASE_URL || DEFAULT_DB,
-      },
-    },
-    {
-      name: 'isagmsm-admin',
-      cwd: __dirname,
-      script: 'admin/.output/server/index.mjs',
-      exec_mode: 'fork',
-      instances: 1,
-      max_memory_restart: '600M',
-      time: true,
-      env: {
-        NODE_ENV: 'production',
-        PORT: process.env.CONSOLE_PORT || '3001',
-        NITRO_PORT: process.env.CONSOLE_PORT || '3001',
-        HOST: '0.0.0.0',
-        NITRO_HOST: '0.0.0.0',
-        ...adminEnv,
-        NUXT_DATABASE_URL: adminEnv.DATABASE_URL || DEFAULT_DB,
-        DATABASE_URL: adminEnv.DATABASE_URL || DEFAULT_DB,
-        // 备份目录相对 pm2 cwd（仓库根）——与 dev 的 admin/backups 保持一致
-        BACKUP_DIR: adminEnv.BACKUP_DIR || 'admin/backups',
       },
     },
   ],

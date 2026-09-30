@@ -1,16 +1,19 @@
  
 /**
- * 一键生产部署（Aliyun / 任意 Linux 主机 / 本机）—— pm2 托管双应用 + Docker 双容器。
+ * 一键启动/部署（Aliyun / 任意 Linux 主机 / 本机）—— pm2 直接托管 `pnpm start` 启动管道。
  *
- *   pnpm deploy:pm2 [--skip-build]
+ *   pnpm deploy:pm2        # 首次部署 / 环境变更时执行（不构建）
+ *   pnpm pm2:start         # 日常启动（同一管道）
+ *   pnpm pm2:stop          # 停止
  *
  * 步骤：
  *   1. 校验 node/pnpm，按需全局安装 pm2
  *   2. 缺失时生成 .env / admin/.env（会话密钥随机生成；SMTP 留空 = 验证码走屏显 devCode）
  *   3. Docker 三态拉起 pps-postgres + pps-minio（运行中跳过 / 停止即启动 / 缺失则 compose up -d）
  *   4. 等 PostgreSQL / OSS 就绪 → 幂等迁移 → 空库自动 seed（管理员/扫码/演示账号）
- *   5. pnpm install → 生产构建（门户 + 管理台；--skip-build 跳过）
- *   6. pm2 startOrReload ecosystem.config.cjs（后台托管，开机自启见 `pnpm pm2:save` + pm2 startup）
+ *   5. pnpm install
+ *   6. pm2 startOrReload ecosystem.config.cjs —— 托管 scripts/start-all.mjs（即 pnpm start 管道：
+ *      Docker 检测 → 双应用拉起；进程崩溃自动重启，配合 pm2:save 可开机自启）
  *   7. 健康检查 + 打印访问地址、局域网 IP 与默认账号
  */
 import { spawn, spawnSync } from 'node:child_process'
@@ -21,7 +24,6 @@ import os from 'node:os'
 
 const ROOT = process.cwd()
 const IS_WIN = process.platform === 'win32'
-const SKIP_BUILD = process.argv.includes('--skip-build')
 
 const DB_CONTAINER = 'pps-postgres'
 const OSS_CONTAINER = 'pps-minio'
@@ -42,7 +44,7 @@ function shRaw(command, args) {
 async function runStep(label, command, args, env) {
   process.stdout.write(`[deploy] ${label} …\n`)
   const code = await new Promise((resolve) => {
-    // 输出直接透传：构建报错（如内存不足）必须当场可见，不能吞掉
+    // 输出直接透传：报错必须当场可见，不能吞掉
     const child = spawn(command, args, { cwd: ROOT, stdio: 'inherit', shell: IS_WIN, env: { ...process.env, ...env } })
     child.on('exit', c => resolve(c ?? 1))
     child.on('error', () => resolve(1))
@@ -50,9 +52,8 @@ async function runStep(label, command, args, env) {
   if (code !== 0) {
     console.log(`[deploy] ${label} 失败（exit ${code}）`)
     if (code === 134 || code === 137) {
-      console.error(`[deploy] exit ${code} 是内存耗尽（OOM）特征 —— 构建期 RAM 不足。`)
-      console.error('[deploy] 处理：① 给服务器加 2G swap（见 SETUP.md 1.7）；')
-      console.error('[deploy]        ② 或设较小堆上限重试：NODE_OPTIONS=--max-old-space-size=1024 pnpm deploy:pm2 --skip-build 之前先单独跑 pnpm build 验证')
+      console.error('[deploy] exit 134/137 是内存耗尽（OOM）特征 —— 服务器可用内存不足。')
+      console.error('[deploy] 处理：关闭占用内存的进程，或给服务器加 2G swap（见 SETUP.md 1.7）后重试。')
     }
     throw new Error(`${label} 失败`)
   }
@@ -288,46 +289,11 @@ async function main() {
     console.log(`[deploy] 库中已有 ${userCount} 个用户 —— 跳过 seed（重置请手动 pnpm db:seed，会清空业务数据）`)
   }
 
-  /* 5. 依赖 + 构建（小内存服务器自动限制 Node 堆上限，防构建期 OOM abort） */
+  /* 5. 安装依赖（无构建 —— pm2 直接托管 pnpm start 启动管道） */
   await runStep('安装依赖（pnpm install）', 'pnpm', ['install'])
 
-  const totalMemGb = os.totalmem() / 1024 ** 3
-  let swapGb = 0
-  try {
-    if (!IS_WIN) {
-      const meminfo = readFileSync('/proc/meminfo', 'utf8')
-      swapGb = Number(/SwapTotal:\s+(\d+)/.exec(meminfo)?.[1] ?? 0) / 1024 / 1024
-    }
-  }
-  catch { /* 非 Linux 忽略 */ }
-  if (!SKIP_BUILD) {
-    if (totalMemGb < 4 && swapGb === 0 && !IS_WIN) {
-      console.warn(`[deploy] ⚠ 内存 ${totalMemGb.toFixed(1)}G 且无 swap —— 构建可能 OOM（exit 134/137）。`)
-      console.warn('[deploy]   建议先加 2G swap（一次性，root 执行）：')
-      console.warn('[deploy]     dd if=/dev/zero of=/swapfile bs=1M count=2048 && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile')
-      console.warn(`[deploy]     echo '/swapfile none swap sw 0 0' >> /etc/fstab`)
-      console.warn('[deploy]   本次部署已自动限制 Node 堆上限以尽量完成构建……')
-    }
-    // 小内存机器限制 V8 老生代上限（实测本应用构建需 >1GB 堆，1536M 是实测下限）：
-    // 4G 以下统一 1536M；用户已设置 NODE_OPTIONS 则尊重
-    let buildEnv
-    if (!process.env.NODE_OPTIONS) {
-      if (totalMemGb < 4) {
-        buildEnv = { NODE_OPTIONS: `--max-old-space-size=1536` }
-        console.log(`[deploy] 构建内存保护：NODE_OPTIONS=--max-old-space-size=1536（机器内存 ${totalMemGb.toFixed(1)}G；实测低于此值构建会 exit 134）`)
-      }
-    }
-    await runStep('生产构建 —— 门户', 'pnpm', ['build'], buildEnv)
-    await runStep('生产构建 —— 管理台', 'pnpm', ['build:admin'], buildEnv)
-  }
-  else {
-    console.log('[deploy] --skip-build：复用既有 .output 构建产物')
-  }
-  if (!existsSync(`${ROOT}/.output/server/index.mjs`)) throw new Error('门户构建产物缺失（.output）')
-  if (!existsSync(`${ROOT}/admin/.output/server/index.mjs`)) throw new Error('管理台构建产物缺失（admin/.output）')
-
-  /* 6. pm2 托管 */
-  await runStep('pm2 启动/热重载双应用', 'pm2', ['startOrReload', 'ecosystem.config.cjs', '--update-env'])
+  /* 6. pm2 托管（ecosystem.config.cjs = 托管 scripts/start-all.mjs 启动管道） */
+  await runStep('pm2 启动/热重载（托管 pnpm start 管道）', 'pm2', ['startOrReload', 'ecosystem.config.cjs', '--update-env'])
 
   /* 7. 健康检查 + 部署摘要 */
   await waitForHttp(PORTAL_PORT, '/api/health', '门户健康检查')
