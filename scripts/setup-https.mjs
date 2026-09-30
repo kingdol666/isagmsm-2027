@@ -118,12 +118,14 @@ function main() {
   /* 2. 生成自签名证书（10 年） */
   const certOut = IS_LINUX ? { dir: '/etc/nginx/ssl', root: true } : { dir: `${ROOT}/deploy-nginx`, root: false }
   mkdirSync(certOut.dir, { recursive: true })
+  // -subj 的引号按平台区分：Windows cmd 需要引号包住 /CN=...；Linux 无 shell 时引号会被当成长名的一部分
+  const subj = IS_WIN ? '"/CN=ISAGMSM"' : '/CN=ISAGMSM'
   run(
     '生成自签名证书（SAN 含 IP，10 年）',
     'openssl',
     ['req', '-x509', '-nodes', '-days', '3650', '-newkey', 'rsa:2048',
       '-keyout', `${certOut.dir}/isagmsm.key`, '-out', `${certOut.dir}/isagmsm.crt`,
-      '-subj', `"/CN=ISAGMSM"`, '-addext', `subjectAltName=${san}`],
+      '-subj', subj, '-addext', `subjectAltName=${san}`],
   )
 
   const conf = NGINX_CONF(certOut.dir, WITH_CONSOLE)
