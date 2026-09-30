@@ -56,6 +56,8 @@ test('sign-up → register → bank-transfer claim → approve → credential �
   await page.fill('input[name="phone"]', '13800009999')
   await page.fill('input[name="country"]', '中国')
   await page.click('form button:has-text("Continue")')
+  /* 确认步骤摘要必须回显账号邮箱（回归锁定：曾绑定空 form.email 导致 EMAIL 行为空） */
+  await expect(page.locator('.confirm')).toContainText(email)
   await page.click('button:has-text("Create order")')
   await page.waitForURL(/\/payment\//, { timeout: 20_000 })
 

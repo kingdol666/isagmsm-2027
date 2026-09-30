@@ -50,7 +50,8 @@ DATABASE_URL=postgresql://pps:pps_dev_pw@localhost:5433/pps2026_test pnpm db:mig
 | `abstract-flow.spec.ts` | 投稿送审闭环（审稿在管理台 3001）：在线投稿（动态添加作者行）→ 个人中心待审 + 历史 → 管理台搜索/展开/返稿（意见必填）→ 投稿人看到返稿意见 → 修改重投（预填表单，版本 +1）→ 管理台接收 → 投稿人看到已接收 + 完整历史（返稿/重投/接收） |
 | `locale.spec.ts` | 中英文切换：默认中文（导航/横幅/登录页 + html lang=zh-CN）→ 点 LocaleToggle 即时切英文（无刷新）→ 刷新后 cookie 保持英文（SSR 直出）→ 切回中文；账号菜单入口同步 |
 | `abstract-attachment.spec.ts` | 投稿附件 OSS 全链路：用户投 Word 附件 → 个人中心历史附件可见、属主可下载（字节一致）；匿名 401 / 他人 404；管理台展开可见附件并按版本下载（字节一致）→ 返稿（意见）→ 用户修改重投（PDF 新附件，v2）→ 管理台下载 v2 附件（v1 仍可下载）→ 接收 → 用户看到两版附件；附件边界：伪装 PDF 422、>10MB 413、缺附件 422、零副作用 |
-| `abstract-withdraw.spec.ts` | | 投稿完整设计：同一账号**多论文投递**（两篇连续投稿）→ 投稿人展开查看**当前稿件内容 + 投稿版本快照** → **撤回稿件 A**（确认弹窗 → 已撤回徽章 + 撤回事件，撤回/重投按钮消失）→ **管理台搜索 A 不再显示**、B 正常待审且管理台可见其投稿快照历史 |
+| `abstract-withdraw.spec.ts` | 投稿完整设计：同一账号**多论文投递**（两篇连续投稿）→ 投稿人展开查看**当前稿件内容 + 投稿版本快照** → **撤回稿件 A**（确认弹窗 → 已撤回徽章 + 撤回事件，撤回/重投按钮消失）→ **管理台搜索 A 不再显示**、B 正常待审且管理台可见其投稿快照历史 |
+| `admin-users.spec.ts` | 管理台用户管理：DB 直插未报名用户 → 列表可见（未报名也可见，含验证/密码/报名数）→ 强制修改密码（旧密码立即 401、新密码 200）→ 代编辑个人资料（门户侧 /api/account/profile 读到更新值）→ UI 烟雾：搜索过滤至 1 行 → 展开详情见强制改密 + 资料编辑 |
 
 Run against BOTH dev servers (`reuseExistingServer`): the portal gets `RATE_LIMIT_DISABLED=1` + `MAIL_DRIVER=test`（devCode 显示在页面上），the console gets `MAIL_DRIVER=test`（审稿邮件写日志）。Playwright `webServer` 数组同时拉起两应用。
 

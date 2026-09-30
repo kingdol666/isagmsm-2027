@@ -88,11 +88,12 @@ test('admin views registered users, resets password, edits profile', async ({ pa
   expect(meJson.profile.phone).toBe('13900002222')
   expect(meJson.fullName).toBe(`${NAME}（已改）`)
 
-  /* 5. UI 烟雾：用户管理页搜索可见目标用户 */
+  /* 5. UI 烟雾：用户管理页搜索可见目标用户（先等水合，避免对未绑定输入框操作） */
   await page.goto(`${consoleBase}/users`)
   await page.waitForLoadState('domcontentloaded')
+  await page.waitForFunction(() => Boolean((document.querySelector('#__nuxt') as { __vue_app__?: unknown })?.__vue_app__))
   await page.fill('.filter-input', EMAIL)
-  await expect(page.locator('.user-table')).toContainText(EMAIL)
+  await expect(page.locator('.user-table tbody tr')).toHaveCount(1, { timeout: 15_000 })
   await page.click('.user-table button:has-text("详情")')
   await expect(page.locator('.detail .d-sub', { hasText: '个人资料' })).toBeVisible()
 })

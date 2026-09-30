@@ -49,7 +49,6 @@ const selectedType = ref<RegistrationTypeApi | null>(null)
 const form = reactive({
   fullName: '',
   englishName: '',
-  email: '',
   phone: '',
   affiliation: '',
   department: '',
@@ -101,15 +100,17 @@ function back() {
 }
 
 async function submit() {
-  if (!selectedType.value) return
+  if (!selectedType.value || submitting.value) return
   submitting.value = true
   submitError.value = ''
+  let navigated = false
   try {
     const created = await $fetch<OrderCreated>('/api/registrations', {
       method: 'POST',
       body: { participant: { ...form, email: user.value?.email ?? '', typeId: selectedType.value.id } },
     })
     await navigateTo(`/payment/${created.order.id}`)
+    navigated = true
   }
   catch (error: unknown) {
     const err = error as { data?: { message?: string, data?: { details?: Array<{ message: string }> }, statusCode?: number } }
@@ -120,7 +121,8 @@ async function submit() {
     submitError.value = err.data?.message ?? t('register.submitFailed')
   }
   finally {
-    submitting.value = false
+    /* 跳转支付页成功后保持禁用态，避免过渡期按钮复活被二次点击 */
+    if (!navigated) submitting.value = false
   }
 }
 </script>
@@ -229,7 +231,7 @@ async function submit() {
         <p class="form-note">{{ t('register.form.note') }}</p>
         <div class="actions">
           <button class="btn btn-ghost" type="button" @click="back">{{ t('register.back') }}</button>
-          <button class="btn btn-solid" type="submit" @click="next">{{ t('register.continue') }}</button>
+          <button class="btn btn-solid" type="submit">{{ t('register.continue') }}</button>
         </div>
       </form>
     </section>
@@ -239,7 +241,7 @@ async function submit() {
       <dl class="confirm">
         <div class="c-row"><dt>{{ t('register.confirm.type') }}</dt><dd>{{ selectedType?.name }}</dd></div>
         <div class="c-row"><dt>{{ t('register.confirm.name') }}</dt><dd>{{ form.fullName }}</dd></div>
-        <div class="c-row"><dt>{{ t('register.confirm.email') }}</dt><dd>{{ form.email }}</dd></div>
+        <div class="c-row"><dt>{{ t('register.confirm.email') }}</dt><dd>{{ user?.email }}</dd></div>
         <div class="c-row"><dt>{{ t('register.confirm.affiliation') }}</dt><dd>{{ form.affiliation }}</dd></div>
         <div class="c-row"><dt>{{ t('register.confirm.country') }}</dt><dd>{{ form.country }}</dd></div>
         <div class="c-row c-total">

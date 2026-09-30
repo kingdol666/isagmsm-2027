@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * HTTPS 适配（自签名证书 + nginx 双协议代理）—— 在阿里云服务器上以 root 执行：
  *

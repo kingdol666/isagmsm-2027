@@ -1,7 +1,8 @@
 /**
- * 可选：生产构建托管（nuxt build 产物，性能更好、不暴露源码路径）。
- * 使用：pnpm build:all 后执行 pnpm pm2:start:prod
- *   pm2 startOrReload ecosystem.prod.cjs --update-env
+ * 生产构建托管（nuxt build 产物，性能更好、不暴露源码路径）。
+ * 由 `pnpm deploy:pm2` / `pnpm start`（scripts/deploy-pm2.mjs）自动构建并 startOrReload 本文件；
+ * 也可手动：pnpm build:all && pm2 startOrReload ecosystem.prod.config.cjs --update-env
+ * （注意：pm2 按文件名包含 .config.cjs / .config.js / .json 识别配置文件，改名会导致启动失败。）
  *
  * 环境变量：启动时从仓库根 `.env` 与 `admin/.env` 读取并全量注入进程；
  * DATABASE_URL 会同时桥接为 NUXT_DATABASE_URL（Nuxt runtimeConfig 的运行时覆盖名）。

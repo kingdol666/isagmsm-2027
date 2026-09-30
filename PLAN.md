@@ -27,8 +27,9 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | M17 | **pm2 一键生产部署**：`pnpm deploy:pm2`（幂等）——pm2 自动安装、.env 缺失自动生成（密钥随机）、Docker 双容器三态拉起、空库自动 seed、生产构建、pm2 托管门户+管理台、健康检查；pm2:start/stop/restart/logs/status 命令族；seed 增加门户演示账号（demo.user@example.test）；空密码 seed 缺陷修复；从头清空实测通过 | ✅ Done |
 | M16 | **全站中英文 i18n**：自研轻量 i18n（cookie 持久化 pps_locale、SSR 同源渲染、零新依赖）；页头「中文/EN」切换按钮即时切换并跨会话保持；全部页面 UI 文案 + 全站内容数据双语（shared/i18n 切片 + site-en.ts 内容镜像 + 奇偶校验单测）；html lang 动态化；默认中文（服务端校验消息暂为中文） | ✅ Done |
 | M15 | **投稿附件 OSS**：docker compose 增加对象存储容器（S3 兼容，宿主端口 9100）；投稿/重投必附 Word/PDF 附件（≤10MB，魔数校验），每版独立存档；门户与管理台均可按版本下载；UI 中文化 + 表单交互优化（脏状态/内联错误/锚点导航） | ✅ Done |
+| M18 | **管理台用户管理 + 收尾优化**：全量注册账号视图（无论是否报名）+ 强制修改密码（旧密码即时失效）+ 代编辑个人资料；修复报名确认页邮箱摘要为空、报名提交按钮双触发与 createOrder 过渡竞态、E2E 水合竞态（管理台搜索先等水合再断言过滤结果） | ✅ Done |
 
-All milestones verified: `pnpm lint` ✓ · `pnpm typecheck` ✓ · `pnpm test` (24) ✓ · `pnpm test:e2e` (2) ✓ · `pnpm build` ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
+All milestones verified: `pnpm lint` ✓ · `pnpm typecheck`（门户 + 管理台）✓ · `pnpm test` (58) ✓ · `pnpm test:e2e` (40) ✓ · `pnpm build:all` ✓ · `pnpm smoke:prod` (14) ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
 
 ## 1. Hard constraints
 
