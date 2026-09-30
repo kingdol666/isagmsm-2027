@@ -29,6 +29,8 @@ const ROOT = process.cwd()
 const IS_WIN = process.platform === 'win32'
 const SKIP_BUILD = process.argv.includes('--skip-build')
 const DEV_HOST = process.argv.includes('--dev')
+// 部署版本号（git 短 SHA）—— 注入构建产物，/api/health 可查"现在跑的是哪个版本"
+const BUILD_SHA = shRaw('git', ['rev-parse', '--short', 'HEAD']).stdout.trim() || 'unknown'
 
 const DB_CONTAINER = 'pps-postgres'
 const OSS_CONTAINER = 'pps-minio'
@@ -325,20 +327,29 @@ async function main() {
         }
       }
       catch { /* 非 Linux 忽略 */ }
-      if (totalMemGb < 4 && swapGb === 0 && !IS_WIN) {
-        console.warn(`[deploy] ⚠ 内存 ${totalMemGb.toFixed(1)}G 且无 swap —— 构建可能 OOM（exit 134/137）。`)
-        console.warn('[deploy]   建议先加 2G swap（一次性，root 执行）：')
-        console.warn('[deploy]     dd if=/dev/zero of=/swapfile bs=1M count=2048 && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile')
-        console.warn(`[deploy]     echo '/swapfile none swap sw 0 0' >> /etc/fstab`)
+      // 小内存 Linux 且无 swap：自动创建 2G swap（root 才有权限；否则给出命令请手动执行）
+      if (totalMemGb < 4 && swapGb === 0 && !IS_WIN && !existsSync('/swapfile')) {
+        const isRoot = typeof process.getuid === 'function' && process.getuid() === 0
+        if (isRoot) {
+          console.log('[deploy] 小内存机器自动创建 2G swap（构建必需，防止 OOM）……')
+          const sw = shRaw('bash', ['-c', 'dd if=/dev/zero of=/swapfile bs=1M count=2048 && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && grep -q "/swapfile" /etc/fstab || echo "/swapfile none swap sw 0 0" >> /etc/fstab'])
+          console.log(sw.status === 0 ? '[deploy] 2G swap 已创建并启用 ✓' : `[deploy] swap 创建失败（${sw.stderr.trim().slice(0, 80)}）—— 建议手动执行下方命令`)
+        }
+        else {
+          console.warn('[deploy] ⚠ 内存不足且无 swap —— 请以 root 执行（一次性）：')
+          console.warn('[deploy]     dd if=/dev/zero of=/swapfile bs=1M count=2048 && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile')
+          console.warn('[deploy]     echo "/swapfile none swap sw 0 0" >> /etc/fstab')
+        }
       }
-      // 小内存机器限制 V8 老生代上限（实测本应用构建需 >1GB 堆，1536M 是实测下限）
-      let buildEnv
+      // 小内存机器限制 V8 老生代上限（实测本应用构建需 >1GB 堆，1536M 是实测下限）；
+      // 构建注入 BUILD_SHA —— 运行后 /api/health 可见当前版本，便于确认"部署真的生效了"
+      const buildEnv = { BUILD_SHA: BUILD_SHA }
       if (!process.env.NODE_OPTIONS && totalMemGb < 4) {
-        buildEnv = { NODE_OPTIONS: `--max-old-space-size=1536` }
+        buildEnv.NODE_OPTIONS = `--max-old-space-size=1536`
         console.log(`[deploy] 构建内存保护：NODE_OPTIONS=--max-old-space-size=1536（机器内存 ${totalMemGb.toFixed(1)}G）`)
       }
-      await runStep('生产构建 —— 门户', 'pnpm', ['build'], buildEnv)
-      await runStep('生产构建 —— 管理台', 'pnpm', ['build:admin'], buildEnv)
+      await runStep(`生产构建 —— 门户（${BUILD_SHA}）`, 'pnpm', ['build'], buildEnv)
+      await runStep(`生产构建 —— 管理台（${BUILD_SHA}）`, 'pnpm', ['build:admin'], buildEnv)
     }
     if (!existsSync(`${ROOT}/.output/server/index.mjs`)) throw new Error('门户构建产物缺失（.output）')
     if (!existsSync(`${ROOT}/admin/.output/server/index.mjs`)) throw new Error('管理台构建产物缺失（admin/.output）')
@@ -416,5 +427,6 @@ async function main() {
 main().catch((error) => {
   console.error(`\n[deploy] ✘ ${error instanceof Error ? error.message : error}`)
   console.error('[deploy] 部署失败——修复后重新执行 pnpm deploy:pm2 即可（各步骤均幂等）')
+  console.error('[deploy] ⚠ 注意：之前启动的旧版本应用仍在对外服务（pm2 status 查看；dev 模式在弱机上会很慢）')
   process.exit(1)
 })

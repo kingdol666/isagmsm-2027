@@ -11,6 +11,7 @@ export default defineEventHandler(() => {
   return {
     status: 'ok',
     event: 'ISAGMSM 2027',
+    build: useRuntimeConfig().public.buildSha ?? 'dev',
     integrations: {
       payments: providers.filter(p => p.available).map(p => p.name),
       mail: mail.smtpConfigured ? 'smtp' : 'dev',

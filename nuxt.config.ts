@@ -49,6 +49,8 @@ export default defineNuxtConfig({
     mockPaymentSecret: 'dev-only-mock-secret',
     public: {
       siteUrl: 'http://localhost:3000',
+      // 部署时由 scripts/deploy-pm2.mjs 注入 git 短 SHA（/api/health 可查当前版本）
+      buildSha: process.env.BUILD_SHA ?? 'dev',
     },
   },
 
