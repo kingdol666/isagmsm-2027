@@ -30,6 +30,12 @@ const IS_WIN = process.platform === 'win32'
 const IS_LINUX = process.platform === 'linux'
 const SKIP_BUILD = process.argv.includes('--skip-build')
 const DEV_HOST = process.argv.includes('--dev')
+// 部署范围：--app web（仅门户）/ --app admin（仅管理台）/ 默认 all（两者）
+const APP = (process.argv.find(a => a.startsWith('--app=')) || '').split('=')[1]
+  || process.argv[process.argv.indexOf('--app') + 1]
+  || 'all'
+const doWeb = APP === 'all' || APP === 'web'
+const doAdmin = APP === 'all' || APP === 'admin'
 // 部署版本号（git 短 SHA）—— 注入构建产物，/api/health 可查"现在跑的是哪个版本"
 const BUILD_SHA = shRaw('git', ['rev-parse', '--short', 'HEAD']).stdout.trim() || 'unknown'
 
@@ -296,8 +302,14 @@ async function main() {
   else {
     console.log(`[deploy] 库中已有 ${userCount} 个用户 —— 跳过 seed（重置请手动 pnpm db:seed，会清空业务数据）`)
   }
-  /* 5. 安装依赖 + 构建（生产模式默认；开发管道托管用 --dev） */
+  /* 5. 安装依赖 + 构建（生产模式默认；--app web/admin 可只部署其中一个项目） */
   await runStep('安装依赖（pnpm install）', 'pnpm', ['install'])
+
+  const buildWeb = doWeb && !SKIP_BUILD
+  const buildAdmin = doAdmin && !SKIP_BUILD
+  // --skip-build 但产物缺失时自动首建
+  const needWebBuild = buildWeb || (doWeb && !existsSync(`${ROOT}/.output/server/index.mjs`))
+  const needAdminBuild = buildAdmin || (doAdmin && !existsSync(`${ROOT}/admin/.output/server/index.mjs`))
 
   if (DEV_HOST) {
     /* 开发管道托管（仅本地调试用）：无构建，pm2 托管 start-all.mjs */
@@ -307,18 +319,15 @@ async function main() {
     await runStep('pm2 托管开发管道', 'pm2', ['startOrReload', 'ecosystem.config.cjs', '--update-env'])
   }
   else {
-    /* 生产构建托管（默认）：网站性能关键 —— 必须运行构建产物而非 dev 实时编译 */
-    for (const name of ['isagmsm', 'isagmsm-dev', 'isagmsm-portal', 'isagmsm-admin']) {
+    /* 生产构建托管（默认）—— 只清理本次部署涉及的应用，互不影响另一个项目 */
+    for (const name of [
+      ...(doWeb ? ['isagmsm', 'isagmsm-dev', 'isagmsm-portal'] : []),
+      ...(doAdmin ? ['isagmsm-admin'] : []),
+    ]) {
       spawnSync('pm2', ['delete', name], { cwd: ROOT, stdio: 'ignore', shell: IS_WIN })
     }
 
-    const artifactsReady = existsSync(`${ROOT}/.output/server/index.mjs`) && existsSync(`${ROOT}/admin/.output/server/index.mjs`)
-    if (SKIP_BUILD && artifactsReady) {
-      console.log('[deploy] --skip-build：复用既有构建产物')
-    }
-    else {
-      if (SKIP_BUILD) console.log('[deploy] 未检测到构建产物 —— 自动执行首次构建')
-
+    if (needWebBuild || needAdminBuild) {
       const totalMemGb = os.totalmem() / 1024 ** 3
       let swapGb = 0
       try {
@@ -349,25 +358,34 @@ async function main() {
         buildEnv.NODE_OPTIONS = `--max-old-space-size=1536`
         console.log(`[deploy] 构建内存保护：NODE_OPTIONS=--max-old-space-size=1536（机器内存 ${totalMemGb.toFixed(1)}G）`)
       }
-      await runStep(`生产构建 —— 门户（${BUILD_SHA}）`, 'pnpm', ['build'], buildEnv)
-      await runStep(`生产构建 —— 管理台（${BUILD_SHA}）`, 'pnpm', ['build:admin'], buildEnv)
+      if (needWebBuild) await runStep(`生产构建 —— 门户（${BUILD_SHA}）`, 'pnpm', ['build'], buildEnv)
+      if (needAdminBuild) await runStep(`生产构建 —— 管理台（${BUILD_SHA}）`, 'pnpm', ['build:admin'], buildEnv)
     }
-    if (!existsSync(`${ROOT}/.output/server/index.mjs`)) throw new Error('门户构建产物缺失（.output）')
-    if (!existsSync(`${ROOT}/admin/.output/server/index.mjs`)) throw new Error('管理台构建产物缺失（admin/.output）')
+    if (doWeb && !existsSync(`${ROOT}/.output/server/index.mjs`)) throw new Error('门户构建产物缺失（.output）')
+    if (doAdmin && !existsSync(`${ROOT}/admin/.output/server/index.mjs`)) throw new Error('管理台构建产物缺失（admin/.output）')
 
-    await runStep('pm2 托管生产构建（门户+管理台）', 'pm2', ['startOrReload', 'ecosystem.prod.config.cjs', '--update-env'])
+    const onlyArgs = doWeb && doAdmin ? [] : ['--only', doWeb ? 'isagmsm-portal' : 'isagmsm-admin']
+    await runStep(`pm2 托管生产构建（${doWeb && doAdmin ? '门户+管理台' : doWeb ? '门户' : '管理台'}）`, 'pm2', ['startOrReload', 'ecosystem.prod.config.cjs', '--update-env', ...onlyArgs])
   }
 
-  /* 7. 健康检查 + 部署摘要 */
-  await waitForHttp(PORTAL_PORT, '/api/health', '门户健康检查')
-  console.log('[deploy] 门户健康检查通过 ✓')
-  await waitForHttp(CONSOLE_PORT, '/api/me', '管理台健康检查')
-  console.log('[deploy] 管理台健康检查通过 ✓')
+  /* 7. 健康检查（按本次部署范围） */
+  if (doWeb) {
+    await waitForHttp(PORTAL_PORT, '/api/health', '门户健康检查')
+    console.log('[deploy] 门户健康检查通过 ✓')
+  }
+  if (doAdmin) {
+    await waitForHttp(CONSOLE_PORT, '/api/me', '管理台健康检查')
+    console.log('[deploy] 管理台健康检查通过 ✓')
+  }
 
   /* 8. 样式资产自检：样式以内联 <style> 或可用的外部 CSS 到达页面（防"整页无样式"） */
-  {
+  const styleProbes = []
+  if (doWeb) styleProbes.push({ label: '门户', port: PORTAL_PORT, path: '/' })
+  if (doAdmin) styleProbes.push({ label: '管理台', port: CONSOLE_PORT, path: '/login' })
+
+  for (const probe of styleProbes) {
     const html = await new Promise((resolve) => {
-      const req = spawn('curl', ['-s', '-m', '10', `http://127.0.0.1:${PORTAL_PORT}/`], { shell: IS_WIN, encoding: 'utf8' })
+      const req = spawn('curl', ['-s', '-m', '10', `http://127.0.0.1:${probe.port}${probe.path}`], { shell: IS_WIN, encoding: 'utf8' })
       let out = ''
       req.stdout?.on('data', c => { out += c })
       req.on('exit', () => resolve(out))
@@ -380,7 +398,7 @@ async function main() {
     let cssDetail = ''
     if (cssPath) {
       const res = await new Promise((resolve) => {
-        const req = spawn('curl', ['-s', '-m', '10', '-o', IS_WIN ? 'NUL' : '/dev/null', '-w', '%{http_code} %{content_type}', `http://127.0.0.1:${PORTAL_PORT}${cssPath}`], { shell: IS_WIN, encoding: 'utf8' })
+        const req = spawn('curl', ['-s', '-m', '10', '-o', IS_WIN ? 'NUL' : '/dev/null', '-w', '%{http_code} %{content_type}', `http://127.0.0.1:${probe.port}${cssPath}`], { shell: IS_WIN, encoding: 'utf8' })
         let out = ''
         req.stdout?.on('data', c => { out += c })
         req.on('exit', () => resolve(out))
@@ -390,14 +408,11 @@ async function main() {
       cssOk = code === '200' && type.startsWith('text/css')
       cssDetail = `${cssPath} → ${res}`
     }
-    if (inlineStyles > 0 && inlineBytes > 10000) {
-      console.log(`[deploy] 样式资产自检通过 ✓（内联样式 ${inlineStyles} 块 / ${Math.round(inlineBytes / 1024)}KB）`)
-    }
-    else if (cssOk) {
-      console.log(`[deploy] 样式资产自检通过 ✓（外部样式表 ${cssPath}）`)
+    if ((inlineStyles > 0 && inlineBytes > 1000) || cssOk) {
+      console.log(`[deploy] ${probe.label}样式资产自检通过 ✓（内联 ${inlineStyles} 块 / ${Math.round(inlineBytes / 1024)}KB${cssOk ? ' · 外部 CSS 可用' : ''}）`)
     }
     else {
-      throw new Error(`样式未随页面到达：内联 ${inlineStyles} 块/${inlineBytes}B，外部 CSS ${cssDetail || '无引用'} —— 检查构建产物或反向代理`)
+      throw new Error(`${probe.label}样式未随页面到达：内联 ${inlineStyles} 块/${inlineBytes}B，外部 CSS ${cssDetail || '无引用'} —— 检查构建产物或反向代理`)
     }
   }
 
