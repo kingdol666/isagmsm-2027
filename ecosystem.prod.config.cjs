@@ -1,4 +1,3 @@
- 
 /**
  * 可选：生产构建托管（nuxt build 产物，性能更好、不暴露源码路径）。
  * 使用：pnpm build:all 后执行 pnpm pm2:start:prod

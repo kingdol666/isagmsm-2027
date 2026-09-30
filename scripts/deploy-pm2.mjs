@@ -2,9 +2,9 @@
 /**
  * 一键启动/部署（Aliyun / 任意 Linux 主机 / 本机）—— pm2 直接托管 `pnpm start` 启动管道。
  *
- *   pnpm deploy:pm2        # 首次部署 / 环境变更时执行（不构建）
- *   pnpm pm2:start         # 日常启动（同一管道）
- *   pnpm pm2:stop          # 停止
+ *   pnpm deploy:pm2        # 默认托管：启动管道交给 pm2（不构建）
+ *   pnpm deploy:prod       # 生产构建托管：构建后交给 pm2（性能优先，需 1.5G+ 内存构建）
+ *   pnpm pm2:start / stop  # 日常 启动/停止（两种模式通用）
  *
  * 步骤：
  *   1. 校验 node/pnpm，按需全局安装 pm2
@@ -12,8 +12,9 @@
  *   3. Docker 三态拉起 pps-postgres + pps-minio（运行中跳过 / 停止即启动 / 缺失则 compose up -d）
  *   4. 等 PostgreSQL / OSS 就绪 → 幂等迁移 → 空库自动 seed（管理员/扫码/演示账号）
  *   5. pnpm install
- *   6. pm2 startOrReload ecosystem.config.cjs —— 托管 scripts/start-all.mjs（即 pnpm start 管道：
- *      Docker 检测 → 双应用拉起；进程崩溃自动重启，配合 pm2:save 可开机自启）
+ *   6. pm2 startOrReload：
+ *      默认模式 —— 托管 scripts/start-all.mjs（即 pnpm start 管道，无构建）
+ *      --prod 模式 —— 生产构建门户+管理台后托管（互斥切换，自动停另一模式）
  *   7. 健康检查 + 打印访问地址、局域网 IP 与默认账号
  */
 import { spawn, spawnSync } from 'node:child_process'
@@ -24,6 +25,7 @@ import os from 'node:os'
 
 const ROOT = process.cwd()
 const IS_WIN = process.platform === 'win32'
+const PROD = process.argv.includes('--prod')
 
 const DB_CONTAINER = 'pps-postgres'
 const OSS_CONTAINER = 'pps-minio'
@@ -288,12 +290,47 @@ async function main() {
   else {
     console.log(`[deploy] 库中已有 ${userCount} 个用户 —— 跳过 seed（重置请手动 pnpm db:seed，会清空业务数据）`)
   }
-
-  /* 5. 安装依赖（无构建 —— pm2 直接托管 pnpm start 启动管道） */
+  /* 5. 安装依赖 + 两种托管模式（互斥切换，避免端口冲突） */
   await runStep('安装依赖（pnpm install）', 'pnpm', ['install'])
 
-  /* 6. pm2 托管（ecosystem.config.cjs = 托管 scripts/start-all.mjs 启动管道） */
-  await runStep('pm2 启动/热重载（托管 pnpm start 管道）', 'pm2', ['startOrReload', 'ecosystem.config.cjs', '--update-env'])
+  if (PROD) {
+    /* 生产构建托管：性能优先（先停默认管道应用，避免端口冲突） */
+    for (const name of ['isagmsm', 'isagmsm-prod-portal', 'isagmsm-prod-admin']) {
+      spawnSync('pm2', ['delete', name], { cwd: ROOT, stdio: 'ignore', shell: IS_WIN })
+    }
+
+    const totalMemGb = os.totalmem() / 1024 ** 3
+    let swapGb = 0
+    try {
+      if (!IS_WIN) {
+        const meminfo = readFileSync('/proc/meminfo', 'utf8')
+        swapGb = Number(/SwapTotal:\s+(\d+)/.exec(meminfo)?.[1] ?? 0) / 1024 / 1024
+      }
+    }
+    catch { /* 非 Linux 忽略 */ }
+    if (totalMemGb < 4 && swapGb === 0 && !IS_WIN) {
+      console.warn(`[deploy] ⚠ 内存 ${totalMemGb.toFixed(1)}G 且无 swap —— 构建可能 OOM（exit 134/137）。`)
+      console.warn('[deploy]   建议先加 2G swap（一次性，root 执行）：')
+      console.warn('[deploy]     dd if=/dev/zero of=/swapfile bs=1M count=2048 && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile')
+      console.warn(`[deploy]     echo '/swapfile none swap sw 0 0' >> /etc/fstab`)
+    }
+    // 小内存机器限制 V8 老生代上限（实测本应用构建需 >1GB 堆，1536M 是实测下限）
+    let buildEnv
+    if (!process.env.NODE_OPTIONS && totalMemGb < 4) {
+      buildEnv = { NODE_OPTIONS: `--max-old-space-size=1536` }
+      console.log(`[deploy] 构建内存保护：NODE_OPTIONS=--max-old-space-size=1536（机器内存 ${totalMemGb.toFixed(1)}G）`)
+    }
+    await runStep('生产构建 —— 门户', 'pnpm', ['build'], buildEnv)
+    await runStep('生产构建 —— 管理台', 'pnpm', ['build:admin'], buildEnv)
+    await runStep('pm2 托管生产构建（门户+管理台）', 'pm2', ['startOrReload', 'ecosystem.prod.config.cjs', '--update-env'])
+  }
+  else {
+    /* 默认托管：pnpm start 启动管道（无构建；先停生产构建应用，避免端口冲突） */
+    for (const name of ['isagmsm-prod-portal', 'isagmsm-prod-admin']) {
+      spawnSync('pm2', ['delete', name], { cwd: ROOT, stdio: 'ignore', shell: IS_WIN })
+    }
+    await runStep('pm2 托管 pnpm start 管道', 'pm2', ['startOrReload', 'ecosystem.config.cjs', '--update-env'])
+  }
 
   /* 7. 健康检查 + 部署摘要 */
   await waitForHttp(PORTAL_PORT, '/api/health', '门户健康检查')
