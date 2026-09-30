@@ -27,7 +27,7 @@ git clone https://github.com/kingdol666/isagmsm-2027.git
 cd isagmsm-2027
 
 # ── ③ 一键部署（二选一）─────────────────────────────
-pnpm deploy:pm2                 # 生产构建 → pm2 托管启动（2G 内存机型脚本会自动限堆，先看 1.7 加 swap）
+pnpm deploy:pm2                 # 生产构建 → pm2 托管 → 自动装 nginx → 80/443 双协议 HTTPS（2G 机型自动限堆，先看 1.7）
 
 # ── ④ 验证 ──────────────────────────────────────
 pnpm smoke:prod                 # 13 项自检全过即可对外服务
@@ -126,7 +126,9 @@ pnpm deploy:pm2        # 重新构建 + pm2 热重载（生产代码必须重新
 
 应用本身只说 HTTP 协议——浏览器用 https 访问一个纯 HTTP 端口会直接
 `ERR_CONNECTION_RESET`（连接重置）。要让 **https 与 http 同时可用**，
-需要 nginx 做 TLS 终结（443→3000）。一条命令自动完成：
+需要 nginx 做 TLS 终结（443→3000）。**`pnpm deploy:pm2` 部署成功后会自动完成**
+（自动安装 nginx → 生成自签名证书 → 写 80/443 双协议代理 → 防火墙放行）；
+也可随时单独执行：
 
 ```bash
 pnpm https:setup --ip <你的公网IP>        # 如 121.196.175.47

@@ -401,21 +401,58 @@ async function main() {
     }
   }
 
-  /* 9. HTTPS 一键适配（Linux + nginx 自动执行；--no-https 跳过；失败不影响部署） */
+  /* 9. HTTPS 一键适配（自动装 nginx + 自签名证书 + 80/443 双协议 + 防火墙放行；--no-https 跳过） */
   if (process.argv.includes('--no-https')) {
     console.log('[deploy] --no-https：跳过 HTTPS 适配')
   }
-  else if (IS_LINUX && shOut('nginx', ['-v']).status === 0) {
-    const ipArgs = process.argv.filter(a => a.startsWith('--ip'))
-    try {
-      await runStep('HTTPS 适配（自签名证书 + nginx 80/443 双协议）', 'node', ['scripts/setup-https.mjs', ...ipArgs])
+  else if (IS_LINUX) {
+    const isRoot = typeof process.getuid === 'function' && process.getuid() === 0
+
+    /* 9a. 缺 nginx 时自动安装（仅 root；跳过则给出提示） */
+    if (shOut('nginx', ['-v']).status !== 0) {
+      if (!isRoot) {
+        console.warn('[deploy] ⚠ 未安装 nginx 且当前非 root —— HTTPS 跳过。root 执行: dnf install -y nginx || apt-get install -y nginx')
+      }
+      else {
+        const hasApt = shOut('bash', ['-c', 'command -v apt-get']).status === 0
+        const installCmd = hasApt
+          ? 'apt-get update -y && apt-get install -y nginx && systemctl enable --now nginx'
+          : 'dnf install -y nginx 2>/dev/null || yum install -y nginx; systemctl enable --now nginx'
+        try {
+          await runStep('HTTPS 前置：安装并启动 nginx', 'bash', ['-c', installCmd])
+        }
+        catch {
+          console.warn('[deploy] ⚠ nginx 安装失败 —— HTTPS 跳过（不影响已启动的应用）')
+        }
+      }
     }
-    catch {
-      console.warn('[deploy] ⚠ HTTPS 适配失败（不影响已启动的应用）—— 可稍后单独执行 pnpm https:setup --ip <公网IP>')
+
+    /* 9b. 生成证书 + 写入 nginx 80/443 双协议配置 */
+    if (shOut('nginx', ['-v']).status === 0) {
+      const ipArgs = process.argv.filter(a => a.startsWith('--ip'))
+      try {
+        await runStep('HTTPS 适配（自签名证书 + nginx 80/443 双协议）', 'node', ['scripts/setup-https.mjs', ...ipArgs])
+      }
+      catch {
+        console.warn('[deploy] ⚠ HTTPS 适配失败（不影响已启动的应用）—— 可稍后单独执行 pnpm https:setup --ip <公网IP>')
+      }
+
+      /* 9c. 系统防火墙放行（firewalld / ufw；阿里云安全组需在控制台放行 80/443） */
+      if (isRoot) {
+        if (shOut('bash', ['-c', 'command -v firewall-cmd >/dev/null && firewall-cmd --state']).status === 0) {
+          runStep('防火墙放行 80/443/3000/3001（firewalld）', 'bash', ['-c',
+            'firewall-cmd --permanent --add-service=http --add-service=https --add-port=3000/tcp --add-port=3001/tcp && firewall-cmd --reload'])
+        }
+        else if (shOut('bash', ['-c', 'command -v ufw']).status === 0) {
+          runStep('防火墙放行 80/443/3000/3001（ufw）', 'bash', ['-c',
+            'ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 3000/tcp && ufw allow 3001/tcp'])
+        }
+      }
+      console.log('[deploy] ⚠ 别忘了阿里云控制台安全组放行 TCP 80/443/3000/3001（脚本无法代操作）')
     }
   }
   else {
-    console.log('[deploy] HTTPS 适配跳过（需 Linux + nginx）—— 就绪后执行：pnpm https:setup --ip <公网IP>')
+    console.log('[deploy] HTTPS 适配跳过（非 Linux）—— 阿里云 Linux 服务器上 deploy:pm2 会自动配置')
   }
 
   const nets = []
@@ -429,6 +466,7 @@ async function main() {
   console.log('── 部署完成 ────────────────────────────────────────────────')
   const lanIp = nets[0] ?? 'localhost'
   console.log(`  门户     : http://<公网IP>:${PORTAL_PORT}   （本机/局域网: http://${lanIp}:${PORTAL_PORT}）`)
+  console.log(`  HTTPS    : https://<公网IP>/                （已配置 nginx 443 代理；自签名证书首次访问点「继续前往」）`)
   console.log(`  管理台   : http://<公网IP>:${CONSOLE_PORT}   （默认账号 admin / ${portalEnv.ADMIN_PASSWORD || 'pps26-admin'}）`)
   console.log(`  扫码端   : http://${lanIp}:${PORTAL_PORT}/scan   （staff / ${portalEnv.STAFF_PASSWORD || 'pps26-staff'}）`)
   console.log(`  演示账号 : demo.user@example.test / ${portalEnv.DEMO_PASSWORD || 'Demo-2027-Pass!'}`)
