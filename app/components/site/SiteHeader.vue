@@ -33,12 +33,7 @@ onUnmounted(close)
       </NuxtLink>
       <div class="h-auth">
         <LocaleToggle />
-        <ClientOnly>
-          <AuthChip />
-          <template #fallback>
-            <span class="mono" style="color: var(--paper-dim)">…</span>
-          </template>
-        </ClientOnly>
+        <AuthChip />
         <button
           class="menu-btn"
           type="button"

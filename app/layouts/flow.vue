@@ -12,12 +12,7 @@ const content = computed(() => siteContent(locale.value))
       <span class="flow-note">{{ content.siteMeta.fullName }}</span>
       <div class="flow-right">
         <LocaleToggle />
-        <ClientOnly>
-          <AuthChip />
-          <template #fallback>
-            <span class="mono" style="color: var(--hairline)">…</span>
-          </template>
-        </ClientOnly>
+        <AuthChip />
         <NuxtLink class="flow-home" href="/">← Symposium home</NuxtLink>
       </div>
     </header>

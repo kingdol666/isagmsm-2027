@@ -17,14 +17,13 @@
  * 非 Linux / 未装 nginx 的环境：文件生成到 ./deploy-nginx/ 供手动部署。
  */
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 
 const IS_WIN = process.platform === 'win32'
 const IS_LINUX = process.platform === 'linux'
 const ROOT = process.cwd()
 
-const argIp = (process.argv.find(a => a.startsWith('--ip=')) || '').split('=')[1] || ''
 const WITH_CONSOLE = process.argv.includes('--console')
 
 function shOut(command, args) {

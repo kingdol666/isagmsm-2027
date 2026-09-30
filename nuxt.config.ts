@@ -1,6 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
 

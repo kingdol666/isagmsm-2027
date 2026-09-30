@@ -4,7 +4,13 @@ const { user, credentialToken, fetchUser, logout } = useAuth()
 const menuOpen = ref(false)
 
 onMounted(() => {
-  if (user.value === undefined) fetchUser()
+  if (user.value === undefined) {
+    fetchUser()
+    // 兜底：认证接口超时/挂起时按未登录渲染，保证按钮永远可见可点
+    setTimeout(() => {
+      if (user.value === undefined) user.value = null
+    }, 2500)
+  }
 })
 
 function toggleMenu() {
@@ -28,12 +34,8 @@ const initial = computed(() => {
 
 <template>
   <div class="auth-chip">
-    <template v-if="user === undefined">
-      <span class="mono muted">…</span>
-    </template>
-
-    <!-- anonymous: sign in / register links -->
-    <template v-else-if="!user">
+    <!-- 未登录（含加载中）：SSR 直出登录/注册链接 —— 无 JS 也可点击进入登录页 -->
+    <template v-if="!user">
       <NuxtLink class="chip-link mono" href="/login">{{ t('common.auth.signIn') }}</NuxtLink>
       <span class="sep" aria-hidden="true">/</span>
       <NuxtLink class="chip-link mono accent" href="/sign-up">{{ t('common.auth.signUp') }}</NuxtLink>

@@ -27,6 +27,7 @@ import os from 'node:os'
 
 const ROOT = process.cwd()
 const IS_WIN = process.platform === 'win32'
+const IS_LINUX = process.platform === 'linux'
 const SKIP_BUILD = process.argv.includes('--skip-build')
 const DEV_HOST = process.argv.includes('--dev')
 // 部署版本号（git 短 SHA）—— 注入构建产物，/api/health 可查"现在跑的是哪个版本"
@@ -398,6 +399,23 @@ async function main() {
     else {
       throw new Error(`样式未随页面到达：内联 ${inlineStyles} 块/${inlineBytes}B，外部 CSS ${cssDetail || '无引用'} —— 检查构建产物或反向代理`)
     }
+  }
+
+  /* 9. HTTPS 一键适配（Linux + nginx 自动执行；--no-https 跳过；失败不影响部署） */
+  if (process.argv.includes('--no-https')) {
+    console.log('[deploy] --no-https：跳过 HTTPS 适配')
+  }
+  else if (IS_LINUX && shOut('nginx', ['-v']).status === 0) {
+    const ipArgs = process.argv.filter(a => a.startsWith('--ip'))
+    try {
+      await runStep('HTTPS 适配（自签名证书 + nginx 80/443 双协议）', 'node', ['scripts/setup-https.mjs', ...ipArgs])
+    }
+    catch {
+      console.warn('[deploy] ⚠ HTTPS 适配失败（不影响已启动的应用）—— 可稍后单独执行 pnpm https:setup --ip <公网IP>')
+    }
+  }
+  else {
+    console.log('[deploy] HTTPS 适配跳过（需 Linux + nginx）—— 就绪后执行：pnpm https:setup --ip <公网IP>')
   }
 
   const nets = []

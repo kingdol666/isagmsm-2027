@@ -23,12 +23,7 @@ const content = computed(() => siteContent(locale.value))
       </div>
       <!-- utility row: participant + staff entry points -->
       <div class="f-util">
-        <ClientOnly>
-          <AuthChip />
-          <template #fallback>
-            <span class="u-link mono" style="color: var(--paper-dim)">Account</span>
-          </template>
-        </ClientOnly>
+        <AuthChip />
         <span class="u-sep" aria-hidden="true">·</span>
         <NuxtLink class="u-link" href="/scan">Check-in scanner</NuxtLink>
         <span class="u-sep" aria-hidden="true">·</span>
