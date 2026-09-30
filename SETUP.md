@@ -122,6 +122,27 @@ pnpm deploy:pm2        # 重新构建 + pm2 热重载（生产代码必须重新
 4. 已绑定 `0.0.0.0`，局域网内直接 `http://<内网IP>:3000` 访问
 5. 正式域名建议加 nginx 反向代理 + HTTPS：`proxy_pass http://127.0.0.1:3000;` 并在 .env 设 `TRUST_PROXY=1`（限流分桶信任 X-Forwarded-For）
 
+### 1.6.1 HTTPS 适配（IP 直连 / 域名）
+
+应用本身只说 HTTP 协议——浏览器用 https 访问一个纯 HTTP 端口会直接
+`ERR_CONNECTION_RESET`（连接重置）。要让 **https 与 http 同时可用**，
+需要 nginx 做 TLS 终结（443→3000）。一条命令自动完成：
+
+```bash
+pnpm https:setup --ip <你的公网IP>        # 如 121.196.175.47
+# 可选：pnpm https:setup --ip <IP> --console   （额外暴露管理台 https://<IP>:8443）
+```
+
+自动完成：生成自签名证书（SAN 含你的 IP，10 年）→ 写入 nginx 配置
+（**80 与 443 同时代理门户**，HTTP 不强制跳转；`--console` 时 8443 代理管理台）
+→ `nginx -t` 校验并 reload。非 Linux/未装 nginx 时配置生成到 `./deploy-nginx/` 供手动部署。
+
+- **自签名证书**：浏览器首次访问提示"不安全"，点「高级 → 继续前往」一次即可（连接已加密）
+- **阿里云安全组**：放行 TCP 443（启用 8443 则一并放行）
+- 会话 cookie 的 Secure 标志按请求协议自动适配，无需改动
+- **要无警告的 HTTPS**：注册域名 → 解析到服务器 → `certbot --nginx` 签发 Let's Encrypt
+  免费证书替换自签名（此时建议 .env 设 `COOKIE_SECURE=1`）
+
 ### 1.7 小内存服务器构建 OOM（exit 134/137）
 
 `pnpm deploy:pm2` 的构建环节需要约 1.5GB+ 内存；2G 内存 ECS 可能以 exit 134（SIGABRT）失败。

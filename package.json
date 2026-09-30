@@ -9,6 +9,7 @@
     "start": "node scripts/deploy-pm2.mjs --skip-build",
     "deploy:pm2": "node scripts/deploy-pm2.mjs",
     "smoke:prod": "node scripts/smoke-prod.mjs",
+    "https:setup": "node scripts/setup-https.mjs",
     "pm2:start": "node scripts/deploy-pm2.mjs --skip-build",
     "pm2:stop": "pm2 stop isagmsm-portal isagmsm-admin",
     "pm2:restart": "pm2 restart isagmsm-portal isagmsm-admin --update-env",

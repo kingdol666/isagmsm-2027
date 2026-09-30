@@ -25,3 +25,4 @@ design-demos/package.json
 # database backups (admin console)
 admin/backups/
 backups/
+deploy-nginx/
