@@ -20,6 +20,7 @@ async function signOut() {
       <nav class="nav" aria-label="管理台导航">
         <NuxtLink to="/">仪表盘</NuxtLink>
         <NuxtLink to="/participants">参会管理</NuxtLink>
+        <NuxtLink to="/users">用户管理</NuxtLink>
         <NuxtLink to="/approvals">缴费审批</NuxtLink>
         <NuxtLink to="/abstracts">稿件审稿</NuxtLink>
         <NuxtLink to="/backups">数据库备份</NuxtLink>

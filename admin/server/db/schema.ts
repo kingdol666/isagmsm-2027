@@ -17,6 +17,10 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 320 }).notNull().unique(),
   fullName: varchar('full_name', { length: 200 }),
+  passwordHash: text('password_hash'),
+  emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+  /** account-level participant info（与门户 accountProfileSchema 同构） */
+  profile: jsonb('profile'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

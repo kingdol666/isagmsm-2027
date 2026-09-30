@@ -13,3 +13,9 @@ export function verifyPassword(password: string, stored: string): boolean {
 export function generateCredentialToken(): string {
   return randomBytes(32).toString('base64url')
 }
+
+/** 与门户一致的 scrypt 口令散列（users/admin_users 表通用格式）。 */
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex')
+  return `scrypt:${salt}:${scryptSync(password, salt, 64).toString('hex')}`
+}
