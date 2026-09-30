@@ -5,9 +5,9 @@ SMTP 邮件、对公转账、地图等。两种运行方式：
 
 | 方式 | 命令 | 用途 |
 |---|---|---|
-| **后台部署（pm2 托管）** | `pnpm pm2:start` | 阿里云/服务器正式运行，后台守护、开机自启 |
-| 首次部署 / 环境变更 | `pnpm deploy:pm2` | 自动装 pm2/生成 .env/容器/迁移/seed，然后 pm2 托管启动（**不构建**） |
-| 前台运行（开发） | `pnpm start` | 终端前台运行看实时日志，Ctrl+C 退出（与 pm2 托管的是同一条管道） |
+| **部署 / 更新代码** | `pnpm deploy:pm2` | 生产构建 → pm2 托管启动（自动装 pm2/生成 .env/容器/迁移/seed） |
+| **日常启动（已构建过）** | `pnpm start` 或 `pnpm pm2:start` | 复用既有构建产物秒级启动（无产物时自动构建），后台守护 |
+| 本地开发（前台） | `pnpm dev:all` | dev 模式实时编译，仅调试用——**公网长期运行请勿使用（很慢）** |
 
 ---
 
@@ -27,9 +27,7 @@ git clone https://github.com/kingdol666/isagmsm-2027.git
 cd isagmsm-2027
 
 # ── ③ 一键部署（二选一）─────────────────────────────
-pnpm deploy:pm2                 # 默认模式：无需构建，直接托管 pnpm start 管道（推荐先用这个验证）
-# 或
-pnpm deploy:prod                # 生产构建模式：构建后托管（2G 内存机型先看 1.7 加 swap）
+pnpm deploy:pm2                 # 生产构建 → pm2 托管启动（2G 内存机型脚本会自动限堆，先看 1.7 加 swap）
 
 # ── ④ 验证 ──────────────────────────────────────
 pnpm smoke:prod                 # 13 项自检全过即可对外服务
@@ -40,7 +38,7 @@ pnpm pm2:save && pm2 startup    # 按 pm2 打印的提示执行那条命令
 
 部署后按需改配置：编辑 `.env` / `admin/.env`（SMTP、站点地址等，见第 2/3/5 节），
 然后 `pnpm pm2:restart`（默认模式）或 `pnpm pm2:restart:prod`（生产构建模式）。
-改了代码则重新执行 `pnpm deploy:prod`（自动重建+热重载，数据不受影响）。
+改了代码则重新执行 `pnpm deploy:pm2`（自动重建+热重载，数据不受影响）。
 
 ### 1.1 前置要求
 
@@ -58,8 +56,8 @@ node -v && npm i -g pnpm
 ### 1.2 一条命令部署（首次）/ 日常启动
 
 ```bash
-pnpm deploy:pm2     # 首次：装 pm2 + 生成 .env + 容器 + 迁移/seed + pm2 托管启动
-pnpm pm2:start      # 之后日常启动（同一管道，秒级，不构建）
+pnpm deploy:pm2     # 首次：装 pm2 + 生成 .env + 容器 + 迁移/seed + 生产构建 + pm2 托管启动
+pnpm start          # 之后日常启动（复用构建产物，秒级）
 ```
 
 自动完成（每一步均幂等，重复执行安全）：
@@ -82,7 +80,7 @@ pnpm pm2:start      # 之后日常启动（同一管道，秒级，不构建）
 | `pnpm pm2:status` | 查看两个应用的运行状态 |
 | `pnpm pm2:logs` | 实时日志（`~/.pm2/logs/`） |
 | `pnpm pm2:stop` | **停止门户与管理台**（数据不受影响） |
-| `pnpm pm2:start` | 启动（pm2 托管 pnpm start 管道） |
+| `pnpm pm2:start` | 启动（复用构建产物；无产物自动构建） |
 | `pnpm pm2:restart` | 重启（改完环境变量后执行即可生效） |
 | `pnpm pm2:delete` | 从 pm2 列表移除（进程停止且不再托管） |
 | `pnpm pm2:save` | 保存当前进程列表（配合开机自启） |
@@ -109,21 +107,9 @@ pm2 startup            # 按打印出的提示执行那条命令（root 会自�
 
 ```bash
 git pull
-pnpm pm2:restart       # 重启即拉取新代码（dev 模式按需加载，无需构建），数据不受影响
-# 只改了 .env 也是 pnpm pm2:restart
+pnpm deploy:pm2        # 重新构建 + pm2 热重载（生产代码必须重新构建），数据不受影响
+# 只改了 .env 的话无需构建：pnpm pm2:restart 即可
 ```
-
-### 1.5.1 可选：生产构建托管（性能优先）
-
-默认托管的是 `pnpm start` 管道（无需构建、功能完整）。若追求更高性能/不暴露源码路径，
-可切换为生产构建托管（需要约 1.5GB+ 内存执行构建，2G 机型先按 1.7 节加 swap）：
-
-```bash
-pnpm build:all          # 构建门户 + 管理台（.output / admin/.output）
-pnpm pm2:start:prod     # pm2 切换为托管生产构建（ecosystem.prod.cjs）
-```
-
-切回默认管道：`pnpm pm2:start`。两者共用同一数据库与 .env 配置。
 
 ### 1.6 公网访问（阿里云）
 
@@ -136,11 +122,10 @@ pnpm pm2:start:prod     # pm2 切换为托管生产构建（ecosystem.prod.cjs�
 4. 已绑定 `0.0.0.0`，局域网内直接 `http://<内网IP>:3000` 访问
 5. 正式域名建议加 nginx 反向代理 + HTTPS：`proxy_pass http://127.0.0.1:3000;` 并在 .env 设 `TRUST_PROXY=1`（限流分桶信任 X-Forwarded-For）
 
-### 1.7 小内存服务器构建 OOM（exit 134/137）—— 仅生产构建模式
+### 1.7 小内存服务器构建 OOM（exit 134/137）
 
-默认的 pm2 托管模式**不构建**，无此问题。仅当使用 1.5.1 生产构建托管时：`nuxt build`
-需要约 1.5GB+ 内存，2G 内存 ECS 构建会以 exit 134（SIGABRT）失败。构建命令已自动加
-`NODE_OPTIONS=--max-old-space-size=1536`（实测下限）。若仍失败：
+`pnpm deploy:pm2` 的构建环节需要约 1.5GB+ 内存；2G 内存 ECS 可能以 exit 134（SIGABRT）失败。
+部署脚本已自动加 `NODE_OPTIONS=--max-old-space-size=1536`（实测下限）并在无 swap 时预警。若仍失败：
 
 ```bash
 # 给服务器加 2G swap（一次性，root 执行；重启后仍生效）

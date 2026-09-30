@@ -18,8 +18,8 @@ Visual identity: **Direction C — "The Grid as Instrument"** (Swiss Internation
 
 ```bash
 pnpm install
-pnpm pm2:start                # pm2 后台托管启动（Docker 自动/迁移 → 门户:3000 + 管理台:3001，无构建）
-pnpm deploy:pm2               # 首次部署：装 pm2 + 生成 .env + 容器 + 迁移/seed + pm2 托管启动
+pnpm deploy:pm2               # 部署/更新：Docker(pg+OSS) → 迁移/seed → 生产构建 → pm2 托管启动
+pnpm start                    # 日常启动：复用既有构建产物（无产物自动构建）
 pnpm start                    # 一键启动（开发模式）：Docker(自动/幂等) → 迁移 → 门户:3000 + 管理台:3001
 ```
 

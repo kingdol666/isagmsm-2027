@@ -36,7 +36,7 @@ const DEFAULT_DB = 'postgresql://pps:pps_dev_pw@localhost:5433/pps2026'
 module.exports = {
   apps: [
     {
-      name: 'isagmsm',
+      name: 'isagmsm-dev',
       cwd: __dirname,
       script: 'scripts/start-all.mjs', // = pnpm start 的内容
       exec_mode: 'fork',

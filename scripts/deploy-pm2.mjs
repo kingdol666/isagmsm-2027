@@ -1,21 +1,23 @@
  
 /**
- * 一键启动/部署（Aliyun / 任意 Linux 主机 / 本机）—— pm2 直接托管 `pnpm start` 启动管道。
+ * 一键部署 / 启动（Aliyun / 任意 Linux 主机 / 本机）—— pm2 托管「生产构建」双应用。
  *
- *   pnpm deploy:pm2        # 默认托管：启动管道交给 pm2（不构建）
- *   pnpm deploy:prod       # 生产构建托管：构建后交给 pm2（性能优先，需 1.5G+ 内存构建）
- *   pnpm pm2:start / stop  # 日常 启动/停止（两种模式通用）
+ *   pnpm deploy:pm2        # 部署/更新：构建（含内存保护）→ pm2 托管启动（推荐）
+ *   pnpm pm2:start         # 快速启动：复用既有构建产物（无产物时自动构建）
+ *   pnpm pm2:stop          # 停止
+ *   pnpm dev:all           # 本地开发：前台运行 dev 管道（非生产用途）
  *
  * 步骤：
  *   1. 校验 node/pnpm，按需全局安装 pm2
  *   2. 缺失时生成 .env / admin/.env（会话密钥随机生成；SMTP 留空 = 验证码走屏显 devCode）
  *   3. Docker 三态拉起 pps-postgres + pps-minio（运行中跳过 / 停止即启动 / 缺失则 compose up -d）
  *   4. 等 PostgreSQL / OSS 就绪 → 幂等迁移 → 空库自动 seed（管理员/扫码/演示账号）
- *   5. pnpm install
- *   6. pm2 startOrReload：
- *      默认模式 —— 托管 scripts/start-all.mjs（即 pnpm start 管道，无构建）
- *      --prod 模式 —— 生产构建门户+管理台后托管（互斥切换，自动停另一模式）
+ *   5. pnpm install → 生产构建（--skip-build 时复用产物；--dev 托管开发管道，见 ecosystem.config.cjs）
+ *   6. pm2 startOrReload ecosystem.prod.config.cjs（后台托管，开机自启见 `pnpm pm2:save` + pm2 startup）
  *   7. 健康检查 + 打印访问地址、局域网 IP 与默认账号
+ *
+ * ⚠ 网站性能关键：公网必须运行生产构建产物。dev 模式（nuxt dev）逐请求实时编译，
+ *   服务器上会非常慢 —— 不要在公网环境长期使用 --dev 托管。
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
@@ -25,7 +27,8 @@ import os from 'node:os'
 
 const ROOT = process.cwd()
 const IS_WIN = process.platform === 'win32'
-const PROD = process.argv.includes('--prod')
+const SKIP_BUILD = process.argv.includes('--skip-build')
+const DEV_HOST = process.argv.includes('--dev')
 
 const DB_CONTAINER = 'pps-postgres'
 const OSS_CONTAINER = 'pps-minio'
@@ -290,46 +293,57 @@ async function main() {
   else {
     console.log(`[deploy] 库中已有 ${userCount} 个用户 —— 跳过 seed（重置请手动 pnpm db:seed，会清空业务数据）`)
   }
-  /* 5. 安装依赖 + 两种托管模式（互斥切换，避免端口冲突） */
+  /* 5. 安装依赖 + 构建（生产模式默认；开发管道托管用 --dev） */
   await runStep('安装依赖（pnpm install）', 'pnpm', ['install'])
 
-  if (PROD) {
-    /* 生产构建托管：性能优先（先停默认管道应用，避免端口冲突） */
-    for (const name of ['isagmsm', 'isagmsm-prod-portal', 'isagmsm-prod-admin']) {
+  if (DEV_HOST) {
+    /* 开发管道托管（仅本地调试用）：无构建，pm2 托管 start-all.mjs */
+    for (const name of ['isagmsm-portal', 'isagmsm-admin', 'isagmsm-dev']) {
+      spawnSync('pm2', ['delete', name], { cwd: ROOT, stdio: 'ignore', shell: IS_WIN })
+    }
+    await runStep('pm2 托管开发管道', 'pm2', ['startOrReload', 'ecosystem.config.cjs', '--update-env'])
+  }
+  else {
+    /* 生产构建托管（默认）：网站性能关键 —— 必须运行构建产物而非 dev 实时编译 */
+    for (const name of ['isagmsm', 'isagmsm-dev', 'isagmsm-portal', 'isagmsm-admin']) {
       spawnSync('pm2', ['delete', name], { cwd: ROOT, stdio: 'ignore', shell: IS_WIN })
     }
 
-    const totalMemGb = os.totalmem() / 1024 ** 3
-    let swapGb = 0
-    try {
-      if (!IS_WIN) {
-        const meminfo = readFileSync('/proc/meminfo', 'utf8')
-        swapGb = Number(/SwapTotal:\s+(\d+)/.exec(meminfo)?.[1] ?? 0) / 1024 / 1024
+    const artifactsReady = existsSync(`${ROOT}/.output/server/index.mjs`) && existsSync(`${ROOT}/admin/.output/server/index.mjs`)
+    if (SKIP_BUILD && artifactsReady) {
+      console.log('[deploy] --skip-build：复用既有构建产物')
+    }
+    else {
+      if (SKIP_BUILD) console.log('[deploy] 未检测到构建产物 —— 自动执行首次构建')
+
+      const totalMemGb = os.totalmem() / 1024 ** 3
+      let swapGb = 0
+      try {
+        if (!IS_WIN) {
+          const meminfo = readFileSync('/proc/meminfo', 'utf8')
+          swapGb = Number(/SwapTotal:\s+(\d+)/.exec(meminfo)?.[1] ?? 0) / 1024 / 1024
+        }
       }
+      catch { /* 非 Linux 忽略 */ }
+      if (totalMemGb < 4 && swapGb === 0 && !IS_WIN) {
+        console.warn(`[deploy] ⚠ 内存 ${totalMemGb.toFixed(1)}G 且无 swap —— 构建可能 OOM（exit 134/137）。`)
+        console.warn('[deploy]   建议先加 2G swap（一次性，root 执行）：')
+        console.warn('[deploy]     dd if=/dev/zero of=/swapfile bs=1M count=2048 && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile')
+        console.warn(`[deploy]     echo '/swapfile none swap sw 0 0' >> /etc/fstab`)
+      }
+      // 小内存机器限制 V8 老生代上限（实测本应用构建需 >1GB 堆，1536M 是实测下限）
+      let buildEnv
+      if (!process.env.NODE_OPTIONS && totalMemGb < 4) {
+        buildEnv = { NODE_OPTIONS: `--max-old-space-size=1536` }
+        console.log(`[deploy] 构建内存保护：NODE_OPTIONS=--max-old-space-size=1536（机器内存 ${totalMemGb.toFixed(1)}G）`)
+      }
+      await runStep('生产构建 —— 门户', 'pnpm', ['build'], buildEnv)
+      await runStep('生产构建 —— 管理台', 'pnpm', ['build:admin'], buildEnv)
     }
-    catch { /* 非 Linux 忽略 */ }
-    if (totalMemGb < 4 && swapGb === 0 && !IS_WIN) {
-      console.warn(`[deploy] ⚠ 内存 ${totalMemGb.toFixed(1)}G 且无 swap —— 构建可能 OOM（exit 134/137）。`)
-      console.warn('[deploy]   建议先加 2G swap（一次性，root 执行）：')
-      console.warn('[deploy]     dd if=/dev/zero of=/swapfile bs=1M count=2048 && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile')
-      console.warn(`[deploy]     echo '/swapfile none swap sw 0 0' >> /etc/fstab`)
-    }
-    // 小内存机器限制 V8 老生代上限（实测本应用构建需 >1GB 堆，1536M 是实测下限）
-    let buildEnv
-    if (!process.env.NODE_OPTIONS && totalMemGb < 4) {
-      buildEnv = { NODE_OPTIONS: `--max-old-space-size=1536` }
-      console.log(`[deploy] 构建内存保护：NODE_OPTIONS=--max-old-space-size=1536（机器内存 ${totalMemGb.toFixed(1)}G）`)
-    }
-    await runStep('生产构建 —— 门户', 'pnpm', ['build'], buildEnv)
-    await runStep('生产构建 —— 管理台', 'pnpm', ['build:admin'], buildEnv)
+    if (!existsSync(`${ROOT}/.output/server/index.mjs`)) throw new Error('门户构建产物缺失（.output）')
+    if (!existsSync(`${ROOT}/admin/.output/server/index.mjs`)) throw new Error('管理台构建产物缺失（admin/.output）')
+
     await runStep('pm2 托管生产构建（门户+管理台）', 'pm2', ['startOrReload', 'ecosystem.prod.config.cjs', '--update-env'])
-  }
-  else {
-    /* 默认托管：pnpm start 启动管道（无构建；先停生产构建应用，避免端口冲突） */
-    for (const name of ['isagmsm-prod-portal', 'isagmsm-prod-admin']) {
-      spawnSync('pm2', ['delete', name], { cwd: ROOT, stdio: 'ignore', shell: IS_WIN })
-    }
-    await runStep('pm2 托管 pnpm start 管道', 'pm2', ['startOrReload', 'ecosystem.config.cjs', '--update-env'])
   }
 
   /* 7. 健康检查 + 部署摘要 */
