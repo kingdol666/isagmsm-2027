@@ -51,6 +51,15 @@ export default defineNuxtConfig({
 
   // 注意：不要对页面路由启用 swr/isr 缓存 —— 站点语言随 pps_locale cookie 变化，
   // 页面级缓存会把某一种语言的 HTML 串给所有用户（曾导致首页 cookie 语言失效）。
+
+  // 缓存策略：SSR HTML 一律 no-store —— 否则浏览器启发式缓存旧 HTML，
+  // 重新部署后旧 hash 的 CSS/JS 已被新构建删除 → 404 → 整页无样式（生产实测踩坑）；
+  // 带 content hash 的 /_nuxt 静态资源则可以安全长缓存。
+  routeRules: {
+    '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+    '/**': { headers: { 'cache-control': 'private, no-store' } },
+  },
+
   app: {
     head: {
       htmlAttrs: { lang: 'zh-CN' },
