@@ -18,7 +18,8 @@ Visual identity: **Direction C — "The Grid as Instrument"** (Swiss Internation
 
 ```bash
 pnpm install
-pnpm start                    # 一键启动：Docker(自动/幂等) → 迁移 → 门户:3000 + 管理台:3001
+pnpm deploy:pm2               # 一键生产部署：Docker(pg+OSS) → 迁移/seed → 构建 → pm2 后台托管双应用
+pnpm start                    # 一键启动（开发模式）：Docker(自动/幂等) → 迁移 → 门户:3000 + 管理台:3001
 ```
 
 **中英文切换**：页头右侧「中文 / EN」按钮即时切换全站语言（cookie 记忆，下次访问保持；SSR 按语言直出，无闪烁）。默认中文。

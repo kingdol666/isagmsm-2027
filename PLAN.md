@@ -24,6 +24,7 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | M12 | **管理台解耦**：独立应用 admin/（端口 3001、pps_console 会话、独立密钥），门户剥离全部管理面；会员-凭证强绑定（仅会员发证、取消会员自动吊销、仅 admin 可操作入会） | ✅ Done |
 | M13 | **安全加固**：安全响应头/CSP/HSTS、限流器重构+扩展、蜜罐×3、一账号一报名、投稿上限、登录锁定、LIKE 转义、管理台数据库定时备份；三路 subagent 红队测试并修复 V-1/V-3/V-4 | ✅ Done |
 | M14 | **投稿闭环完善**：投稿人可见稿件内容与逐版本快照历史、撤回稿件（管理台不再显示）、多论文投递（待审 ≤3 / 累计 ≤20，已撤回不计） | ✅ Done |
+| M17 | **pm2 一键生产部署**：`pnpm deploy:pm2`（幂等）——pm2 自动安装、.env 缺失自动生成（密钥随机）、Docker 双容器三态拉起、空库自动 seed、生产构建、pm2 托管门户+管理台、健康检查；pm2:start/stop/restart/logs/status 命令族；seed 增加门户演示账号（demo.user@example.test）；空密码 seed 缺陷修复；从头清空实测通过 | ✅ Done |
 | M16 | **全站中英文 i18n**：自研轻量 i18n（cookie 持久化 pps_locale、SSR 同源渲染、零新依赖）；页头「中文/EN」切换按钮即时切换并跨会话保持；全部页面 UI 文案 + 全站内容数据双语（shared/i18n 切片 + site-en.ts 内容镜像 + 奇偶校验单测）；html lang 动态化；默认中文（服务端校验消息暂为中文） | ✅ Done |
 | M15 | **投稿附件 OSS**：docker compose 增加对象存储容器（S3 兼容，宿主端口 9100）；投稿/重投必附 Word/PDF 附件（≤10MB，魔数校验），每版独立存档；门户与管理台均可按版本下载；UI 中文化 + 表单交互优化（脏状态/内联错误/锚点导航） | ✅ Done |
 

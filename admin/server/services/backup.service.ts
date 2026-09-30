@@ -18,6 +18,8 @@ import { DomainError } from '../utils/validation'
 const NAME_RE = /^backup-\d{4}-\d{2}-\d{2}-\d{6}\.dump$/
 
 export function backupDir(): string {
+  // 相对路径按进程 cwd 解析：dev（cwd=admin/）→ admin/backups；
+  // pm2 生产模式由 ecosystem 显式注入 BACKUP_DIR=admin/backups（cwd=仓库根）。
   return path.resolve(process.env.BACKUP_DIR ?? path.join(process.cwd(), 'backups'))
 }
 

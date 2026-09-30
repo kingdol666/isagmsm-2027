@@ -154,10 +154,19 @@ async function seed() {
   ])
 
   /* admin users (dev defaults — set ADMIN_PASSWORD in real deployments) */
+  // 注意：空字符串视为未设置（--env-file=.env 里 `ADMIN_PASSWORD=` 会得到空串）
   await db.insert(adminUsers).values([
-    { username: 'admin', passwordHash: hashPassword(process.env.ADMIN_PASSWORD ?? 'pps26-admin'), role: 'admin' },
-    { username: 'staff', passwordHash: hashPassword(process.env.STAFF_PASSWORD ?? 'pps26-staff'), role: 'staff' },
+    { username: 'admin', passwordHash: hashPassword(process.env.ADMIN_PASSWORD || 'pps26-admin'), role: 'admin' },
+    { username: 'staff', passwordHash: hashPassword(process.env.STAFF_PASSWORD || 'pps26-staff'), role: 'staff' },
   ])
+
+  /* 门户演示登录账号（可密码登录的现成账号；真实用户走邮箱验证注册） */
+  await db.insert(users).values({
+    email: 'demo.user@example.test',
+    fullName: '演示用户',
+    passwordHash: hashPassword(process.env.DEMO_PASSWORD || 'Demo-2027-Pass!'),
+    emailVerifiedAt: new Date(),
+  })
 
   /* fake participants across the domain chain */
   let regSeq = 0
