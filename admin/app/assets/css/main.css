@@ -201,3 +201,29 @@ body {
 .login-btn { width: 100%; padding: 14px; font-size: 13px; }
 .login-err { color: #A03A2A; font-size: 13px; margin: 0 0 14px; }
 .login-note { font-size: 11.5px; color: var(--grey); line-height: 1.7; margin: 18px 0 0; }
+
+/* ── 稿件附件（OSS 每版存档）── */
+.file-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .04em;
+  color: var(--copper-deep);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--copper);
+  padding: 5px 10px;
+  text-decoration: none;
+  word-break: break-all;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.file-link:hover {
+  border-color: var(--copper-deep);
+  background: rgba(180, 95, 58, .07);
+}
+
+.no-file {
+  font-size: 12.5px;
+  color: var(--grey);
+}

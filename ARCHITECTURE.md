@@ -37,7 +37,7 @@ shared/                   types/ · schemas/ (zod, used by client AND server) ·
 server/
   ├── api/                REST endpoints (see below)
   ├── middleware/         admin-api.ts — session guard for /api/admin/** and /api/checkin/**
-  ├── services/           business logic: pricing, registration, order, payment, credential, checkin
+  ├── services/           business logic: pricing, registration, order, payment, credential, checkin, abstract, storage (S3-compatible OSS)
   ├── repositories/       all SQL lives here (Drizzle, parameterised)
   ├── db/                 schema.ts · migrations/ · seed/ · counters
   ├── payments/           PaymentProvider interface + mock / wechat / alipay adapters
@@ -53,7 +53,7 @@ User → Registration → Order → Payment → Credential → Check-in
 
 Five separate entities (never merged), mirroring the conference workflow. Money is stored as integer fen. Human-friendly ids (`ISAGMSM-000123`, `ISAGMSM-ORD-000123`) come from an atomic counter table (no raw SQL).
 
-The abstract-review chain runs in parallel: `User → Abstract → AbstractEvent` (状态机 `submitted → accepted | returned`，`returned` 可修改重投并版本 +1；`abstract_events` 是投稿人可见的历史记录，审稿结果邮件通知注册邮箱)。
+The abstract-review chain runs in parallel: `User → Abstract → AbstractEvent` (状态机 `submitted → accepted | returned`，`returned` 可修改重投并版本 +1；`abstract_events` 是投稿人可见的历史记录，审稿结果邮件通知注册邮箱；每次投稿/重投的 Word/PDF 附件（≤10MB）经魔数校验后存入 S3 兼容对象存储（docker compose `oss` 服务，宿主端口 9100，S3 凭证经 OSS_* 环境变量配置），DB 仅存对象键与元数据)。
 
 Key invariants:
 
@@ -94,9 +94,10 @@ GET  /api/credentials/:token/pdf      printable PDF (pdf-lib, server-generated)
 POST /api/checkin/verify              staff: read-only token verification
 POST /api/checkin                     staff: confirm check-in (duplicate-safe)
 POST /api/staff/login|logout, GET /api/staff/me   scanner staff sessions (staff OR admin; cookie pps_staff)
-POST /api/abstracts                   submit an abstract (REQUIRES signed-in account; authors w/ affiliations)
+POST /api/abstracts                   submit an abstract + attachment (multipart; Word/PDF ≤10MB required; authors w/ affiliations)
 GET  /api/abstracts/mine              my abstracts + full review history
-POST /api/abstracts/:id/resubmit      revise & resubmit a RETURNED abstract (version + 1)
+POST /api/abstracts/:id/resubmit      revise & resubmit a RETURNED abstract + new attachment (version + 1)
+GET  /api/abstracts/:id/files/:version download own per-version attachment (owner only)
 
 ── 以下管理 API 属于独立管理台（admin/，端口 3001，cookie pps_console，仅 admin）──
 POST /api/login|logout, GET /api/me
@@ -108,6 +109,7 @@ POST /api/credentials/manage          issue（仅会员）| revoke | restore
 GET  /api/abstracts                   all abstracts (+ submitter email)
 GET  /api/abstracts/:id/events        review history
 POST /api/abstracts/:id/review        accept | return（comment 邮件通知投稿人）
+GET  /api/abstracts/:id/files/:version download per-version attachment (console session required)
 ```
 
 ## Accounts & sessions

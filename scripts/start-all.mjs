@@ -139,11 +139,37 @@ async function main() {
     }
     console.log('[start] PostgreSQL 已就绪')
 
+    /* 1b. 对象存储 OSS（投稿附件，S3 兼容 / RustFS 容器）—— 同样的三种状态逻辑 */
+    if (containerRunning('pps-minio')) {
+      console.log('[start] Docker: pps-minio 容器已在运行 —— 跳过启动')
+    }
+    else if (containerExists('pps-minio')) {
+      if (!runStep('Docker: 启动已存在的 pps-minio 容器（docker start）', 'docker', ['start', 'pps-minio'])) {
+        console.error('[start] 对象存储容器启动失败，投稿附件将无法上传')
+        process.exit(1)
+      }
+    }
+    else if (!runStep('Docker: 创建并启动对象存储 OSS（docker compose up -d oss）', 'docker', ['compose', 'up', '-d', 'oss'])) {
+      console.error('[start] 对象存储容器创建失败，请检查 docker-compose.yml')
+      process.exit(1)
+    }
+    let ossReady = false
+    for (let i = 0; i < 30; i++) {
+      const r = sh('curl', ['-sf', 'http://127.0.0.1:9100/health'], { capture: true })
+      if (r.status === 0) { ossReady = true; break }
+      await new Promise(resolve => setTimeout(resolve, 2000))
+    }
+    if (!ossReady) {
+      console.error('[start] 对象存储 OSS 60 秒内未就绪（宿主端口 9100），投稿附件将无法上传')
+      process.exit(1)
+    }
+    console.log('[start] 对象存储 OSS 已就绪（pps-abstracts 桶在首次上传时自动创建）')
+
     /* 2. 幂等迁移（已应用的自动跳过） */
     runStep('数据库迁移（幂等）', 'pnpm', ['db:migrate'])
   }
   else {
-    console.warn('[start] 未检测到 Docker 环境 —— 跳过容器启动；请确保 PostgreSQL 已在 localhost:5433 运行')
+    console.warn('[start] 未检测到 Docker 环境 —— 跳过容器启动；请确保 PostgreSQL（5433）与 MinIO（9000）可用')
   }
 
   /* 3. 同时启动两个应用（开发模式，门户走真实 SMTP 邮箱验证） */

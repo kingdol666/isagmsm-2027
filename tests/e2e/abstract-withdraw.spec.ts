@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { base, consoleBase, consoleUiLogin, createAccountViaApi, uniqueEmail } from './helpers'
+import { base, consoleBase, consoleUiLogin, createAccountViaApi, FIXTURE_DOCX, uniqueEmail } from './helpers'
 
 /**
  * 论文投稿完整设计（多论文投递 + 稿件内容可见 + 撤回 + 版本历史）：
@@ -20,6 +20,7 @@ async function fillAndSubmit(page: import('@playwright/test').Page, title: strin
   await page.fill('input[name="submitterAffiliation"]', '凝胶大学材料学院')
   await page.fill('input[name="author-name-0"]', '陈投稿')
   await page.fill('input[name="author-aff-0"]', '凝胶大学材料学院')
+  await page.setInputFiles('input[name="file"]', FIXTURE_DOCX)
   await page.click('button:has-text("提交稿件")')
   await expect(page.locator('.done-title')).toContainText('投稿成功', { timeout: 15_000 })
 }

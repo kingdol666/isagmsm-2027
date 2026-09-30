@@ -24,6 +24,7 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | M12 | **管理台解耦**：独立应用 admin/（端口 3001、pps_console 会话、独立密钥），门户剥离全部管理面；会员-凭证强绑定（仅会员发证、取消会员自动吊销、仅 admin 可操作入会） | ✅ Done |
 | M13 | **安全加固**：安全响应头/CSP/HSTS、限流器重构+扩展、蜜罐×3、一账号一报名、投稿上限、登录锁定、LIKE 转义、管理台数据库定时备份；三路 subagent 红队测试并修复 V-1/V-3/V-4 | ✅ Done |
 | M14 | **投稿闭环完善**：投稿人可见稿件内容与逐版本快照历史、撤回稿件（管理台不再显示）、多论文投递（待审 ≤3 / 累计 ≤20，已撤回不计） | ✅ Done |
+| M15 | **投稿附件 OSS**：docker compose 增加对象存储容器（S3 兼容，宿主端口 9100）；投稿/重投必附 Word/PDF 附件（≤10MB，魔数校验），每版独立存档；门户与管理台均可按版本下载；UI 中文化 + 表单交互优化（脏状态/内联错误/锚点导航） | ✅ Done |
 
 All milestones verified: `pnpm lint` ✓ · `pnpm typecheck` ✓ · `pnpm test` (24) ✓ · `pnpm test:e2e` (2) ✓ · `pnpm build` ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
 
@@ -71,7 +72,9 @@ Adapter pattern in `server/payments/`: `MockPaymentProvider` (complete, default 
 
 ## 5.5 Abstract review (投稿送审)
 
-Registered accounts submit abstracts at `/submit`（标题 / 主题方向 A–F / 报告类别 / 摘要正文 / 姓名 / 机构 / 作者列表——每位作者的姓名与机构均必填）。Admin reviews at `/admin/abstracts`: accept（附审稿意见）or return（返稿意见必填，≥5 字，邮件发送至投稿人注册邮箱）。Returned abstracts can be revised & resubmitted（版本 +1，回到待审）。`abstract_events` records the full history（投稿/重投/接收/返稿 + 意见），visible to the submitter at `/account#abstracts` and to admins inline.
+Registered accounts submit abstracts at `/submit`（标题 / 主题方向 A–F / 报告类别 / 摘要正文 / 姓名 / 机构 / 作者列表——每位作者的姓名与机构均必填）。Admin reviews at `/admin/abstracts`: accept（附审稿意见）or return（返稿意见必填，≥5 字，邮件发送至投稿人注册邮箱）。Returned abstracts can be revised & resubmitted（版本 +1，回到待审）。每次投稿/重投必须附带稿件附件（Word/PDF，≤10MB，服务端做扩展名白名单 + 魔数嗅探 + 大小校验），对象存入 docker compose 提供的对象存储容器（S3 兼容协议，RustFS 实现，宿主端口 9100；MinIO 已停止公开发布镜像故不采用），每个版本独立存档。
+
+`abstract_events` records the full history（投稿/重投/接收/返稿 + 意见 + 每版附件元数据），visible to the submitter at `/account#abstracts` and to admins inline；两侧均可按版本下载附件（门户仅属主、管理台需会话）。
 
 ## 6. Testing
 

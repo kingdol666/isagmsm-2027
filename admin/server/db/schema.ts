@@ -104,6 +104,13 @@ export const abstractEvents = pgTable('abstract_events', {
   comment: text('comment'),
   /** 投稿/重投时的稿件内容快照（完整版本历史） */
   snapshot: jsonb('snapshot').$type<Record<string, unknown> | null>(),
+  /** 该事件对应的稿件版本（仅投稿/重投事件填写） */
+  version: integer('version'),
+  /** 附件元数据（对象存 MinIO OSS，DB 只存 key） */
+  fileName: text('file_name'),
+  fileKey: text('file_key'),
+  fileSize: integer('file_size'),
+  fileType: varchar('file_type', { length: 100 }),
   actor: varchar('actor', { length: 200 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })

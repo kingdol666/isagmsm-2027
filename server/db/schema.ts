@@ -228,6 +228,14 @@ export interface AbstractEventSnapshot {
   authors: AbstractAuthor[]
 }
 
+/** 投稿/重投事件挂带的附件元数据（对象存 OSS，仅存 key）。 */
+export interface AbstractFileMeta {
+  fileName: string
+  fileKey: string
+  fileSize: number
+  fileType: string
+}
+
 export const abstracts = pgTable('abstracts', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
@@ -252,6 +260,13 @@ export const abstractEvents = pgTable('abstract_events', {
   comment: text('comment'),
   /** 投稿/重投时的稿件内容快照（title/topic/reportType/abstractText/authors/...）——完整版本历史 */
   snapshot: jsonb('snapshot').$type<AbstractEventSnapshot | null>(),
+  /** 该事件对应的稿件版本（仅投稿/重投事件填写；审稿事件为 null） */
+  version: integer('version'),
+  /** 附件元数据（每版一份；对象存 MinIO OSS，DB 只存 key） */
+  fileName: text('file_name'),
+  fileKey: text('file_key'),
+  fileSize: integer('file_size'),
+  fileType: varchar('file_type', { length: 100 }),
   actor: varchar('actor', { length: 200 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })

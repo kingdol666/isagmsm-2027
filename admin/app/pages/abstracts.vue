@@ -19,6 +19,10 @@ interface AbstractEvent {
   kind: string
   comment: string | null
   snapshot: { title: string, reportType: string, abstractText: string } | null
+  version: number | null
+  fileName: string | null
+  fileSize: number | null
+  fileType: string | null
   actor: string
   createdAt: string
 }
@@ -96,6 +100,16 @@ async function review(row: AdminAbstract, action: 'accept' | 'return') {
 function fmt(value: string) {
   return new Date(value).toLocaleString('zh-CN')
 }
+
+function fmtSize(bytes: number | null | undefined) {
+  if (!bytes) return ''
+  return bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
+
+/** 当前版本的附件（投稿/重投事件挂在版本上）。 */
+function currentFile(row: AdminAbstract) {
+  return (eventsByAbstract.value[row.id] ?? []).find(ev => ev.version === row.version && ev.fileName) ?? null
+}
 </script>
 
 <template>
@@ -143,14 +157,32 @@ function fmt(value: string) {
             <div class="d-row"><dt>机构</dt><dd>{{ row.submitterAffiliation }}</dd></div>
             <div class="d-row full"><dt>作者</dt><dd>{{ row.authors.map((a, i) => `${i + 1}. ${a.name}（${a.affiliation}）`).join('；') }}</dd></div>
             <div class="d-row full"><dt>摘要正文</dt><dd class="pre">{{ row.abstractText }}</dd></div>
+            <div class="d-row full">
+              <dt>稿件附件</dt>
+              <dd>
+                <a
+                  v-if="currentFile(row)"
+                  class="file-link"
+                  :href="`/api/abstracts/${row.id}/files/${row.version}`"
+                  :download="currentFile(row)!.fileName"
+                >第 {{ row.version }} 版 · {{ currentFile(row)!.fileName }}<span v-if="currentFile(row)!.fileSize">（{{ fmtSize(currentFile(row)!.fileSize) }}）</span> ↓ 下载</a>
+                <span v-else class="no-file">该版本没有附件（旧数据或未上传）</span>
+              </dd>
+            </div>
           </dl>
 
           <template v-if="eventsByAbstract[row.id]?.length">
-            <p class="sub-label">历史记录</p>
+            <p class="sub-label">历史记录（每版附件独立存档，可下载）</p>
             <ol class="ev-list">
               <li v-for="ev in eventsByAbstract[row.id]" :key="ev.id" class="ev">
                 <span class="ev-kind">{{ kindZh[ev.kind] ?? ev.kind }}</span>
                 <span class="ev-meta">{{ fmt(ev.createdAt) }} · {{ ev.actor }}</span>
+                <a
+                  v-if="ev.fileName && ev.version"
+                  class="file-link"
+                  :href="`/api/abstracts/${row.id}/files/${ev.version}`"
+                  :download="ev.fileName"
+                >附件 v{{ ev.version }} · {{ ev.fileName }}<span v-if="ev.fileSize">（{{ fmtSize(ev.fileSize) }}）</span> ↓</a>
                 <p v-if="ev.snapshot" class="ev-comment snap-title">《{{ ev.snapshot.title }}》 · {{ reportZh[ev.snapshot.reportType] ?? ev.snapshot.reportType }}</p>
                 <p v-if="ev.snapshot" class="ev-comment pre">{{ ev.snapshot.abstractText }}</p>
                 <p v-if="ev.comment" class="ev-comment">{{ ev.comment }}</p>

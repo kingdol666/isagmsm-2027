@@ -17,5 +17,22 @@ services:
       timeout: 3s
       retries: 10
 
+  # 对象存储 OSS（投稿附件：Word / PDF，每版一份）—— S3 兼容协议。
+  # 说明：MinIO 已停止公开发布镜像（Docker Hub 仓库已删除、quay 转私有），
+  # 故选用 S3 兼容的开源实现 RustFS（Apache-2.0）；应用侧走标准 S3 API，不绑定厂商。
+  # 生产部署时用 .env 覆盖 OSS_ROOT_USER / OSS_ROOT_PASSWORD 与门户、管理台的 OSS_* 配置。
+  oss:
+    image: rustfs/rustfs:1.0.0
+    container_name: pps-minio
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: ${OSS_ROOT_USER:-ppsoss}
+      RUSTFS_SECRET_KEY: ${OSS_ROOT_PASSWORD:-pps-oss-dev-pw}
+    ports:
+      - '9100:9000'
+    volumes:
+      - pps_ossdata:/data
+
 volumes:
   pps_pgdata:
+  pps_ossdata:

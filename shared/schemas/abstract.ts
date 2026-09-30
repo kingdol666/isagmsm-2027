@@ -14,6 +14,21 @@ export type AbstractReportType = (typeof ABSTRACT_REPORT_TYPES)[number]
 export const abstractStatuses = ['submitted', 'accepted', 'returned', 'withdrawn'] as const
 export type AbstractStatus = (typeof abstractStatuses)[number]
 
+/* ── 稿件附件（对象存储 OSS）────────────────────────────────
+ * 每次投稿/重投必须附带一份 Word 或 PDF 附件，≤10MB；
+ * 每个版本独立存储（abstract_events 的投稿/重投事件各挂一份附件元数据）。
+ */
+export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
+export const ATTACHMENT_EXTENSIONS = ['pdf', 'doc', 'docx'] as const
+export type AttachmentExtension = (typeof ATTACHMENT_EXTENSIONS)[number]
+/** <input accept> 与页面文案共用 */
+export const ATTACHMENT_ACCEPT = '.pdf,.doc,.docx'
+
+export function formatAttachmentSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
+
 export const abstractAuthorSchema = z.object({
   name: z.string().trim().min(1, '请填写作者姓名').max(120),
   affiliation: z.string().trim().min(1, '请填写该作者的机构').max(300),

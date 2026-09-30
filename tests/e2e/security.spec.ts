@@ -1,5 +1,6 @@
+import { readFileSync } from 'node:fs'
 import { expect, request as apiRequest, test } from '@playwright/test'
-import { base, consoleBase, createRegistrationWithClaimViaApi } from './helpers'
+import { base, consoleBase, createRegistrationWithClaimViaApi, FIXTURE_DOCX } from './helpers'
 
 /**
  * 安全加固回归（真实 HTTP 层）：
@@ -93,14 +94,20 @@ test('SQL injection payloads are inert (parameters) and the system stays healthy
 test('abstract injection payloads are stored inertly (no execution surface)', async ({ request }) => {
   await createRegistrationWithClaimViaApi({ request }, '注入测试员', 'Injection 大学', `E2E-SQLI-${Date.now()}`)
   const created2 = await request.post(`${base}/api/abstracts`, {
-    data: {
+    multipart: {
       title: "'); DROP TABLE abstracts; --",
       topic: 'A',
       reportType: 'oral',
       abstractText: "摘要含注入样例 ' OR '1'='1 与 $$ 标记，验证参数化存储不产生任何执行面。",
       submitterName: '注入测试员',
       submitterAffiliation: 'Injection 大学',
-      authors: [{ name: '注入测试员', affiliation: 'Injection 大学' }],
+      authors: JSON.stringify([{ name: '注入测试员', affiliation: 'Injection 大学' }]),
+      website: '',
+      file: {
+        name: 'sqli-sample.docx',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        buffer: readFileSync(FIXTURE_DOCX),
+      },
     },
   })
   expect(created2.status()).toBe(201)

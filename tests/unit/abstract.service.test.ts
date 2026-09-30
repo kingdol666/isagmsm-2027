@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { createDb } from '../../server/db'
 import { credentials, registrationTypes, registrations, users } from '../../server/db/schema'
 import { submitAbstract, resubmitAbstract, withdrawAbstract, listMyAbstractsWithEvents } from '../../server/services/abstract.service'
+import type { AbstractAttachmentInput, AbstractStorage } from '../../server/services/abstract.service'
 import { reviewAbstract, setMembershipWithBinding } from '../../admin/server/services/console.service'
 import { listAllAbstracts } from '../../admin/server/repositories/console'
 import { ensureCredential } from '../../server/services/credential.service'
@@ -48,6 +49,31 @@ const baseInput = {
   ],
 }
 
+/* 投稿附件：PK 头的合法 docx 字节；存储用假实现（单测不依赖 OSS） */
+function validAttachment(name = 'gel-abstract.docx'): AbstractAttachmentInput {
+  return {
+    fileName: name,
+    contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    data: Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(32, 0x61)]),
+  }
+}
+
+function recordingStorage(): { storage: AbstractStorage, keys: string[] } {
+  const keys: string[] = []
+  return {
+    keys,
+    storage: {
+      async putAbstractFile() {
+        const key = `abstracts/fake/${keys.length + 1}.docx`
+        keys.push(key)
+        return key
+      },
+    },
+  }
+}
+
+const noopStorage: AbstractStorage = { async putAbstractFile() { return 'abstracts/fake/noop.docx' } }
+
 beforeAll(async () => {
   // tables exist via migrations; nothing to seed — each test creates its own user
 })
@@ -68,20 +94,41 @@ async function newUser(tag: string) {
 describe('AbstractReviewService (integration)', () => {
   it('submits an abstract and records the submitted event', async () => {
     const user = await newUser('submit')
-    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+    const { storage, keys } = recordingStorage()
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, validAttachment(), storage)
     expect(abstract.status).toBe('submitted')
     expect(abstract.version).toBe(1)
     expect(abstract.authors).toHaveLength(2)
+    expect(keys).toHaveLength(1)
 
     const mine = await listMyAbstractsWithEvents(db, user.id)
     expect(mine).toHaveLength(1)
     expect(mine[0]!.events.map(e => e.kind)).toEqual(['submitted'])
     expect(mine[0]!.events[0]!.actor).toBe(`user:${user.email}`)
+    // 附件元数据落到投稿事件上（对象存 OSS，DB 存 key）
+    const ev = mine[0]!.events[0]!
+    expect(ev.version).toBe(1)
+    expect(ev.fileName).toBe('gel-abstract.docx')
+    expect(ev.fileType).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    expect(ev.fileSize).toBe(36)
+    expect(ev.fileKey).toBe(keys[0])
+  })
+
+  it('rejects an invalid attachment before any storage write', async () => {
+    const user = await newUser('badfile')
+    const { storage, keys } = recordingStorage()
+    // 伪装成 PDF 的纯文本 → 魔数校验拒绝
+    const fake = { fileName: 'paper.pdf', contentType: 'application/pdf', data: Buffer.from('this is not a pdf at all') }
+    await expect(submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, fake, storage))
+      .rejects.toBeInstanceOf(DomainError)
+    expect(keys).toHaveLength(0)
+    const mine = await listMyAbstractsWithEvents(db, user.id)
+    expect(mine).toHaveLength(0)
   })
 
   it('accepts a submission with a review comment and emails the owner', async () => {
     const user = await newUser('accept')
-    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, validAttachment(), noopStorage)
     const { mailer, sent } = fakeMailer()
 
     const reviewed = await reviewAbstract(db, abstract.id, 'chief', { action: 'accept', comment: '研究完整，予以接收。' }, mailer)
@@ -98,7 +145,7 @@ describe('AbstractReviewService (integration)', () => {
 
   it('refuses to review an already-settled abstract', async () => {
     const user = await newUser('settled')
-    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, validAttachment(), noopStorage)
     const { mailer } = fakeMailer()
     await reviewAbstract(db, abstract.id, 'chief', { action: 'accept', comment: 'ok' }, mailer)
     await expect(reviewAbstract(db, abstract.id, 'chief', { action: 'accept', comment: 'again' }, mailer))
@@ -107,7 +154,7 @@ describe('AbstractReviewService (integration)', () => {
 
   it('returns a submission with a mandatory comment, then resubmission bumps the version', async () => {
     const user = await newUser('return')
-    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, validAttachment(), noopStorage)
     const { mailer, sent } = fakeMailer()
 
     await reviewAbstract(db, abstract.id, 'chief', { action: 'return', comment: '摘要缺少关键实验数据，请补充后重新提交。' }, mailer)
@@ -115,11 +162,11 @@ describe('AbstractReviewService (integration)', () => {
 
     // resubmission by another user is forbidden
     const other = await newUser('other')
-    await expect(resubmitAbstract(db, abstract.id, { id: other.id, email: other.email }, baseInput))
+    await expect(resubmitAbstract(db, abstract.id, { id: other.id, email: other.email }, baseInput, validAttachment(), noopStorage))
       .rejects.toBeInstanceOf(DomainError)
 
     const revised = { ...baseInput, title: '双网络离子凝胶的界面增强策略（修订版）' }
-    const updated = await resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, revised)
+    const updated = await resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, revised, validAttachment("revised.docx"), noopStorage)
     expect(updated.status).toBe('submitted')
     expect(updated.version).toBe(2)
     expect(updated.title).toContain('修订版')
@@ -138,19 +185,19 @@ describe('AbstractReviewService (integration)', () => {
 
   it('rejects resubmission of a non-returned abstract', async () => {
     const user = await newUser('noresub')
-    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
-    await expect(resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, baseInput))
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, validAttachment(), noopStorage)
+    await expect(resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, baseInput, validAttachment(), noopStorage))
       .rejects.toBeInstanceOf(DomainError)
   })
 
   it('stores a content snapshot on submit and resubmit (complete version history)', async () => {
     const user = await newUser('snapshot')
-    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, validAttachment(), noopStorage)
     const { mailer } = fakeMailer()
     await reviewAbstract(db, abstract.id, 'chief', { action: 'return', comment: '请补充实验部分。' }, mailer)
 
     const revised = { ...baseInput, title: '双网络离子凝胶的界面增强策略（第二版）' }
-    await resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, revised)
+    await resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, revised, validAttachment("revised.docx"), noopStorage)
 
     const mine = await listMyAbstractsWithEvents(db, user.id)
     const snapshotEvents = mine[0]!.events.filter(e => e.snapshot)
@@ -163,7 +210,7 @@ describe('AbstractReviewService (integration)', () => {
 
   it('withdraws own pending submission, frees the pending slot, hides from admin list', async () => {
     const user = await newUser('withdraw')
-    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput)
+    const abstract = await submitAbstract(db, { id: user.id, email: user.email, fullName: user.fullName }, baseInput, validAttachment(), noopStorage)
 
     // 他人不可撤回
     const other = await newUser('withdraw-other')
@@ -180,7 +227,7 @@ describe('AbstractReviewService (integration)', () => {
     // 撤回不可逆（再撤 → 409），重投也不允许
     await expect(withdrawAbstract(db, abstract.id, { id: user.id, email: user.email }))
       .rejects.toBeInstanceOf(DomainError)
-    await expect(resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, baseInput))
+    await expect(resubmitAbstract(db, abstract.id, { id: user.id, email: user.email }, baseInput, validAttachment(), noopStorage))
       .rejects.toBeInstanceOf(DomainError)
 
     // 用户自己的历史完整保留（投稿 + 撤回），且内容快照仍在

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { base, consoleBase, consoleUiLogin, createAccountViaApi, uniqueEmail } from './helpers'
+import { base, consoleBase, consoleUiLogin, createAccountViaApi, FIXTURE_DOCX, FIXTURE_PDF, uniqueEmail } from './helpers'
 
 /**
  * 投稿送审全流程（管理台在独立应用 :3001）：
@@ -37,6 +37,10 @@ test('abstract submission, return with comment, resubmit, accept, history', asyn
   await userPage.click('button:has-text("添加作者")')
   await userPage.fill('input[name="author-name-1"]', '李合作')
   await userPage.fill('input[name="author-aff-1"]', '软物质研究所')
+
+  // 附件必填：Word 附件随 v1 提交
+  await userPage.setInputFiles('input[name="file"]', FIXTURE_DOCX)
+  await expect(userPage.locator('.file-name')).toContainText('sample.docx')
 
   await userPage.click('button:has-text("提交稿件")')
   await expect(userPage.locator('.done-title')).toContainText('投稿成功')
@@ -87,6 +91,8 @@ test('abstract submission, return with comment, resubmit, accept, history', asyn
   const titleV2 = `${titleV1}-修订`
   await userPage.fill('input[name="title"]', titleV2)
   await userPage.fill('textarea[name="abstractText"]', '修订说明：补充了三组对照实验的定量断裂能数据（提升 42%）与商用凝胶基线对比，其余内容保持不变。本研究提出双网络离子凝胶的界面增强策略。')
+  // 新版本新附件：PDF 随 v2 提交
+  await userPage.setInputFiles('input[name="file"]', FIXTURE_PDF)
   await userPage.click('button:has-text("提交新版本")')
   await expect(userPage.locator('.done-title')).toContainText('第 2 版')
 

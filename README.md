@@ -21,7 +21,7 @@ pnpm install
 pnpm start                    # 一键启动：Docker(自动/幂等) → 迁移 → 门户:3000 + 管理台:3001
 ```
 
-`pnpm start`（开发模式）会自动：检测 Docker（无则跳过并提示；容器已运行不重复启动）→ 等 PostgreSQL 就绪 → 幂等执行迁移 → 同时拉起两个应用并打印账号。邮箱验证走**真实 SMTP**（`.env` 中 MAIL_SMTP_*，验证码真实发到邮箱）。两个应用均绑定 **0.0.0.0**（公网/局域网可直接访问；阿里云部署要点见 `SETUP.md` 3.5 节——公网启动示例：`NUXT_PUBLIC_SITE_URL=http://<公网IP>:3000 pnpm start`）。
+`pnpm start`（开发模式）会自动：检测 Docker（无则跳过并提示；容器已运行不重复启动）→ 等 PostgreSQL 就绪 → 启动对象存储容器（S3 兼容，宿主端口 9100，存投稿附件）→ 幂等执行迁移 → 同时拉起两个应用并打印账号。邮箱验证走**真实 SMTP**（`.env` 中 MAIL_SMTP_*，验证码真实发到邮箱）。两个应用均绑定 **0.0.0.0**（公网/局域网可直接访问；阿里云部署要点见 `SETUP.md` 3.5 节——公网启动示例：`NUXT_PUBLIC_SITE_URL=http://<公网IP>:3000 pnpm start`）。
 
 也可以分步手动：
 

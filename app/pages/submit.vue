@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { submitAbstractSchema, ABSTRACT_REPORT_TYPES } from '#shared/schemas/abstract'
+import {
+  submitAbstractSchema,
+  ABSTRACT_REPORT_TYPES,
+  ATTACHMENT_ACCEPT,
+  ATTACHMENT_EXTENSIONS,
+  MAX_ATTACHMENT_BYTES,
+  formatAttachmentSize,
+} from '#shared/schemas/abstract'
 import { themesContent } from '#shared/content/site'
 
 definePageMeta({ layout: 'flow' })
@@ -106,6 +113,41 @@ const lastReturnComment = computed(() => {
   return events.find(e => e.kind === 'returned')?.comment ?? ''
 })
 
+/* 稿件附件（Word/PDF，≤10MB）— 客户端先做格式/大小预检，服务端仍全量校验 */
+const file = ref<File | null>(null)
+const fileError = ref('')
+
+function onFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  fileError.value = ''
+  const picked = input.files?.[0] ?? null
+  if (!picked) {
+    file.value = null
+    return
+  }
+  const ext = picked.name.split('.').pop()?.toLowerCase() ?? ''
+  if (!ATTACHMENT_EXTENSIONS.includes(ext as (typeof ATTACHMENT_EXTENSIONS)[number])) {
+    file.value = null
+    input.value = ''
+    fileError.value = '附件仅支持 PDF 或 Word（.pdf / .doc / .docx）'
+    return
+  }
+  if (picked.size > MAX_ATTACHMENT_BYTES) {
+    file.value = null
+    input.value = ''
+    fileError.value = `附件大小不能超过 10MB（当前 ${formatAttachmentSize(picked.size)}）`
+    return
+  }
+  file.value = picked
+}
+
+function clearFile() {
+  file.value = null
+  fileError.value = ''
+  const input = document.querySelector<HTMLInputElement>('input[name="file"]')
+  if (input) input.value = ''
+}
+
 async function send() {
   busy.value = true
   errorMsg.value = ''
@@ -120,16 +162,33 @@ async function send() {
       errorMsg.value = '请检查表单中标红的字段。'
       return
     }
+    if (!file.value) {
+      fileError.value = '请上传稿件附件（Word 或 PDF，≤10MB）'
+      errorMsg.value = '请检查表单中标红的字段。'
+      return
+    }
+
+    // multipart：表单字段 + 附件一次提交
+    const fd = new FormData()
+    fd.append('title', parsed.data.title)
+    fd.append('topic', parsed.data.topic)
+    fd.append('reportType', parsed.data.reportType)
+    fd.append('abstractText', parsed.data.abstractText)
+    fd.append('submitterName', parsed.data.submitterName)
+    fd.append('submitterAffiliation', parsed.data.submitterAffiliation)
+    fd.append('authors', JSON.stringify(parsed.data.authors))
+    fd.append('website', form.website) // 蜜罐
+    fd.append('file', file.value)
 
     if (editAbstract.value) {
       const res = await $fetch<{ abstract: MyAbstract }>(`/api/abstracts/${editAbstract.value.id}/resubmit`, {
         method: 'POST',
-        body: parsed.data,
+        body: fd,
       })
       done.value = { resubmitted: true, version: res.abstract.version }
     }
     else {
-      const res = await $fetch<{ abstract: MyAbstract }>('/api/abstracts', { method: 'POST', body: parsed.data })
+      const res = await $fetch<{ abstract: MyAbstract }>('/api/abstracts', { method: 'POST', body: fd })
       done.value = { resubmitted: false, version: res.abstract.version }
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -215,6 +274,26 @@ async function send() {
           <span class="f-label mono">摘要正文 *（30—8000 字）</span>
           <textarea v-model="form.abstractText" name="abstractText" rows="8" placeholder="摘要正文（中英文均可）" />
           <span v-if="fieldErrors.abstractText" class="f-err">{{ fieldErrors.abstractText }}</span>
+        </label>
+
+        <!-- 稿件附件：Word/PDF ≤10MB，每版独立存档（先传 OSS 再落库） -->
+        <label class="field file-field">
+          <span class="f-label mono">稿件附件 *（PDF / Word，≤10MB；每一版附件独立存档）</span>
+          <span class="file-row" :class="{ picked: !!file }">
+            <span class="file-btn mono">{{ file ? '重新选择' : '选择文件' }}</span>
+            <span v-if="file" class="file-name">{{ file.name }} · {{ formatAttachmentSize(file.size) }}</span>
+            <span v-else class="file-name empty">尚未选择文件（.pdf / .doc / .docx）</span>
+            <button v-if="file" class="file-clear" type="button" aria-label="移除附件" @click.prevent="clearFile">×</button>
+          </span>
+          <input
+            class="file-input"
+            type="file"
+            name="file"
+            :accept="ATTACHMENT_ACCEPT"
+            aria-label="稿件附件"
+            @change="onFileChange"
+          >
+          <span v-if="fileError" class="f-err">{{ fileError }}</span>
         </label>
 
         <div class="grid2">
@@ -395,6 +474,77 @@ async function send() {
 .f-err {
   font-size: 12.5px;
   color: #A03A2A;
+}
+
+/* 附件字段：原生 input 隐入标签内，可见行呈现选中文件 */
+.file-field {
+  position: relative;
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px dashed var(--ink);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.file-field:focus-within .file-row,
+.file-row:hover {
+  border-color: var(--copper-deep);
+  outline: 2px solid var(--copper);
+  outline-offset: -1px;
+}
+
+.file-row.picked {
+  border-style: solid;
+  background: rgba(180, 95, 58, .05);
+}
+
+.file-btn {
+  flex: none;
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 7px 14px;
+}
+
+.file-name {
+  font-size: 13.5px;
+  color: var(--ink);
+  word-break: break-all;
+}
+
+.file-name.empty {
+  color: var(--grey);
+}
+
+.file-clear {
+  flex: none;
+  margin-left: auto;
+  border: 1px solid var(--hairline);
+  background: none;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  color: var(--grey);
+}
+
+.file-clear:hover {
+  color: #A03A2A;
+  border-color: #A03A2A;
 }
 
 .authors {

@@ -1,4 +1,6 @@
 import type { Page } from '@playwright/test'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { expect } from '@playwright/test'
 
 /** 端口可经环境变量覆盖（默认 3000 / 3001，与两应用 devServer 一致）。 */
@@ -6,6 +8,11 @@ export const PORT = Number(process.env.PORTAL_PORT ?? 3000)
 export const ADMIN_PORT = Number(process.env.CONSOLE_PORT ?? 3001)
 export const base = `http://localhost:${PORT}`
 export const consoleBase = `http://localhost:${ADMIN_PORT}`
+
+/** 投稿附件 fixtures（最小合法 docx / pdf；由 fixtures/generate.mjs 生成）。 */
+const fixturesDir = join(fileURLToPath(new URL('.', import.meta.url)), 'fixtures')
+export const FIXTURE_DOCX = join(fixturesDir, 'sample.docx')
+export const FIXTURE_PDF = join(fixturesDir, 'sample.pdf')
 
 export function uniqueEmail(tag: string) {
   return `e2e-${tag}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.test`

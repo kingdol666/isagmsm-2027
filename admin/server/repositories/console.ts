@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ilike, ne, or, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, ilike, isNotNull, ne, or, sql } from 'drizzle-orm'
 import type { DbExecutor } from '../db'
 import {
   abstractEvents,
@@ -274,6 +274,18 @@ export async function listAbstractEvents(db: DbExecutor, abstractId: string) {
   return db.select().from(abstractEvents)
     .where(eq(abstractEvents.abstractId, abstractId))
     .orderBy(desc(abstractEvents.createdAt))
+}
+
+/** 按版本取附件元数据（投稿/重投事件）——管理台附件下载用。 */
+export async function findAbstractEventFile(db: DbExecutor, abstractId: string, version: number) {
+  const rows = await db.select().from(abstractEvents)
+    .where(and(
+      eq(abstractEvents.abstractId, abstractId),
+      eq(abstractEvents.version, version),
+      isNotNull(abstractEvents.fileKey),
+    ))
+    .limit(1)
+  return rows[0] ?? null
 }
 
 export async function insertAbstractEvent(db: DbExecutor, values: {

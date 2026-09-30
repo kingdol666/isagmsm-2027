@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { accountProfileSchema } from '#shared/schemas/auth'
+import { formatAttachmentSize } from '#shared/schemas/abstract'
 
 definePageMeta({ layout: 'flow' })
 useSeoMeta({ title: '个人中心' })
@@ -84,7 +85,18 @@ interface MyAbstract {
   status: string
   version: number
   createdAt: string
-  events: Array<{ id: string, kind: string, comment: string | null, snapshot: AbstractSnapshot | null, actor: string, createdAt: string }>
+  events: Array<{
+    id: string
+    kind: string
+    comment: string | null
+    snapshot: AbstractSnapshot | null
+    version: number | null
+    fileName: string | null
+    fileSize: number | null
+    fileType: string | null
+    actor: string
+    createdAt: string
+  }>
 }
 const abstracts = ref<MyAbstract[]>([])
 const abstractsLoaded = ref(false)
@@ -383,6 +395,12 @@ async function saveProfile() {
                   <span class="ev-actor mono">{{ ev.actor }}</span>
                 </div>
                 <p v-if="ev.comment" class="ev-comment">{{ ev.comment }}</p>
+                <a
+                  v-if="ev.fileName && ev.version"
+                  class="ev-file mono"
+                  :href="`/api/abstracts/${abs.id}/files/${ev.version}`"
+                  :download="ev.fileName"
+                >附件 · 第 {{ ev.version }} 版 · {{ ev.fileName }}<span v-if="ev.fileSize">（{{ formatAttachmentSize(ev.fileSize) }}）</span> ↓</a>
                 <div v-if="ev.snapshot" class="ev-snapshot">
                   <p class="ev-snap-title">《{{ ev.snapshot.title }}》<span class="mono">· 第 {{ snapshotVersion(abs, ev) }} 版快照 · {{ reportZh[ev.snapshot.reportType] ?? ev.snapshot.reportType }}</span></p>
                   <p class="ev-comment pre">{{ ev.snapshot.abstractText }}</p>
@@ -953,6 +971,26 @@ async function saveProfile() {
   font-size: 13px;
   line-height: 1.75;
   color: var(--ink);
+}
+
+/* 版本附件下载（同一稿件每版一份，存对象存储） */
+.ev-file {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  color: var(--copper-deep);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--copper);
+  padding: 5px 10px;
+  text-decoration: none;
+  word-break: break-all;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.ev-file:hover {
+  border-color: var(--copper-deep);
+  background: rgba(180, 95, 58, .06);
 }
 
 .ev-comment.pre {
