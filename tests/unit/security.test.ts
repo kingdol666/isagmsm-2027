@@ -105,6 +105,8 @@ describe('安全响应头', () => {
     const withCsp = buildSecurityHeaders({ contentSecurityPolicy: true })
     expect(withCsp['content-security-policy']).toContain("frame-ancestors 'none'")
     expect(withCsp['content-security-policy']).toContain('tile.openstreetmap.org')
+    /* MapLibre v6 以 Blob URL 创建瓦片 worker——缺 blob: 会导致生产地图成片空白 */
+    expect(withCsp['content-security-policy']).toContain("worker-src 'self' blob:")
   })
 
   it('console: no-store, camera denied, CSP with frame-ancestors none', () => {

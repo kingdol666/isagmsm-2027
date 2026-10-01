@@ -170,53 +170,62 @@ export const datesContent: { code: string; tag: string; title: string; items: Im
   ]
 }
 
-/* 组织机构（示例结构 — 名单为占位，请组委会确认后替换） */
+/* 组织机构 —— 沿用 ISAGMSM 系列会议架构（据第四届 · 杭州 2025 会议通知，polymer.cn）；
+   第五届组委会名单以第二轮通知为准 */
 export const organizationContent: { code: string; tag: string; title: string; sections: OrgSection[] } = {
   code: 'ISAGMSM—06',
   tag: '组织机构',
   title: '组织机构',
   sections: [
     {
-      title: '主办单位',
+      title: '系列会议发起单位',
       kind: 'units',
       entries: [
-        { name: '（主办单位名称 — 待组委会确认）' },
-      ],
-    },
-    {
-      title: '承办单位',
-      kind: 'units',
-      entries: [
-        { name: '（承办单位名称 — 待组委会确认）' },
+        { name: '日本理化学研究所（RIKEN）' },
+        { name: '北海道大学' },
+        { name: '中国科学院化学研究所' },
+        { name: '浙江大学' },
+        { name: '西安交通大学' },
+        { name: '天津工业大学' },
+        { name: '陕西科技大学' },
+        { name: '珠海国佳新材股份有限公司' },
       ],
     },
     {
       title: '大会领导',
       kind: 'people',
       entries: [
-        { role: '大会主席', name: '（待确认）' },
-        { role: '会议执行主席', name: '（待确认）' },
-        { role: '会议秘书', name: '（待确认）' },
-      ],
-    },
-    {
-      title: '学术委员会',
-      kind: 'people',
-      entries: [
-        { role: '主任', name: '（待确认）' },
-        { role: '副主任', name: '（待确认 · 按姓氏笔画排序）' },
-        { role: '委员', name: '（待确认 · 按姓氏笔画排序）' },
+        { role: '大会主席', name: '长田义仁 Yoshihito Osada', note: '系列会议发起人' },
+        { role: '大会主席', name: '龚剑萍 Jian Ping Gong', note: '系列会议发起人' },
+        { role: '执行副主席', name: '郑强' },
+        { role: '执行副主席', name: '徐坚' },
+        { role: '秘书长', name: '吴子良' },
+        { role: '秘书长', name: '赵宁' },
       ],
     },
     {
       title: '组织委员会',
       kind: 'people',
       entries: [
-        { role: '主任', name: '（待确认）' },
-        { role: '委员', name: '（待确认）' },
+        { name: '陈莉' },
+        { name: '陈强' },
+        { name: '陈咏梅' },
+        { name: '冯传良' },
+        { name: '金子达雄' },
+        { name: '付俊' },
+        { name: '胡建' },
+        { name: '李学锋' },
+        { name: '刘文广' },
+        { name: '孙桃林' },
+        { name: '王海波' },
+        { name: '武培怡' },
+        { name: '吴子良' },
+        { name: '余承涛' },
+        { name: '张拥军' },
+        { name: '赵宁' },
       ],
     },
-  ]
+  ],
 }
 
 /* 征文投稿 */

@@ -5,7 +5,8 @@
  *  - 瓦片源需与 MapLibreView.vue 的 sources 保持一致
  */
 
-const TILE_HOSTS = 'https://tile.openstreetmap.org https://tile.openstreetmap.de'
+/** 瓦片/glyph 源需与 MapLibreView.vue 的 sources 保持一致（两台瓦片服务器均带 CORS 头 + maplibre glyph 服务） */
+const TILE_HOSTS = 'https://tile.openstreetmap.org https://tile.openstreetmap.de https://demotiles.maplibre.org'
 
 export function buildSecurityHeaders(options: { contentSecurityPolicy: boolean }): Record<string, string> {
   const headers: Record<string, string> = {
@@ -19,6 +20,9 @@ export function buildSecurityHeaders(options: { contentSecurityPolicy: boolean }
     headers['content-security-policy'] = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'",
+      /* worker-src 'self' blob:：MapLibre v6 以 Blob URL 创建模块 worker（内容仅 import 同源 chunk），
+         缺 blob: 会导致部分瓦片 worker 加载失败 → 地图成片空白（开发模式无 CSP，此前测不出） */
+      "worker-src 'self' blob:",
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: ${TILE_HOSTS}`,
       `connect-src 'self' ${TILE_HOSTS}`,

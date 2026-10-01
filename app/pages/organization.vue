@@ -21,7 +21,14 @@ useSeoMeta({ title: () => t('content.org.seoTitle') })
 
       <section v-for="section in info.sections" :key="section.title" class="org-section">
         <h2 class="o-title">{{ section.title }}</h2>
-        <ul class="o-list" :class="{ people: section.kind === 'people' }">
+        <ul
+          class="o-list"
+          :class="{
+            people: section.kind === 'people',
+            /* 无角色的纯名单（如组织委员会）内联排布，避免逐行竖排过长 */
+            plain: !section.entries.some(entry => entry.role),
+          }"
+        >
           <li v-for="entry in section.entries" :key="section.title + (entry.role ?? '') + entry.name">
             <span v-if="entry.role" class="o-role">{{ entry.role }}</span>
             <span class="o-name">{{ entry.name }}</span>
@@ -84,6 +91,25 @@ useSeoMeta({ title: () => t('content.org.seoTitle') })
 .o-note {
   font-size: 13px;
   color: var(--grey);
+}
+
+/* 纯名单内联排布：姓名以分隔点相连，自动换行 */
+.o-list.plain li {
+  display: inline;
+  border-top: none;
+  padding: 6px 0;
+  font-size: 15.5px;
+  line-height: 2.1;
+}
+
+.o-list.plain li::after {
+  content: '·';
+  color: var(--copper-deep);
+  margin: 0 12px 0 6px;
+}
+
+.o-list.plain li:last-child::after {
+  content: none;
 }
 
 .page-note {

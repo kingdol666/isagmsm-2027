@@ -28,12 +28,16 @@ const props = withDefaults(defineProps<{
 
 const mapEl = ref<HTMLDivElement | null>(null)
 const mapReady = ref(false)
-const mapError = ref('')
+/** 非空 = 无法渲染交互地图（WebGL 不可用 / 初始化失败），展示静态回退卡片 */
+const fallback = ref<'' | 'nowebgl' | 'error'>('')
+/** 瓦片迟迟未就绪（弱网/受限网络），在地图上叠加「新窗口打开」提示条 */
+const tileTrouble = ref(false)
 const coords = ref('')
 
 let map: MapLibreMap | null = null
 let lib: typeof import('maplibre-gl') | null = null
 let activePopup: MapLibrePopup | null = null
+let loadTimer: ReturnType<typeof setTimeout> | null = null
 
 const center = computed(() => {
   if (props.activeIndex != null) {
@@ -46,6 +50,23 @@ const center = computed(() => {
   const lat = pts.reduce((sum, p) => sum + (p.lat ?? 0), 0) / pts.length
   return { lng, lat }
 })
+
+/** 外部地图链接（回退 / 弱网提示共用）——始终可用，不依赖 WebGL 与瓦片网络 */
+const osmLink = computed(() => {
+  const z = props.activeIndex != null ? 15 : 12
+  return `https://www.openstreetmap.org/#map=${z}/${center.value.lat.toFixed(4)}/${center.value.lng.toFixed(4)}`
+})
+
+/** WebGL 可用性探测：in-app 浏览器/旧内核常见 WebGL 缺失，必须先探测再初始化 */
+function webglAvailable(): boolean {
+  try {
+    const probe = document.createElement('canvas')
+    return Boolean(probe.getContext('webgl2') ?? probe.getContext('webgl'))
+  }
+  catch {
+    return false
+  }
+}
 
 function popupHtml(poi: MapPoi): string {
   return `<div class="pp">
@@ -82,11 +103,25 @@ function readout() {
 }
 
 onMounted(async () => {
+  if (!webglAvailable()) {
+    fallback.value = 'nowebgl'
+    return
+  }
   try {
     lib = await import('maplibre-gl')
     await import('maplibre-gl/dist/maplibre-gl.css')
 
+    /* worker 文件必须显式交给打包器：maplibre 默认按 import.meta.url 相对定位
+       maplibre-gl-worker.mjs，但 Rolldown/Vite 不会把它拷进产物 → Worker 404 →
+       瓦片渲染线程挂掉、地图成片空白（开发模式由 vite 依赖预构建兜底，测不出）。
+       用 ?worker&url（而非 ?url）：worker 会连同其内部 import 的 shared chunk 一起
+       被打包成自洽产物；裸 ?url 拷出的文件内部 import 会 404 */
+    lib.setWorkerUrl((await import('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url')).default)
+
     if (!mapEl.value || !lib) return
+    /* 弱网保底：瓦片 12s 未就绪则叠加外链提示条（地图本身可能稍后仍会画出来） */
+    loadTimer = setTimeout(() => { tileTrouble.value = !mapReady.value }, 12_000)
+
     map = new lib.Map({
       container: mapEl.value,
       style: {
@@ -95,6 +130,8 @@ onMounted(async () => {
         sources: {
           osm: {
             type: 'raster',
+            /* 双源互备（两台服务器都带 CORS 头，maplibre 经 fetch 取瓦片，无 CORS 头的镜像会整块缺图）；
+               弱网/受限网络下由加载超时提示条引导外部地图打开 */
             tiles: [
               'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               'https://tile.openstreetmap.de/{z}/{x}/{y}.png',
@@ -108,7 +145,19 @@ onMounted(async () => {
       },
       center: [center.value.lng, center.value.lat],
       zoom: props.activeIndex != null ? 15 : 12,
-      attributionControl: { compact: false },
+      attributionControl: { compact: true },
+      /* 移动端适配：协作手势（单指滚页面、双指/Ctrl+滚轮操作地图，自带提示条）
+         + 禁旋转与俯仰，避免误触把视角转到奇怪角度 */
+      cooperativeGestures: true,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      maxZoom: 18,
+      locale: {
+        'CooperativeGesturesHandler.WindowsHelpText': t('common.map.gestureCtrl'),
+        'CooperativeGesturesHandler.MacHelpText': t('common.map.gestureMac'),
+        'CooperativeGesturesHandler.MobileHelpText': t('common.map.gestureTouch'),
+      },
     })
     map.addControl(new lib.NavigationControl({ showCompass: false }), 'top-left')
 
@@ -126,7 +175,13 @@ onMounted(async () => {
     }
 
     map.on('load', () => {
+      if (!map) return
       mapReady.value = true
+      tileTrouble.value = false
+      if (loadTimer) {
+        clearTimeout(loadTimer)
+        loadTimer = null
+      }
       readout()
       if (props.activeIndex != null) {
         focusPoi(props.activeIndex)
@@ -134,11 +189,27 @@ onMounted(async () => {
       else {
         fitAll()
       }
+      /* 首帧补绘：部分移动端/软件渲染 WebGL 下，定位动画结束后渲染循环停帧，
+         若末帧仍有瓦片未就绪会停留在局部画面——动画结束与延时各强制补绘一次 */
+      const m = map
+      m.once('moveend', () => {
+        m.resize()
+        m.triggerRepaint()
+      })
+      setTimeout(() => {
+        map?.resize()
+        map?.triggerRepaint()
+      }, 2500)
     })
     map.on('move', readout)
+    /* 上下文丢失守卫：阻止默认卸载，恢复后补绘 */
+    map.on('webglcontextlost', (e) => {
+      ;(e as unknown as { originalEvent?: Event }).originalEvent?.preventDefault()
+    })
+    map.on('webglcontextrestored', () => map?.triggerRepaint())
   }
-  catch (error) {
-      mapError.value = error instanceof Error ? error.message : t('common.map.loadFailed')
+  catch {
+    fallback.value = 'error'
   }
 })
 
@@ -181,6 +252,10 @@ function focusPoi(index: number | null) {
 }
 
 onUnmounted(() => {
+  if (loadTimer) {
+    clearTimeout(loadTimer)
+    loadTimer = null
+  }
   closeActivePopup()
   map?.remove()
   map = null
@@ -189,12 +264,29 @@ onUnmounted(() => {
 
 <template>
   <div class="map-wrap" :style="{ height }">
-    <div ref="mapEl" class="map-box" />
-    <p v-if="mapReady" class="coords mono" data-testid="map-coords" aria-hidden="true">{{ coords }}</p>
-    <div v-if="!mapReady" class="loading" data-testid="map-loading">
-      <p class="l-text mono">{{ mapError ? t('common.map.loadFailed') : t('common.map.loading') }}</p>
-      <p v-if="mapError" class="l-sub mono">{{ mapError }}</p>
+    <!-- 静态回退卡片：无 WebGL / 初始化失败 —— 点位信息 + 外部地图链接，始终可用 -->
+    <div v-if="fallback" class="map-fallback" data-testid="map-fallback">
+      <p class="f-title mono">{{ fallback === 'nowebgl' ? t('common.map.noWebgl') : t('common.map.loadFailed') }}</p>
+      <ul class="f-list">
+        <li v-for="poi in pois" :key="poi.name">
+          <strong>{{ poi.name }}</strong>
+          <small v-if="poi.detail">{{ poi.detail }}</small>
+        </li>
+      </ul>
+      <a class="f-link mono" :href="osmLink" target="_blank" rel="noopener">{{ t('common.map.openExternal') }}</a>
     </div>
+
+    <template v-else>
+      <div ref="mapEl" class="map-box" />
+      <p v-if="mapReady" class="coords mono" data-testid="map-coords" aria-hidden="true">{{ coords }}</p>
+      <div v-if="!mapReady" class="loading" data-testid="map-loading">
+        <p class="l-text mono">{{ t('common.map.loading') }}</p>
+      </div>
+      <p v-if="tileTrouble && !mapReady" class="slow-bar mono" data-testid="map-slow">
+        <span>{{ t('common.map.slowHint') }}</span>
+        <a :href="osmLink" target="_blank" rel="noopener">{{ t('common.map.openExternal') }}</a>
+      </p>
+    </template>
   </div>
 </template>
 
@@ -241,6 +333,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 8px;
   background: var(--tint);
+  z-index: 1;
 }
 
 .l-text {
@@ -249,9 +342,92 @@ onUnmounted(() => {
   color: var(--copper-deep);
 }
 
-.l-sub {
+/* 弱网提示条：叠在加载态之上，提供始终可用的外部地图出口 */
+.slow-bar {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 26px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 14px;
   font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--ink);
+  background: rgba(247, 246, 242, .95);
+  border: 1px solid var(--ink);
+  padding: 9px 12px;
+}
+
+.slow-bar a {
+  color: var(--copper-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+/* 静态回退卡片：无 WebGL / 初始化失败时的降级展示 */
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(16px, 3vw, 28px);
+  background: var(--tint);
+  overflow-y: auto;
+}
+
+.f-title {
+  font-size: 12.5px;
+  letter-spacing: .1em;
+  color: var(--copper-deep);
+  border-top: 1px solid var(--ink);
+  padding-top: 12px;
+}
+
+.f-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.f-list li {
+  border-top: 1px solid var(--hairline);
+  padding: 10px 0;
+}
+
+.f-list strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+.f-list small {
+  display: block;
+  font-size: 12.5px;
   color: var(--grey);
+  margin-top: 2px;
+}
+
+.f-link {
+  align-self: flex-start;
+  font-size: 12.5px;
+  letter-spacing: .08em;
+  color: var(--paper, #F7F6F2);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 9px 14px;
+  text-decoration: none;
+}
+
+.f-link:hover {
+  background: var(--copper-deep);
+  border-color: var(--copper-deep);
 }
 
 /* MapLibre 注入的弹窗与署名不在 scoped 树内，用 :deep 覆写 */

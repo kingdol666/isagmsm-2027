@@ -11,7 +11,7 @@ export const contentMessages: Record<Locale, Record<string, unknown>> = {
     content: {
       org: {
         seoTitle: '组织机构',
-        note: '名单以会议第二轮通知为准。如需更新单位或委员信息，请联系会务组。',
+        note: '组织机构沿用 ISAGMSM 系列会议架构（据第四届 · 杭州 2025 会议通知）；第五届组委会名单以第二轮通知为准。',
       },
       transport: {
         seoTitle: '会场交通',
@@ -42,7 +42,7 @@ export const contentMessages: Record<Locale, Record<string, unknown>> = {
     content: {
       org: {
         seoTitle: 'Organizers',
-        note: 'The roster is subject to the second circular. To update an institution or committee member entry, please contact the secretariat.',
+        note: 'The committee structure follows the ISAGMSM series framework (per the 4th-edition circular, Hangzhou 2025); the 5th-edition roster is subject to the second circular.',
       },
       transport: {
         seoTitle: 'Venue & Transportation',

@@ -170,50 +170,59 @@ export const datesContent: { code: string, tag: string, title: string, items: Im
   ],
 }
 
-/* Organizers (sample structure — roster is placeholder, to be confirmed) */
+/* Organizers — the ISAGMSM series framework, per the 4th-edition circular
+   (Hangzhou 2025, polymer.cn); the 5th-edition roster is subject to the second circular */
 export const organizationContent: { code: string, tag: string, title: string, sections: OrgSection[] } = {
   code: 'ISAGMSM—06',
   tag: 'Organizers',
   title: 'Organizers',
   sections: [
     {
-      title: 'Hosted by',
+      title: 'Founding Institutions of the Series',
       kind: 'units',
       entries: [
-        { name: '(Host institution — to be confirmed)' },
-      ],
-    },
-    {
-      title: 'Organized by',
-      kind: 'units',
-      entries: [
-        { name: '(Organizing institution — to be confirmed)' },
+        { name: 'RIKEN, Japan' },
+        { name: 'Hokkaido University' },
+        { name: 'Institute of Chemistry, Chinese Academy of Sciences' },
+        { name: 'Zhejiang University' },
+        { name: 'Xi\'an Jiaotong University' },
+        { name: 'Tiangong University' },
+        { name: 'Shaanxi University of Science & Technology' },
+        { name: 'Zhuhai Guojia New Materials Co., Ltd.' },
       ],
     },
     {
       title: 'Symposium Leadership',
       kind: 'people',
       entries: [
-        { role: 'Chair', name: '(TBC)' },
-        { role: 'Executive Chair', name: '(TBC)' },
-        { role: 'Secretary', name: '(TBC)' },
-      ],
-    },
-    {
-      title: 'Scientific Committee',
-      kind: 'people',
-      entries: [
-        { role: 'Chair', name: '(TBC)' },
-        { role: 'Vice Chair', name: '(TBC · ordered by surname stroke count)' },
-        { role: 'Members', name: '(TBC · ordered by surname stroke count)' },
+        { role: 'Chair', name: 'Yoshihito Osada (长田义仁)', note: 'Series founder' },
+        { role: 'Chair', name: 'Jian Ping Gong (龚剑萍)', note: 'Series founder' },
+        { role: 'Executive Vice-Chair', name: 'Qiang Zheng (郑强)' },
+        { role: 'Executive Vice-Chair', name: 'Jian Xu (徐坚)' },
+        { role: 'Secretary-General', name: 'Ziliang Wu (吴子良)' },
+        { role: 'Secretary-General', name: 'Ning Zhao (赵宁)' },
       ],
     },
     {
       title: 'Organizing Committee',
       kind: 'people',
       entries: [
-        { role: 'Chair', name: '(TBC)' },
-        { role: 'Members', name: '(TBC)' },
+        { name: 'Li Chen (陈莉)' },
+        { name: 'Qiang Chen (陈强)' },
+        { name: 'Yongmei Chen (陈咏梅)' },
+        { name: 'Chuanliang Feng (冯传良)' },
+        { name: 'Tatsuo Kaneko (金子达雄)' },
+        { name: 'Jun Fu (付俊)' },
+        { name: 'Jian Hu (胡建)' },
+        { name: 'Xuefeng Li (李学锋)' },
+        { name: 'Wenguang Liu (刘文广)' },
+        { name: 'Taolin Sun (孙桃林)' },
+        { name: 'Haibo Wang (王海波)' },
+        { name: 'Peiyi Wu (武培怡)' },
+        { name: 'Ziliang Wu (吴子良)' },
+        { name: 'Chengtao Yu (余承涛)' },
+        { name: 'Yongjun Zhang (张拥军)' },
+        { name: 'Ning Zhao (赵宁)' },
       ],
     },
   ],
