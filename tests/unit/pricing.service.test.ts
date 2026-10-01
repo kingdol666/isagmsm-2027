@@ -20,8 +20,8 @@ describe('computePrice (RegistrationPricingService)', () => {
   })
 
   it('deadline boundary: discount until end of deadline day', () => {
-    const atDeadline = computePrice(input, { now: new Date('2027-03-25T23:59:59+08:00') })
-    const afterDeadline = computePrice(input, { now: new Date('2027-03-26T00:00:00+08:00') })
+    const atDeadline = computePrice(input, { now: new Date('2027-03-09T23:59:59+08:00') })
+    const afterDeadline = computePrice(input, { now: new Date('2027-03-10T00:00:00+08:00') })
     expect(atDeadline.discountReason).toBe('early_bird')
     expect(afterDeadline.discountReason).toBeNull()
   })

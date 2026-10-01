@@ -111,6 +111,18 @@ pnpm deploy:pm2        # 重新构建 + pm2 热重载（生产代码必须重新
 # 只改了 .env 的话无需构建：pnpm pm2:restart 即可
 ```
 
+**内容类更新注意**：会议日期/截止日期等配置改在代码里（`shared/content/site.ts` 与
+`server/services/pricing.service.ts` 的早鸟截止默认值），但 **已初始化过的数据库**
+`site_settings` 表里存有旧值，seed 只在空库执行——更新部署后需手动同步一次：
+
+```bash
+docker exec pps-postgres psql -U pps -d pps2026 -c \
+  "UPDATE site_settings SET value='\"2027-03-09T23:59:59+08:00\"' WHERE key='early_bird_deadline';"
+pnpm pm2:restart:web   # 让定价服务读到新值
+```
+
+（value 列是 json 类型，SQL 里要带转义的双引号字面量。）
+
 ### 1.6 公网访问（阿里云）
 
 1. **安全组放行**：ECS 控制台 → 安全组 → 入方向规则：
@@ -286,7 +298,7 @@ bank: {
   bank: '开户银行（如：中国银行合肥滨湖支行）',
   accountNumber: '银行账号',
   remarkFormat: '参会ID-姓名',
-  deadline: '银行转账截止：2027年4月15日',
+  deadline: '银行转账截止：2027年3月31日',
 },
 ```
 

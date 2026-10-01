@@ -1,7 +1,7 @@
 # ISAGMSM 2027 — 第五届先进凝胶材料与软物质国际学术研讨会
 
 > The 5th International Symposium for Advanced Gel Materials & Soft Matters
-> 2027年4月24—26日 · 合肥滨湖国际会展中心 · 中国
+> 2027年4月9—11日 · 合肥滨湖国际会展中心 · 中国
 
 双应用会议平台（pnpm workspace）：
 

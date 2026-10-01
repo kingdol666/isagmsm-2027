@@ -1,7 +1,7 @@
 # ISAGMSM 2027 — 第五届先进凝胶材料与软物质国际学术研讨会 · Development Plan
 
 > The 5th International Symposium for Advanced Gel Materials & Soft Matters
-> 2027年4月24—26日 · 合肥滨湖国际会展中心 · 中国
+> 2027年4月9—11日 · 合肥滨湖国际会展中心 · 中国
 
 Full-stack symposium website: public site + registration + orders + payments + electronic credentials + QR verification + on-site check-in + admin dashboard.
 
@@ -28,6 +28,7 @@ Full-stack symposium website: public site + registration + orders + payments + e
 | M16 | **全站中英文 i18n**：自研轻量 i18n（cookie 持久化 pps_locale、SSR 同源渲染、零新依赖）；页头「中文/EN」切换按钮即时切换并跨会话保持；全部页面 UI 文案 + 全站内容数据双语（shared/i18n 切片 + site-en.ts 内容镜像 + 奇偶校验单测）；html lang 动态化；默认中文（服务端校验消息暂为中文） | ✅ Done |
 | M15 | **投稿附件 OSS**：docker compose 增加对象存储容器（S3 兼容，宿主端口 9100）；投稿/重投必附 Word/PDF 附件（≤10MB，魔数校验），每版独立存档；门户与管理台均可按版本下载；UI 中文化 + 表单交互优化（脏状态/内联错误/锚点导航） | ✅ Done |
 | M18 | **管理台用户管理 + 收尾优化**：全量注册账号视图（无论是否报名）+ 强制修改密码（旧密码即时失效）+ 代编辑个人资料；修复报名确认页邮箱摘要为空、报名提交按钮双触发与 createOrder 过渡竞态、E2E 水合竞态（管理台搜索先等水合再断言过滤结果） | ✅ Done |
+| M19 | **宣传页内容充实**：参照 PPAS2025（中国化学会第七届高分子成型加工研讨会）官网结构，结合第四届 ISAGMSM 真实信息（2016 北京 / 2017 贵阳 / 2019 西安 / 2025 杭州，RIKEN·北海道大学·中科院化学所·浙大等八家发起，Osada 与龚剑萍发起人）充实会议简介与系列沿革；会期定为 **2027年4月9—11日** 并全线同步（横幅/重要日期/三日日程/摘要截止 3月9日/转账截止 3月31日/退费 3月25日/凭证页脚/邮件页脚/JSON-LD/中英双语）；六大征文方向对齐近期热点（高强韧抗疲劳、气凝胶多孔材料、离子凝胶与柔性电子、智能响应与软体机器人、生物医用与类器官基质、软物质物理与数智设计）；SETUP 补已部署库 site_settings 早鸟截止同步 SQL | ✅ Done |
 
 All milestones verified: `pnpm lint` ✓ · `pnpm typecheck`（门户 + 管理台）✓ · `pnpm test` (58) ✓ · `pnpm test:e2e` (40) ✓ · `pnpm build:all` ✓ · `pnpm smoke:prod` (14) ✓ · responsive 375→1920 ✓ · visual QA 7/7 pages pass.
 

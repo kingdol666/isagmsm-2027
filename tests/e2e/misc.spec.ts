@@ -35,7 +35,7 @@ test('homepage carries structured event data and meta', async ({ page }) => {
   await page.goto(base, { waitUntil: 'networkidle' })
   const jsonLd = await page.locator('script[type="application/ld+json"]').first().textContent()
   expect(jsonLd).toContain('ConferenceEvent')
-  expect(jsonLd).toContain('2027-04-24')
+  expect(jsonLd).toContain('2027-04-09')
   const description = await page.locator('meta[name="description"]').getAttribute('content')
   expect(description).toContain('先进凝胶材料')
   // header nav shows the seven conference sections

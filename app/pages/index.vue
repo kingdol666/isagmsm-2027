@@ -37,8 +37,8 @@ useHead({
         name: content.value.siteMeta.fullNameEn,
         alternateName: content.value.siteMeta.fullNameZh,
         description: '第五届先进凝胶材料与软物质国际学术研讨会',
-        startDate: '2027-04-24',
-        endDate: '2027-04-26',
+        startDate: '2027-04-09',
+        endDate: '2027-04-11',
         eventStatus: 'https://schema.org/EventScheduled',
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         location: {

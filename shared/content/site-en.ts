@@ -24,8 +24,8 @@ export const siteMeta = {
   fullNameZh: '第五届先进凝胶材料与软物质国际学术研讨会',
   fullNameEn: 'The 5th International Symposium for Advanced Gel Materials & Soft Matters',
   theme: 'Gels for Empowerment · Smart Soft Matter',
-  dates: 'April 24–26, 2027',
-  datesShort: '2027·4·24-26',
+  dates: 'April 9–11, 2027',
+  datesShort: '2027·4·9-11',
   location: 'Hefei, China',
   /* Venue (proposed; to be confirmed in the second circular) */
   venue: 'Hefei Binhu International Convention & Exhibition Centre',
@@ -37,8 +37,8 @@ export const siteMeta = {
   copyright: '© 2027 ISAGMSM Organizing Committee',
   /* Important-dates banner (below the header) */
   bannerDates: [
-    'Early-bird payment until March 25, 2027',
-    'Abstract deadline March 25, 2027',
+    'Early-bird payment until March 9, 2027',
+    'Abstract deadline March 9, 2027',
   ],
 } as const
 
@@ -57,30 +57,30 @@ export const aboutContent = {
   tag: 'About',
   title: 'About the Symposium',
   facts: [
-    { label: 'Duration', value: '3 days (registration on April 24)' },
+    { label: 'Duration', value: '3 days (registration on April 9)' },
     { label: 'Topics', value: '6 research directions' },
     { label: 'Format', value: 'Keynotes · Session talks · Posters' },
   ],
   paragraphs: [
-    'Advanced gel materials and soft matter constitute one of the most active research frontiers at the intersection of materials science and human health. The 5th International Symposium for Advanced Gel Materials & Soft Matters (ISAGMSM 2027) will bring together experts from universities, research institutes and industry, in China and abroad, to exchange the latest advances in gel design and synthesis, soft matter physics, stimuli-responsive systems, biomedical translation and scale-up industrialization.',
-    'The program features keynote lectures, parallel session talks and poster sessions, with a dedicated platform for young scholars and graduate students. We look forward to meeting you in Hefei to discuss the future of gels and soft matter.',
-    '(The symposium introduction is sample copy — please replace after approval by the organizing committee.)',
+    'Advanced gel materials and soft matter constitute one of the most active research frontiers at the intersection of materials science, human health, energy and information. The 5th International Symposium for Advanced Gel Materials & Soft Matters (ISAGMSM 2027) will be held in Hefei on April 9–11, 2027, bringing together experts from universities, research institutes and industry, in China and abroad, around fatigue-resistant gel design, aerogels and porous materials, ionogels and flexible electronics, stimuli-responsive systems and soft robotics, biomedical gels, and AI-driven soft matter design.',
+    'The ISAGMSM series was jointly founded by RIKEN, Hokkaido University, the Institute of Chemistry CAS, Zhejiang University, Xi\'an Jiaotong University, Tiangong University, Shaanxi University of Science & Technology and Zhuhai Guojia New Materials Co., to build a global academic platform for advanced gel materials and soft matter. The first four editions were held in Beijing (2016), Guiyang (2017), Xi\'an (2019) and Hangzhou (2025); the 5th edition comes to Hefei for the first time.',
+    'The program features keynote lectures, invited talks, session presentations and poster sessions, with a dedicated platform for young scholars and graduate students. We look forward to meeting you in Hefei to discuss the future of gels and soft matter.',
   ],
 } as const
 
-/* Research themes (6 directions, sample division — to be confirmed by the committee) */
+/* Research themes (6 directions — echoing the ISAGMSM series framework, focused on recent hot topics; to be confirmed by the committee) */
 export const themesContent = {
   code: 'ISAGMSM—02',
   tag: '06 Research Directions',
   title: 'Abstract',
   titleEm: 'Topics',
   items: [
-    { no: 'A', title: 'Gel Design & Synthesis', desc: 'Molecular design and controlled synthesis of hydrogels, organogels, ionogels and aerogels' },
-    { no: 'B', title: 'Soft Matter Physics & Structure', desc: 'Gelation mechanisms, network structure and dynamics, rheology, self-assembly and interface science' },
-    { no: 'C', title: 'Stimuli-Responsive & Smart Gels', desc: 'Thermo/pH/light/electro/magnetic responsive systems, actuators, soft robotics' },
-    { no: 'D', title: 'Biomedical Gel Materials', desc: 'Tissue engineering, drug delivery, wound dressings, cell culture and bioprinting' },
-    { no: 'E', title: 'Characterization, Modeling & AI', desc: 'Large-facility characterization, multiscale simulation, data-driven approaches and machine learning' },
-    { no: 'F', title: 'Industrialization & Applications', desc: 'Flexible electronics, energy devices, agriculture and consumer products, scale-up and engineering' },
+    { no: 'A', title: 'Hydrogels & Organogels', desc: 'Double-network and nanocomposite toughening, fatigue-resistant and self-recovering networks, wet adhesion and interface science, novel organogels and low-dimensional gels' },
+    { no: 'B', title: 'Aerogels & Porous Materials', desc: 'Bioinspired hierarchical aerogels, super-insulation and acoustic control, adsorption, separation and environmental remediation, energy conversion and storage' },
+    { no: 'C', title: 'Ionogels & Flexible Electronics', desc: 'Iontronic skin and wearable sensing, hydrogel bioelectronics, conducting-polymer composite gels, gel electrolytes and flexible energy devices' },
+    { no: 'D', title: 'Stimuli-Responsive Systems & Soft Robotics', desc: 'Light/electrical/magnetic/pH responsive systems, gel actuators and artificial muscles, 4D printing and shape memory, trainable and adaptive gels' },
+    { no: 'E', title: 'Biomedical Gel Materials', desc: 'Tissue repair and regeneration, drug and cell delivery, organoid and organ-on-chip culture matrices, injectable gels and bioprinting' },
+    { no: 'F', title: 'Soft Matter Physics & AI-driven Design', desc: 'Network structure and dynamics, gel tribology and lubrication, active matter and emergent behavior, machine-learning-assisted design, sustainable materials and scale-up' },
   ],
 } as const
 
@@ -93,28 +93,28 @@ export const speakersContent: { code: string, tag: string, items: SiteSpeaker[] 
       code: 'K—01',
       name: 'Prof. Zhiyuan Lin',
       affiliation: 'University of Science and Technology of China',
-      talk: 'Interfacial Reinforcement Strategies for Double-Network Ionogels',
+      talk: 'Molecular Design Strategies for Fatigue-Resistant Hydrogel Networks',
       monogram: '林',
     },
     {
       code: 'K—02',
       name: 'Prof. Marika Tanaka',
       affiliation: 'The University of Tokyo',
-      talk: 'Sliding-Ring Network Design in Biomimetic Hydrogels',
+      talk: 'Ionogel E-Skin: From Wearable Sensing to Artificial Iontronic Synapses',
       monogram: 'M',
     },
     {
       code: 'K—03',
       name: 'Prof. Wangshu Chen',
       affiliation: 'Zhejiang University',
-      talk: 'Industrialization Pathways for Stimuli-Responsive Gel Actuators',
+      talk: 'Scalable Manufacturing and Industrial Pathways for Gel Soft Actuators',
       monogram: '陈',
     },
     {
       code: 'K—04',
       name: 'Prof. Lars Andersen',
       affiliation: 'University of Copenhagen',
-      talk: 'Dynamic Hydrogels for Cell Culture',
+      talk: 'Matrix Hydrogels for Organoid Culture and Bioprinting',
       monogram: 'L',
     },
   ],
@@ -127,34 +127,34 @@ export const programContent: { code: string, tag: string, title: string, days: P
   days: [
     {
       id: 'day1',
-      label: 'Day 1 · April 24',
-      date: 'April 24 · Registration day',
+      label: 'Day 1 · April 9',
+      date: 'April 9 · Registration day',
       items: [
-        { time: '14:00–20:00', name: 'Conference Registration', room: 'Hotel Lobby' },
+        { time: '14:00–20:00', name: 'Conference Registration', room: 'Venue Lobby Hall' },
         { time: '19:00–21:00', name: 'Young Scholars Salon', room: 'Session Room 1' },
       ],
     },
     {
       id: 'day2',
-      label: 'Day 2 · April 25',
-      date: 'April 25 · Opening day',
+      label: 'Day 2 · April 10',
+      date: 'April 10 · Opening day',
       items: [
         { time: '08:30–09:00', name: 'Opening Ceremony', room: 'Main Auditorium' },
         { time: '09:00–12:00', name: 'Keynote Lectures', room: 'Main Auditorium', keynote: true },
-        { time: '13:30–18:00', name: 'Parallel Sessions A / B', room: 'Session Rooms' },
+        { time: '13:30–18:00', name: 'Parallel Sessions A / B / C', room: 'Session Rooms' },
       ],
     },
     {
       id: 'day3',
-      label: 'Day 3 · April 26',
-      date: 'April 26 · Sessions day',
+      label: 'Day 3 · April 11',
+      date: 'April 11 · Sessions & Closing',
       items: [
-        { time: '08:30–12:00', name: 'Parallel Sessions C / D', room: 'Session Rooms' },
-        { time: '13:30–16:00', name: 'Poster Session', room: 'Poster Area' },
-        { time: '16:00–16:30', name: 'Closing Ceremony & Awards', room: 'Main Auditorium' },
+        { time: '08:30–12:00', name: 'Parallel Sessions D / E / F', room: 'Session Rooms' },
+        { time: '13:30–15:30', name: 'Poster Session', room: 'Poster Area' },
+        { time: '15:30–16:30', name: 'Closing Ceremony & Awards', room: 'Main Auditorium' },
       ],
     },
-  ],
+  ]
 }
 
 export const datesContent: { code: string, tag: string, title: string, items: ImportantDate[] } = {
@@ -162,10 +162,11 @@ export const datesContent: { code: string, tag: string, title: string, items: Im
   tag: 'Key milestones',
   title: 'Important Dates',
   items: [
-    { label: 'Abstract Submission Deadline', date: 'March 25, 2027' },
-    { label: 'Acceptance Notification', date: 'April 5, 2027' },
-    { label: 'Early-bird Payment Deadline', date: 'March 25, 2027' },
-    { label: 'Symposium', date: 'April 24–26, 2027', hot: true },
+    { label: 'Abstract Submission Deadline', date: 'March 9, 2027' },
+    { label: 'Acceptance Notification', date: 'March 25, 2027' },
+    { label: 'Early-bird Payment Deadline', date: 'March 9, 2027' },
+    { label: 'Registration Deadline', date: 'March 31, 2027' },
+    { label: 'Symposium', date: 'April 9–11, 2027', hot: true },
   ],
 }
 
@@ -228,12 +229,12 @@ export const abstractsContent = {
     'Abstracts must not exceed one A4 page, in Chinese or English, following the conference template (see the download area)',
     'Select a research topic and presentation type when submitting (oral / poster / abstract only); the final type is determined by the Scientific Committee',
     'Recommended poster size: 90 cm (W) × 120 cm (H); print in color and bring it on site',
-    'Submission deadline: March 25, 2027; acceptance notifications will be sent to the submission inbox before April 5, 2027',
+    'Submission deadline: March 9, 2027; acceptance notifications will be sent to the submission inbox before March 25, 2027',
   ],
   submit: {
     channel: 'Send the abstract (Word format) to the abstracts inbox with the subject line "ISAGMSM Abstract-Name-Topic"',
     email: 'abstracts@conference.example.org',
-    deadline: 'March 25, 2027',
+    deadline: 'March 9, 2027',
   },
   contact: 'Abstracts contact: Symposium Secretariat (abstracts@conference.example.org · phone TBC)',
 } as const
@@ -246,7 +247,7 @@ export const registrationInfoContent = {
   /* Fee table (sample prices — replace after committee confirmation) */
   feeTable: {
     note: 'The registration fee covers the conference fee and materials (accommodation not included)',
-    headers: ['Category', 'Early-bird payment (before 2027/3/25)', 'Standard payment'],
+    headers: ['Category', 'Early-bird payment (before 2027/3/9)', 'Standard payment'],
     rows: [
       ['Regular delegate', '¥2,000', '¥2,400'],
       ['Student delegate (with valid ID)', '¥1,200', '¥1,600'],
@@ -263,10 +264,10 @@ export const registrationInfoContent = {
     bank: '(Bank — to be confirmed)',
     accountNumber: '(Account number — to be confirmed)',
     remarkFormat: 'RegistrationID-Name',
-    deadline: 'Bank transfer deadline: April 15, 2027',
+    deadline: 'Bank transfer deadline: March 31, 2027',
   },
   invoice: 'Invoices: issued collectively by the secretariat after approval; collect on site with your registration ID.',
-  notice: 'For combined transfers of multiple participants, attach the participant list (registration ID, name, amount). Refund requests must reach the secretariat before April 10, 2027; later requests cannot be processed.',
+  notice: 'For combined transfers of multiple participants, attach the participant list (registration ID, name, amount). Refund requests must reach the secretariat before March 25, 2027; later requests cannot be processed.',
 } as const
 
 /* Venue & transportation (sample info based on the Hefei venue — to be confirmed) */
@@ -378,6 +379,6 @@ export const registrationContent = {
 } as const
 
 export const footerContent = {
-  line: 'April 24–26, 2027 · Hefei, China',
+  line: 'April 9–11, 2027 · Hefei, China',
   hostNote: 'Host organisation: to be confirmed',
 } as const

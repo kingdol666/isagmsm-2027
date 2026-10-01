@@ -14,13 +14,13 @@ test('locale toggle switches zh/en, persists across reload', async ({ page }) =>
   await page.goto(`${base}/`, { waitUntil: 'networkidle' })
   await page.waitForLoadState('networkidle')
   await expect(page.locator('.h-nav-link', { hasText: '首 页' })).toBeVisible()
-  await expect(page.locator('.ds-item').first()).toContainText('会前缴费优惠期至2027年3月25日')
+  await expect(page.locator('.ds-item').first()).toContainText('会前缴费优惠期至2027年3月9日')
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')
 
   /* 2. 切换英文：导航与横幅即时变为英文 */
   await page.locator('.locale-toggle').click()
   await expect(page.locator('.h-nav-link', { hasText: 'Home' })).toBeVisible()
-  await expect(page.locator('.ds-item').first()).toContainText('Early-bird payment until March 25, 2027')
+  await expect(page.locator('.ds-item').first()).toContainText('Early-bird payment until March 9, 2027')
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   // 账号菜单入口同步（AuthChip 在页头+页脚各一份，locator 须 scope 到页头 banner）
   await expect(page.getByRole('banner').locator('.chip-link', { hasText: 'Sign in' })).toBeVisible()

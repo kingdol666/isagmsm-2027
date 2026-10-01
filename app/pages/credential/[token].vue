@@ -103,7 +103,7 @@ function printPage() {
 
         <footer class="pass-foot">
           <div class="strata" aria-hidden="true"><span /><span /><span /><span /><span /></div>
-          <p class="mono pass-note">24—26 APRIL 2027 · HEFEI · CHINA · PERSONAL &amp; NON-TRANSFERABLE</p>
+          <p class="mono pass-note">9—11 APRIL 2027 · HEFEI · CHINA · PERSONAL &amp; NON-TRANSFERABLE</p>
         </footer>
       </article>
 

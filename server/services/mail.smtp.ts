@@ -38,7 +38,7 @@ function mailHtml(purpose: 'signup' | 'reset', code: string): string {
 <html><body style="margin:0;padding:0;background:#F7F6F2;font-family:'PingFang SC','Microsoft YaHei',Helvetica,Arial,sans-serif;">
   <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
     <p style="font-size:26px;color:#111111;margin:0 0 4px;">ISAGMSM<i style="color:#9A4E2E;font-style:normal;">·</i>27</p>
-    <p style="font-size:11px;letter-spacing:.14em;color:#6B6B66;margin:0 0 28px;">第五届先进凝胶材料与软物质国际学术研讨会 · 2027年4月24—26日 · 合肥</p>
+    <p style="font-size:11px;letter-spacing:.14em;color:#6B6B66;margin:0 0 28px;">第五届先进凝胶材料与软物质国际学术研讨会 · 2027年4月9—11日 · 合肥</p>
     <div style="border-top:1px solid #111111;padding-top:16px;">
       <p style="font-size:14px;color:#111111;line-height:1.6;margin:0 0 18px;">
         您用于${action}的验证码：

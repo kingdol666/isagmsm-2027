@@ -38,7 +38,7 @@ beforeAll(async () => {
     ])
   }
   // pin the early-bird deadline to the past so full-price assertions hold
-  // regardless of the wall clock (ISAGMSM 2027 early-bird runs to 2027-03-25)
+  // regardless of the wall clock (ISAGMSM 2027 early-bird runs to 2027-03-09)
   const pinned = await db.select().from(siteSettings).where(eq(siteSettings.key, 'early_bird_deadline'))
   if (pinned.length === 0) {
     await db.insert(siteSettings).values({ key: 'early_bird_deadline', value: '2020-01-01T00:00:00+08:00' })

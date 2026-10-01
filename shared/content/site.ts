@@ -24,8 +24,8 @@ export const siteMeta = {
   fullNameZh: '第五届先进凝胶材料与软物质国际学术研讨会',
   fullNameEn: 'The 5th International Symposium for Advanced Gel Materials & Soft Matters',
   theme: '凝胶赋能 · 软物智造',
-  dates: '2027年4月24—26日',
-  datesShort: '2027·4·24-26',
+  dates: '2027年4月9—11日',
+  datesShort: '2027·4·9-11',
   location: '中国 · 合肥',
   /* 参会地址（会场已拟定，正式确认以第二轮通知为准） */
   venue: '合肥滨湖国际会展中心',
@@ -37,8 +37,8 @@ export const siteMeta = {
   copyright: '© 2027 ISAGMSM 组织委员会',
   /* 重要日期横幅（header 下方，参照学术会议官网形态） */
   bannerDates: [
-    '会前缴费优惠期至2027年3月25日',
-    '征稿截止2027年3月25日',
+    '会前缴费优惠期至2027年3月9日',
+    '征稿截止2027年3月9日',
   ],
 } as const
 
@@ -57,34 +57,34 @@ export const aboutContent = {
   tag: '会议简介',
   title: '会议简介',
   facts: [
-    { label: '会期', value: '3天（4月24日报到）' },
+    { label: '会期', value: '3天（4月9日报到）' },
     { label: '议题', value: '6大研究方向' },
     { label: '形式', value: '大会报告 · 分会报告 · 墙报' },
   ],
   paragraphs: [
-    '先进凝胶材料与软物质是材料科学与生命健康交叉领域最活跃的研究前沿之一。第五届先进凝胶材料与软物质国际学术研讨会（ISAGMSM 2027）将围绕凝胶材料的设计合成、软物质物理、智能响应体系、生物医用转化与规模产业化等方向，汇集国内外高校、科研院所与产业界的专家学者，交流最新研究进展。',
-    '会议同期设置大会报告、分会报告与墙报交流，并为青年学者与研究生提供展示平台。我们期待与您在合肥相聚，共同探讨凝胶与软物质领域的未来。',
-    '（会议简介为示例文案，请组委会审定后替换。）',
+    '先进凝胶材料与软物质是材料科学、生命健康与能源信息交叉领域最活跃的研究前沿之一。第五届先进凝胶材料与软物质国际学术研讨会（ISAGMSM 2027）将于2027年4月9—11日在合肥举行，围绕高强韧凝胶设计、气凝胶与多孔材料、离子凝胶与柔性电子、智能响应与软体机器人、生物医用凝胶、软物质物理与数智设计等方向，汇集国内外高校、科研院所与产业界的专家学者，交流最新研究进展。',
+    'ISAGMSM 系列会议由日本理化学研究所（RIKEN）、北海道大学、中国科学院化学研究所、浙江大学、西安交通大学、天津工业大学、陕西科技大学与珠海国佳新材股份有限公司等共同发起，旨在构筑先进凝胶材料与软物质领域的全球学术交流平台。前四届先后于北京（2016）、贵阳（2017）、西安（2019）、杭州（2025）成功举行，第五届将首次落地合肥。',
+    '会议设大会报告、主旨报告、邀请报告与墙报交流，并为青年学者与研究生提供展示平台。我们期待与您在合肥相聚，共同探讨凝胶与软物质领域的未来。',
   ],
 } as const
 
-/* 征文主题（6 大方向，示例划分，请组委会确认） */
+/* 征文主题（6 大方向 —— 呼应历届 ISAGMSM 主题框架，聚焦近期研究热点，请组委会确认） */
 export const themesContent = {
   code: 'ISAGMSM—02',
   tag: '06 研究方向',
   title: '征文',
   titleEm: '主题',
   items: [
-    { no: 'A', title: '凝胶材料设计与合成', desc: '水凝胶、有机凝胶、离子凝胶、气凝胶的分子设计与可控合成' },
-    { no: 'B', title: '软物质物理与结构', desc: '凝胶化机理、网络结构与动力学、流变学、自组装与界面科学' },
-    { no: 'C', title: '刺激响应与智能凝胶', desc: '温敏/pH/光/电/磁响应体系、驱动器、软体机器人' },
-    { no: 'D', title: '生物医用凝胶材料', desc: '组织工程、药物递送、伤口敷料、细胞培养与生物打印' },
-    { no: 'E', title: '表征、建模与人工智能', desc: '大科学装置表征、多尺度模拟、数据驱动与机器学习' },
-    { no: 'F', title: '产业化与应用', desc: '柔性电子、能源器件、农业与消费品、规模制备与工程化' },
+    { no: 'A', title: '水凝胶与有机凝胶', desc: '双网络与纳米复合高强韧设计、抗疲劳与自恢复网络、湿态粘附与界面科学、新型有机/低维凝胶体系' },
+    { no: 'B', title: '气凝胶与多孔材料', desc: '仿生分级结构气凝胶、超隔热与声学调控、吸附分离与环境修复、能源转化与存储应用' },
+    { no: 'C', title: '离子凝胶与柔性电子', desc: '离子皮肤与可穿戴传感、水凝胶生物电子、导电聚合物复合凝胶、凝胶电解质与柔性储能器件' },
+    { no: 'D', title: '智能响应与软体机器人', desc: '光/电/磁/pH 刺激响应体系、凝胶驱动器与人工肌肉、4D 打印与形状记忆、可训练与自适应凝胶' },
+    { no: 'E', title: '生物医用凝胶材料', desc: '组织修复与再生医学、药物与细胞递送、类器官与器官芯片培养基质、原位注射与生物打印' },
+    { no: 'F', title: '软物质物理与数智设计', desc: '网络结构与动力学、凝胶摩擦与润滑、活性物质与涌现行为、机器学习辅助材料设计、可持续材料与规模制备' },
   ],
 } as const
 
-/* 示例讲者 — 虚构人名与机构用于模板演示，正式名单由组委会确认后替换 */
+/* 示例讲者 — 虚构人名与机构用于模板演示（话题聚焦近期热点），正式名单由组委会确认后替换 */
 export const speakersContent: { code: string; tag: string; items: SiteSpeaker[] } = {
   code: 'ISAGMSM—03',
   tag: '4 场大会报告（拟邀）',
@@ -93,28 +93,28 @@ export const speakersContent: { code: string; tag: string; items: SiteSpeaker[] 
       code: 'K—01',
       name: 'Prof. 林致远',
       affiliation: '中国科学技术大学',
-      talk: '双网络离子凝胶的界面增强策略',
+      talk: '抗疲劳水凝胶网络的分子设计策略',
       monogram: '林',
     },
     {
       code: 'K—02',
       name: 'Prof. Marika Tanaka',
       affiliation: '东京大学',
-      talk: '仿生水凝胶中的滑移环网络设计',
+      talk: '离子凝胶电子皮肤：从可穿戴传感到人工离子突触',
       monogram: 'M',
     },
     {
       code: 'K—03',
       name: 'Prof. 陈望舒',
       affiliation: '浙江大学',
-      talk: '刺激响应凝胶驱动器的产业化路径',
+      talk: '凝胶软体驱动器的规模化制造与产业路径',
       monogram: '陈',
     },
     {
       code: 'K—04',
       name: 'Prof. Lars Andersen',
       affiliation: '哥本哈根大学',
-      talk: 'Dynamic Hydrogels for Cell Culture',
+      talk: 'Matrix Hydrogels for Organoid Culture and Bioprinting',
       monogram: 'L',
     },
   ]
@@ -127,31 +127,31 @@ export const programContent: { code: string; tag: string; title: string; days: P
   days: [
     {
       id: 'day1',
-      label: '第 1 天 · 4月24日',
-      date: '4月24日 · 报到日',
+      label: '第 1 天 · 4月9日',
+      date: '4月9日 · 报到日',
       items: [
-        { time: '14:00–20:00', name: '会议报到', room: '酒店大堂' },
+        { time: '14:00–20:00', name: '会议报到', room: '会场登录厅' },
         { time: '19:00–21:00', name: '青年学者沙龙', room: '分会场一' },
       ],
     },
     {
       id: 'day2',
-      label: '第 2 天 · 4月25日',
-      date: '4月25日 · 开幕日',
+      label: '第 2 天 · 4月10日',
+      date: '4月10日 · 开幕日',
       items: [
         { time: '08:30–09:00', name: '开幕式', room: '主会场' },
         { time: '09:00–12:00', name: '大会报告', room: '主会场', keynote: true },
-        { time: '13:30–18:00', name: '分会报告 A / B', room: '分会场' },
+        { time: '13:30–18:00', name: '分会报告 A / B / C', room: '分会场' },
       ],
     },
     {
       id: 'day3',
-      label: '第 3 天 · 4月26日',
-      date: '4月26日 · 分会日',
+      label: '第 3 天 · 4月11日',
+      date: '4月11日 · 分会与闭幕',
       items: [
-        { time: '08:30–12:00', name: '分会报告 C / D', room: '分会场' },
-        { time: '13:30–16:00', name: '墙报交流', room: '墙报区' },
-        { time: '16:00–16:30', name: '闭幕式与颁奖', room: '主会场' },
+        { time: '08:30–12:00', name: '分会报告 D / E / F', room: '分会场' },
+        { time: '13:30–15:30', name: '墙报交流', room: '墙报区' },
+        { time: '15:30–16:30', name: '闭幕式与颁奖', room: '主会场' },
       ],
     },
   ]
@@ -162,10 +162,11 @@ export const datesContent: { code: string; tag: string; title: string; items: Im
   tag: '时间节点',
   title: '重要日期',
   items: [
-    { label: '征稿截止', date: '2027年3月25日' },
-    { label: '征文录用通知', date: '2027年4月5日' },
-    { label: '会前缴费优惠截止', date: '2027年3月25日' },
-    { label: '研讨会', date: '2027年4月24—26日', hot: true },
+    { label: '征稿截止', date: '2027年3月9日' },
+    { label: '征文录用通知', date: '2027年3月25日' },
+    { label: '会前缴费优惠截止', date: '2027年3月9日' },
+    { label: '注册截止', date: '2027年3月31日' },
+    { label: '研讨会', date: '2027年4月9—11日', hot: true },
   ]
 }
 
@@ -228,12 +229,12 @@ export const abstractsContent = {
     '摘要篇幅不超过一页 A4 纸，中英文均可，按会议模板书写（模板见下载专区）',
     '投稿时需选择主题方向与报告类别（口头报告 / 墙报 / 仅提交摘要），最终类别由学术委员会审议确定',
     '墙报建议尺寸 90cm（宽）× 120cm（高），请自行彩打并带至现场',
-    '投稿截止 2027年3月25日；录用通知将于 2027年4月5日前发送至投稿邮箱',
+    '投稿截止 2027年3月9日；录用通知将于 2027年3月25日前发送至投稿邮箱',
   ],
   submit: {
     channel: '请将摘要（Word 格式）发送至投稿邮箱，邮件标题注明「ISAGMSM投稿-姓名-主题方向」',
     email: 'abstracts@conference.example.org',
-    deadline: '2027年3月25日',
+    deadline: '2027年3月9日',
   },
   contact: '征文联系人：会议秘书处（abstracts@conference.example.org · 电话待公布）',
 } as const
@@ -246,7 +247,7 @@ export const registrationInfoContent = {
   /* 注册费表（示例价格，请组委会确认后替换） */
   feeTable: {
     note: '注册费包括会议费、资料费等（不含住宿）',
-    headers: ['类别', '会前缴费（2027/3/25 前）', '会后缴费'],
+    headers: ['类别', '会前缴费（2027/3/9 前）', '会后缴费'],
     rows: [
       ['正式代表', '¥2,000', '¥2,400'],
       ['学生代表（凭证件）', '¥1,200', '¥1,600'],
@@ -263,10 +264,10 @@ export const registrationInfoContent = {
     bank: '（开户银行 — 待组委会确认）',
     accountNumber: '（银行账号 — 待组委会确认）',
     remarkFormat: '参会ID-姓名',
-    deadline: '银行转账截止：2027年4月15日',
+    deadline: '银行转账截止：2027年3月31日',
   },
   invoice: '发票说明：审批通过后由会务组统一开具，会议现场凭参会 ID 领取。',
-  notice: '多人合并转账请附参会人员名单（参会 ID、姓名、金额）；退费申请请于 2027年4月10日前联系会务组，逾期不办理。',
+  notice: '多人合并转账请附参会人员名单（参会 ID、姓名、金额）；退费申请请于 2027年3月25日前联系会务组，逾期不办理。',
 } as const
 
 /* 会场交通（示例信息基于合肥会场，请组委会确认后替换） */
@@ -379,6 +380,6 @@ export const registrationContent = {
 } as const
 
 export const footerContent = {
-  line: '2027年4月24—26日 · 中国合肥',
+  line: '2027年4月9—11日 · 中国合肥',
   hostNote: 'Host organisation: to be confirmed',
 } as const

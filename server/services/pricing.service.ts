@@ -24,7 +24,7 @@ export interface PriceContext {
 }
 
 export const EARLY_BIRD_DISCOUNT_RATE = 0.15
-export const DEFAULT_EARLY_BIRD_DEADLINE = '2027-03-25T23:59:59+08:00'
+export const DEFAULT_EARLY_BIRD_DEADLINE = '2027-03-09T23:59:59+08:00'
 
 export function computePrice(input: PriceInput, context: PriceContext = {}): PriceBreakdown {
   const subtotalFen = Math.max(0, Math.round(input.priceFen))

@@ -10,7 +10,7 @@ export const submitMessages: Record<Locale, Record<string, unknown>> = {
     submit: {
       seoTitle: '在线投稿',
       secCode: 'ISAGMSM—07 · 在线投稿',
-      secTag: '摘要截止 2027年3月25日',
+      secTag: '摘要截止 2027年3月9日',
       titleEditA: '修改',
       titleEditEm: '重投',
       titleNewA: '论文',
@@ -91,7 +91,7 @@ export const submitMessages: Record<Locale, Record<string, unknown>> = {
     submit: {
       seoTitle: 'Abstract Submission',
       secCode: 'ISAGMSM—07 · Abstract Submission',
-      secTag: 'Abstract deadline March 25, 2027',
+      secTag: 'Abstract deadline March 9, 2027',
       titleEditA: 'Revise & ',
       titleEditEm: 'resubmit',
       titleNewA: 'Abstract ',

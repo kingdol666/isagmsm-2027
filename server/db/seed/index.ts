@@ -148,7 +148,7 @@ async function seed() {
 
   /* settings */
   await db.insert(siteSettings).values([
-    { key: 'early_bird_deadline', value: '2027-03-25T23:59:59+08:00' },
+    { key: 'early_bird_deadline', value: '2027-03-09T23:59:59+08:00' },
     { key: 'regular_registration_deadline', value: '2027-04-15T23:59:59+08:00' },
     { key: 'call_for_abstracts_open', value: '2026-12-01T00:00:00+08:00' },
   ])

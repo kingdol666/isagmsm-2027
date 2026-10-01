@@ -33,7 +33,7 @@ export const homeMessages: Record<Locale, Record<string, unknown>> = {
     },
     dates: {
       cfpTag: '征稿启事',
-      cfpText: ' — 欢迎围绕六大研究方向投稿，摘要提交截止 2027年3月25日。',
+      cfpText: ' — 欢迎围绕六大研究方向投稿，摘要提交截止 2027年3月9日。',
       cfpCta: '提交摘要',
     },
     speakers: {
@@ -67,7 +67,7 @@ export const homeMessages: Record<Locale, Record<string, unknown>> = {
     },
     dates: {
       cfpTag: 'Call for Abstracts',
-      cfpText: ' — Abstracts are welcome across the six research directions; the submission deadline is March 25, 2027.',
+      cfpText: ' — Abstracts are welcome across the six research directions; the submission deadline is March 9, 2027.',
       cfpCta: 'Submit Abstract',
     },
     speakers: {
