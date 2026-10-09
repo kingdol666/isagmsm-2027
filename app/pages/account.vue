@@ -268,6 +268,7 @@ async function saveProfile() {
         <span class="sec-code">{{ t('account.secCode') }}</span>
         <span class="sec-tag mono">{{ user?.email }}</span>
       </div>
+      <NuxtLink class="orders-entry mono" to="/orders">{{ t('account.orders.entry') }} →</NuxtLink>
       <h1 class="sec-title">{{ t('account.titleA') }}<em>{{ t('account.titleEm') }}</em></h1>
     </header>
 
@@ -509,6 +510,24 @@ async function saveProfile() {
 </template>
 
 <style scoped>
+/* 头部右上角：订单记录入口 */
+.orders-entry {
+  position: absolute;
+  right: 0;
+  top: 12px;
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--copper-deep);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+:deep(.sec-head) { position: relative; }
+
+@media (max-width: 767px) {
+  .orders-entry { position: static; display: inline-block; margin-top: 6px; }
+}
+
 .section { margin-top: clamp(36px, 6vw, 60px); }
 
 .section, .ecard-section {

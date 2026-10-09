@@ -16,7 +16,7 @@
  * 非 Linux / 未装 nginx 的环境：文件生成到 ./deploy-nginx/ 供手动部署。
  */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync, unlinkSync, existsSync } from 'node:fs'
 import os from 'node:os'
 
 const IS_WIN = process.platform === 'win32'
@@ -53,8 +53,11 @@ function detectIps() {
 }
 
 const NGINX_CONF = (sslDir, consoleBlock) => `# ISAGMSM 2027 —— 由 pnpm https:setup 生成（重新执行会覆盖）
+# default_server：系统自带 conf.d/default.conf（或 Debian 的 sites-enabled/default）
+# 也在监听 80 并按字母序先加载 —— 不加此标记时 HTTP 请求会被默认欢迎页截获，
+# 表现为"HTTP 打不开/无法交互、HTTPS 正常"。安装时亦会移除自带默认站点。
 server {
-    listen 80;
+    listen 80 default_server;
     server_name _;
 
     location / {
@@ -70,7 +73,7 @@ server {
 ${consoleBlock ? `
 # 管理台（HTTPS :8443）—— 生产建议用安全组把 8443 限制到管理员 IP
 server {
-    listen 8443 ssl;
+    listen 8443 ssl default_server;
     server_name _;
 
     ssl_certificate ${sslDir}/isagmsm.crt;
@@ -85,7 +88,7 @@ server {
     }
 }
 ` : ''}server {
-    listen 443 ssl;
+    listen 443 ssl default_server;
     server_name _;
 
     ssl_certificate ${sslDir}/isagmsm.crt;
@@ -132,6 +135,13 @@ function main() {
   /* 3. Linux + nginx：直接安装配置并重载；其他环境：落到 ./deploy-nginx/ 供手动部署 */
   const nginxReady = shOut('nginx', ['-v']).status === 0
   if (IS_LINUX && nginxReady) {
+    /* 移除系统自带默认站点（否则其 80 端口监听会截获 HTTP 请求 → 欢迎页/无法交互） */
+    for (const stock of ['/etc/nginx/conf.d/default.conf', '/etc/nginx/sites-enabled/default']) {
+      if (existsSync(stock)) {
+        unlinkSync(stock)
+        console.log(`[https] 已移除自带默认站点：${stock}`)
+      }
+    }
     writeFileSync('/etc/nginx/conf.d/isagmsm.conf', conf)
     run('nginx 配置校验（nginx -t）', 'nginx', ['-t'])
     run('nginx 重载', 'systemctl', ['reload', 'nginx'])

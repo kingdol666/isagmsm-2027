@@ -154,8 +154,81 @@ pnpm https:setup --ip <你的公网IP>        # 如 121.196.175.47
 - **自签名证书**：浏览器首次访问提示"不安全"，点「高级 → 继续前往」一次即可（连接已加密）
 - **阿里云安全组**：放行 TCP 443（启用 8443 则一并放行）
 - 会话 cookie 的 Secure 标志按请求协议自动适配，无需改动
+- **双协议下的浏览器限制**（HTTPS 与 HTTP 并存时须知）：HTTPS 登录种下的是
+  `Secure` cookie，浏览器不会通过 HTTP 发送它，且 **HTTP 页面无法覆盖同名
+  Secure cookie**（Chrome 89+ 安全规则）——先在 HTTPS 登录过的浏览器切到
+  HTTP 会显示未登录且无法登录，需先在 HTTPS 端退出（或清除站点 Cookie）。
+  反向（先 HTTP 登录再访问 HTTPS）不受影响。介意此行为可仅推广单一协议。
 - **要无警告的 HTTPS**：注册域名 → 解析到服务器 → `certbot --nginx` 签发 Let's Encrypt
   免费证书替换自签名（此时建议 .env 设 `COOKIE_SECURE=1`）
+
+### 1.6.2 支付宝在线支付上线（真实扫码收款）
+
+完整业务链路已就绪：报名 → 支付页选「支付宝」→ 官方二维码（`alipay.trade.precreate`，
+国内/海外支付宝 App 均可扫）→ 付款 → 支付宝服务器回调（RSA2 验签）→ **同一事务**内：
+订单标记已支付+金额、报名确认、自动成为会员、下发电子凭证（含签到二维码）。后台
+「支付记录」页可查全部流水（时间/订单号/支付宝交易号/用户/金额/状态）。
+
+**上线只需配置 `.env` 四项**（详细获取步骤见 `.env.example` 第 7 节）：
+
+```bash
+ALIPAY_APP_ID=2021…          # 开放平台应用 APPID
+ALIPAY_PRIVATE_KEY=…          # 应用私钥（PEM 或密钥工具裸 base64 均可）
+ALIPAY_PUBLIC_KEY=…           # 支付宝公钥（注意不是应用公钥！）
+ALIPAY_NOTIFY_URL=https://你的域名/api/payments/webhook/alipay
+# 沙箱联调可加：ALIPAY_GATEWAY=https://openapi-sandbox.dl.alipaydev.com/gateway.do
+```
+
+改完 `pnpm pm2:restart`；`curl http://localhost:3000/api/payments/providers` 确认
+`alipay.available=true` 即已生效，支付页会自动出现「支付宝」渠道（模拟通道保留供演练）。
+
+**上线核对清单**：
+
+1. **回调地址必须是公网有效 https**——支付宝服务器不信任自签名证书；没有受信任证书
+   时回调收不到，但**不会丢单**：用户支付页每 15 秒向支付宝主动查单对账
+   （`alipay.trade.query`），付款后刷新页面即可确认入会。正式收款仍建议
+   域名 + Let's Encrypt（见 1.6.1）。
+2. 开放平台签约**「当面付」**产品并审核通过，否则 `precreate` 会被拒绝。
+3. **订单 15 分钟支付有效期**（`ORDER_TTL_MINUTES` 可调，测试可设 1）：超时未付订单与其
+   二维码一并自动过期（支付宝侧 `timeout_express` 同步 15m 自动关单 + 服务端惰性过期双保险），
+   过期二维码不可再支付；支付页「重新生成订单」继续付款，报名信息不变。已入会
+   （已确认）用户不能再注册、不能再下单；个人主页右上角「订单记录」可查本人全部订单与状态。
+4. 沙箱环境联调通过后，去掉 `ALIPAY_GATEWAY` 切回生产网关，小额（¥0.01 需改价或
+   用测试商品）真实支付一次走通全链路再放开。
+5. 密钥只放服务器 `.env`（勿提交 git）；`ALIPAY_PRIVATE_KEY` 泄露须立即在开放平台重置密钥对。
+
+### 1.6.3 支付宝小额真实测试（先测通再放开）
+
+**方式一 · 沙箱（免费、无需签约，推荐先走这步）**
+
+1. 打开 `open.alipaydev.com`（支付宝沙箱）→ 用企业支付宝账号登录 → 沙箱应用里取
+   `APPID`、`应用私钥`、`支付宝公钥`（密钥工具生成/上传方式与正式环境相同）。
+2. 服务器 `.env` 追加（沙箱网关）：
+   ```bash
+   ALIPAY_APP_ID=沙箱APPID
+   ALIPAY_PRIVATE_KEY=应用私钥
+   ALIPAY_PUBLIC_KEY=支付宝公钥
+   ALIPAY_GATEWAY=https://openapi-sandbox.dl.alipaydev.com/gateway.do
+   ALIPAY_NOTIFY_URL=https://你的域名/api/payments/webhook/alipay
+   ```
+3. `pnpm pm2:restart` → 支付页选「支付宝」→ 用沙箱买家账号（沙箱页面提供的登录账号）
+   在沙箱钱包 App 扫码付款（沙箱资金虚拟，不扣真钱）。
+4. 验证：支付页自动跳凭证、后台「支付订单」出现已支付流水（渠道=支付宝、支付宝交易号）。
+
+**方式二 · 生产 1 分钱真实支付（当面付签约通过后）**
+
+```bash
+# ① 服务器 .env 填正式四项（不含 ALIPAY_GATEWAY，默认生产网关）→ pnpm pm2:restart
+# ② 临时把一个票种价格改为 ¥0.01（1 分）：
+docker exec pps-postgres psql -U pps -d pps2026 -c \
+  "UPDATE registration_types SET price_fen=1 WHERE code='student';"
+# ③ 用真实支付宝 App 扫码支付 1 分钱 → 走通全链路（推荐在有域名+证书的服务器上，
+#    回调可收到；本地/自签名环境下靠支付页 15 秒主动对账兜底同样能确认）
+# ④ 测完恢复价格并重启：
+docker exec pps-postgres psql -U pps -d pps2026 -c \
+  "UPDATE registration_types SET price_fen=120000 WHERE code='student';"
+pnpm pm2:restart
+```
 
 ### 1.7 小内存服务器构建 OOM（exit 134/137）
 

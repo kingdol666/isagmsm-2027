@@ -30,7 +30,9 @@ export function buildSecurityHeaders(options: { contentSecurityPolicy: boolean }
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      'upgrade-insecure-requests',
+      // 注意：不要加 upgrade-insecure-requests —— 双协议部署（HTTP 与 HTTPS 并存）下，
+      // 浏览器会把 HTTP 页面的同源脚本/接口请求强制升级为 https://，而自签名证书的
+      // 子资源请求直接失败且无回退 → 页面能打开但水合失败，表现为"HTTP 全部按钮无反应"。
     ].join('; ')
   }
   return headers

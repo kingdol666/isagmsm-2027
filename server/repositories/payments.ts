@@ -1,10 +1,21 @@
 import type { DbExecutor } from '../db'
 import { paymentEvents, payments } from '../db/schema'
-import { and, count, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq, sql } from 'drizzle-orm'
 
 export async function createPayment(db: DbExecutor, values: typeof payments.$inferInsert) {
   const rows = await db.insert(payments).values(values).returning()
   return rows[0]!
+}
+
+/** 支付成功时把渠道回执要素合并进 payload（支付宝 trade_no 等），供后台展示与对账。 */
+export async function annotatePaymentPayload(db: DbExecutor, id: string, patch: Record<string, unknown>) {
+  await db
+    .update(payments)
+    .set({
+      payload: sql`coalesce(${payments.payload}, '{}'::jsonb) || ${JSON.stringify(patch)}::jsonb`,
+      updatedAt: new Date(),
+    })
+    .where(eq(payments.id, id))
 }
 
 export async function findPaymentById(db: DbExecutor, id: string) {

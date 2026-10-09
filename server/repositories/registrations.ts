@@ -53,6 +53,16 @@ export async function confirmIfSubmitted(db: DbExecutor, id: string) {
   return rows[0] ?? null
 }
 
+/** 缴费到账即会员（在线支付回调/管理员核对通过都会调用；幂等，重复调用无害）。 */
+export async function markRegistrationMember(db: DbExecutor, id: string) {
+  const rows = await db
+    .update(registrations)
+    .set({ isMember: true, updatedAt: new Date() })
+    .where(eq(registrations.id, id))
+    .returning()
+  return rows[0] ?? null
+}
+
 export async function findByEmail(db: DbExecutor, email: string) {
   return db
     .select({ registration: registrations, type: registrationTypes })

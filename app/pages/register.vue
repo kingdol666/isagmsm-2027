@@ -125,6 +125,20 @@ async function submit() {
     if (!navigated) submitting.value = false
   }
 }
+
+/* 防重复注册：已有有效报名（待缴费/已确认=已入会）直接拦截，不走完向导才报错 */
+const existingActive = ref<{ displayId: string, status: string, orderId: string | null } | null>(null)
+
+onMounted(async () => {
+  try {
+    const res = await $fetch<{ registrations: Array<{ displayId: string, status: string, order: { id: string } | null }> }>('/api/account/registrations')
+    const active = res.registrations.find(r => r.status === 'submitted' || r.status === 'confirmed')
+    if (active) {
+      existingActive.value = { displayId: active.displayId, status: active.status, orderId: active.order?.id ?? null }
+    }
+  }
+  catch { /* 未登录由 auth 中间件处理 */ }
+})
 </script>
 
 <template>
@@ -139,6 +153,23 @@ async function submit() {
 
     <FlowSteps :steps="steps" :current="step" />
 
+    <!-- 防重复注册：已有有效报名/已入会 —— 一账号一名额 -->
+    <section v-if="existingActive" class="dup-block" aria-live="polite">
+      <p class="dup-title">{{ existingActive.status === 'confirmed' ? t('register.dupMemberTitle') : t('register.dupTitle') }}</p>
+      <p class="dup-line mono">{{ existingActive.displayId }}</p>
+      <p class="dup-note">
+        {{ existingActive.status === 'confirmed' ? t('register.dupMemberNote') : t('register.dupNote') }}
+      </p>
+      <div class="dup-actions">
+        <NuxtLink v-if="existingActive.orderId" class="btn btn-solid" :to="`/payment/${existingActive.orderId}`">
+          {{ t('register.dupGoPay') }}
+        </NuxtLink>
+        <NuxtLink class="btn btn-ghost" to="/account">{{ t('register.dupGoAccount') }}</NuxtLink>
+        <NuxtLink class="btn btn-ghost" to="/orders">{{ t('register.dupGoOrders') }}</NuxtLink>
+      </div>
+    </section>
+
+    <template v-else>
     <p v-if="typesError" class="state-error">
       {{ t('register.typesError') }} <NuxtLink to="/register" class="retry">{{ t('register.retry') }}</NuxtLink>
     </p>
@@ -257,10 +288,27 @@ async function submit() {
         </button>
       </div>
     </section>
+    </template>
   </div>
 </template>
 
 <style scoped>
+/* 已有报名/已入会拦截块 */
+.dup-block {
+  border: 1px solid var(--ink);
+  padding: clamp(22px, 4vw, 36px);
+  margin: 26px 0;
+  max-width: 640px;
+}
+
+.dup-title { font-size: 17px; font-weight: 600; color: var(--copper-deep); }
+
+.dup-line { font-size: 22px; margin: 10px 0 12px; color: var(--ink); }
+
+.dup-note { font-size: 13.5px; color: var(--grey); line-height: 1.9; }
+
+.dup-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+
 .type-list {
   border-bottom: 1px solid var(--ink);
 }

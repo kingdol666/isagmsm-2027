@@ -2,14 +2,14 @@ import { createHmac } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
 import { createDb } from '../../server/db'
-import { credentials, registrationTypes, registrations, siteSettings, users } from '../../server/db/schema'
-import { submitRegistration } from '../../server/services/registration.service'
+import { credentials, orders, payments, registrationTypes, registrations, siteSettings, users } from '../../server/db/schema'
+import { submitRegistration, DomainError } from '../../server/services/registration.service'
 import { createOrderForRegistration, markOrderPaidInTx } from '../../server/services/order.service'
 import { createPaymentForOrder, handlePaymentCallback } from '../../server/services/payment.service'
 import { verifyByToken, checkinByToken } from '../../server/services/checkin.service'
 import { ensureCredential } from '../../server/services/credential.service'
 import { listActiveTypes } from '../../server/repositories/registration-types'
-import { findOrderById } from '../../server/repositories/orders'
+import { expireStaleOrders, findOrderById } from '../../server/repositories/orders'
 import { createMockProvider } from '../../server/payments/mock'
 
 /**
@@ -113,6 +113,10 @@ describe('domain chain (integration)', () => {
     const stored = await findOrderById(db, order.id)
     expect(stored?.status).toBe('paid')
 
+    const [paidReg] = await db.select().from(registrations).where(eq(registrations.id, registration.id))
+    expect(paidReg?.status).toBe('confirmed')
+    expect(paidReg?.isMember).toBe(true)
+
     const credential = await ensureCredential(db, registration.id)
     const again = await ensureCredential(db, registration.id)
     expect(again.id).toBe(credential.id)
@@ -186,8 +190,8 @@ describe('domain chain (integration)', () => {
     expect(result.reason).toBe('not_found')
   })
 
-  it('withholds credentials from non-members even after a PAID callback', async () => {
-    // 会员-凭证绑定：非会员支付成功 → 订单已支付，但不签发凭证
+  it('paying grants membership and issues the credential in the same transaction', async () => {
+    // 新规则（缴费到账即会员）：支付成功 → 订单已支付 + 报名确认 + 自动入会 + 签发凭证
     const { registration, order } = await registerAndOrder('nonmember', false)
     const payment = await createPaymentForOrder(db, order.id, 'mock', SECRET)
 
@@ -207,7 +211,74 @@ describe('domain chain (integration)', () => {
     const stored = await findOrderById(db, order.id)
     expect(stored?.status).toBe('paid')
 
+    const [regRow] = await db.select().from(registrations).where(eq(registrations.id, registration.id))
+    expect(regRow?.status).toBe('confirmed')
+    expect(regRow?.isMember).toBe(true)
+
     const issued = await db.select().from(credentials).where(eq(credentials.registrationId, registration.id))
-    expect(issued).toHaveLength(0)
+    expect(issued).toHaveLength(1)
+  })
+
+  it('expires stale pending orders and their payments after the TTL (lazy, read-time)', async () => {
+    const prev = process.env.ORDER_TTL_MINUTES
+    process.env.ORDER_TTL_MINUTES = '15'
+    try {
+      const { order } = await registerAndOrder('ttl')
+      const payment = await createPaymentForOrder(db, order.id, 'mock', SECRET)
+
+      // 未超时：惰性过期不影响 pending 订单
+      expect(await expireStaleOrders(db)).toBeGreaterThanOrEqual(0)
+      expect((await findOrderById(db, order.id))?.status).toBe('pending')
+
+      // 回拨创建时间 16 分钟 → 再读取即过期（订单 + 支付一并 expired）
+      await db.update(orders)
+        .set({ createdAt: new Date(Date.now() - 16 * 60_000) })
+        .where(eq(orders.id, order.id))
+      await expireStaleOrders(db)
+
+      expect((await findOrderById(db, order.id))?.status).toBe('expired')
+      const [payRow] = await db.select().from(payments).where(eq(payments.id, payment.id))
+      expect(payRow?.status).toBe('expired')
+
+      // 过期订单不能再发起支付（必须新建订单）
+      await expect(createPaymentForOrder(db, order.id, 'mock', SECRET))
+        .rejects.toThrow('no payment can be created')
+
+      // 过期订单不能再支付 → 但允许为该报名新建订单
+      const renewed = await createOrderForRegistration(db, order.registrationId)
+      expect(renewed.id).not.toBe(order.id)
+      expect(renewed.status).toBe('pending')
+    }
+    finally {
+      if (prev === undefined) delete process.env.ORDER_TTL_MINUTES
+      else process.env.ORDER_TTL_MINUTES = prev
+    }
+  })
+
+  it('blocks duplicate registration for an account that already has an active one', async () => {
+    const { registration } = await registerAndOrder('dup')
+    const [regRow] = await db.select().from(registrations).where(eq(registrations.id, registration.id))
+    const dupUser = { id: regRow!.userId, email: `dup-${runId}@example.test`, fullName: 'Dup User' }
+    const types = await listActiveTypes(db)
+    const academic = types.find(t => t.code === 'academic')!
+    await expect(submitRegistration(db, {
+      typeId: academic.id,
+      fullName: 'Dup User',
+      email: dupUser.email,
+      affiliation: 'Vitest University',
+      country: 'China',
+    }, dupUser))
+      .rejects.toThrow('已有有效报名')
+
+    // 已确认（已入会）同样拦截
+    await db.update(registrations).set({ status: 'confirmed' }).where(eq(registrations.id, registration.id))
+    await expect(submitRegistration(db, {
+      typeId: academic.id,
+      fullName: 'Dup User',
+      email: dupUser.email,
+      affiliation: 'Vitest University',
+      country: 'China',
+    }, dupUser))
+      .rejects.toBeInstanceOf(DomainError)
   })
 })

@@ -68,6 +68,7 @@ export async function approveOrderPayment(db: Db, orderId: string, actor: Consol
   if (!reg) throw new DomainError(404, '报名记录不存在')
 
   let credentialToken: string | null = null
+  let grantedMember = false
   await db.transaction(async (tx) => {
     const paid = await transitionOrder(tx, orderId, found.order.status, 'paid')
     if (!paid) return // 并发审批竞争失败 — 幂等跳过
@@ -75,16 +76,18 @@ export async function approveOrderPayment(db: Db, orderId: string, actor: Consol
     await setOrderReview(tx, orderId, { reviewedBy: actor.userId, reviewedAt: new Date() })
     await confirmIfSubmitted(tx, found.registrationId)
 
-    // 会员门槛：非会员只完成缴费确认，不发凭证；设为会员后由管理员手动下发。
-    if (reg.isMember) {
-      const existing = await findCredentialByRegistration(tx, found.registrationId)
-      credentialToken = existing
-        ? existing.token
-        : (await insertCredential(tx, { registrationId: found.registrationId, token: generateCredentialToken() })).token
+    // 缴费到账即会员（与在线支付回调 payment.service 的规则一致），随后立即下发凭证。
+    if (!reg.isMember) {
+      await setMembership(tx, found.registrationId, true)
+      grantedMember = true
     }
+    const existing = await findCredentialByRegistration(tx, found.registrationId)
+    credentialToken = existing
+      ? existing.token
+      : (await insertCredential(tx, { registrationId: found.registrationId, token: generateCredentialToken() })).token
   })
 
-  return { status: 'paid' as const, credentialToken, isMember: reg.isMember }
+  return { status: 'paid' as const, credentialToken, isMember: true, grantedMember }
 }
 
 export async function rejectOrderPayment(db: Db, orderId: string, actor: ConsoleActor, note: string) {

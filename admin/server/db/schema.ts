@@ -78,6 +78,20 @@ export const credentials = pgTable('credentials', {
   issuedAt: timestamp('issued_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+/* 支付流水（与门户 server/db/schema.ts 同表同列，管理台侧只读查询用） */
+export const payments = pgTable('payments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orderId: uuid('order_id').notNull(),
+  provider: varchar('provider', { length: 30 }).notNull(), // mock | wechat | alipay
+  providerPaymentNo: varchar('provider_payment_no', { length: 100 }),
+  amountFen: integer('amount_fen').notNull(),
+  currency: varchar('currency', { length: 8 }).notNull().default('CNY'),
+  status: varchar('status', { length: 30 }).notNull().default('pending'),
+  payload: jsonb('payload'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const checkins = pgTable('checkins', {
   id: uuid('id').primaryKey().defaultRandom(),
   credentialId: uuid('credential_id').notNull(),

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ilike, isNotNull, ne, or, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, ilike, isNotNull, lt, ne, or, sql } from 'drizzle-orm'
 import type { DbExecutor } from '../db'
 import {
   abstractEvents,
@@ -7,6 +7,7 @@ import {
   checkins,
   credentials,
   orders,
+  payments,
   registrations,
   registrationTypes,
   users,
@@ -331,4 +332,131 @@ export async function dashboardStats(db: DbExecutor) {
     revenueFen: revenue?.fen ?? 0,
     checkins: checkinCount?.n ?? 0,
   }
+}
+
+export interface PaymentFlowRow {
+  orderId: string
+  orderNo: string
+  subtotalFen: number
+  discountFen: number
+  totalFen: number
+  currency: string
+  orderStatus: string
+  orderCreatedAt: string
+  paymentId: string | null
+  provider: string | null
+  providerPaymentNo: string | null
+  providerTradeNo: string | null
+  paymentStatus: string | null
+  paidAt: string | null
+  displayId: string
+  fullName: string
+  email: string
+  typeName: string
+}
+
+/** 订单支付有效期（分钟）—— 与门户 ORDER_TTL_MINUTES 保持一致。 */
+function orderTtlMinutes(): number {
+  const n = Number(process.env.ORDER_TTL_MINUTES ?? 15)
+  return Number.isFinite(n) && n > 0 ? n : 15
+}
+
+/** 惰性过期（与门户同逻辑）：超时未付的 pending 订单与其支付一并标记 expired。 */
+async function expireStaleOrders(db: DbExecutor): Promise<void> {
+  const cutoff = new Date(Date.now() - orderTtlMinutes() * 60_000)
+  const expired = await db
+    .update(orders)
+    .set({ status: 'expired', updatedAt: new Date() })
+    .where(and(eq(orders.status, 'pending'), lt(orders.createdAt, cutoff)))
+    .returning({ id: orders.id })
+  if (expired.length > 0) {
+    await db
+      .update(payments)
+      .set({ status: 'expired', updatedAt: new Date() })
+      .where(and(
+        eq(payments.status, 'pending'),
+        inArray(payments.orderId, expired.map(o => o.id)),
+      ))
+  }
+}
+
+/**
+ * 支付订单总览：以订单为中心（含仅对公转账/从未发起在线支付的订单），
+ * 每单附最近一次在线支付信息，倒序，支持按订单状态与渠道筛选。
+ */
+export async function listPaymentOrders(
+  db: DbExecutor,
+  query: { status?: string, provider?: string } = {},
+): Promise<PaymentFlowRow[]> {
+  await expireStaleOrders(db)
+
+  const validOrderStatus = ['pending', 'reviewing', 'paid', 'failed', 'expired', 'cancelled', 'refunded']
+  const validProviders = ['mock', 'wechat', 'alipay']
+
+  const base = db
+    .select({
+      orderId: orders.id,
+      orderNo: orders.orderNo,
+      subtotalFen: orders.subtotalFen,
+      discountFen: orders.discountFen,
+      totalFen: orders.totalFen,
+      currency: orders.currency,
+      orderStatus: orders.status,
+      orderCreatedAt: orders.createdAt,
+      displayId: registrations.displayId,
+      fullName: registrations.fullName,
+      email: registrations.email,
+      typeName: registrationTypes.name,
+    })
+    .from(orders)
+    .innerJoin(registrations, eq(orders.registrationId, registrations.id))
+    .innerJoin(registrationTypes, eq(registrations.typeId, registrationTypes.id))
+    .$dynamic()
+
+  const conditions = []
+  if (query.status && validOrderStatus.includes(query.status)) {
+    conditions.push(eq(orders.status, query.status))
+  }
+  const orderRows = await (conditions.length ? base.where(and(...conditions)) : base)
+    .orderBy(desc(orders.createdAt))
+    .limit(500)
+  if (orderRows.length === 0) return []
+
+  const payRows = await db
+    .select()
+    .from(payments)
+    .where(inArray(payments.orderId, orderRows.map(r => r.orderId)))
+    .orderBy(desc(payments.createdAt))
+
+  return orderRows
+    .map((row) => {
+      const latest = payRows.find(p => p.orderId === row.orderId) ?? null
+      return {
+        orderId: row.orderId,
+        orderNo: row.orderNo,
+        subtotalFen: row.subtotalFen,
+        discountFen: row.discountFen,
+        totalFen: row.totalFen,
+        currency: row.currency,
+        orderStatus: row.orderStatus,
+        orderCreatedAt: row.orderCreatedAt.toISOString(),
+        paymentId: latest?.id ?? null,
+        provider: latest?.provider ?? null,
+        providerPaymentNo: latest?.providerPaymentNo ?? null,
+        // 支付成功后落库的渠道真实交易号（支付宝 trade_no）；未支付时为空
+        providerTradeNo: ((latest?.payload as Record<string, unknown> | null)?.providerTradeNo as string | undefined) ?? null,
+        paymentStatus: latest?.status ?? null,
+        paidAt: latest && latest.status === 'paid' ? latest.updatedAt.toISOString() : null,
+        displayId: row.displayId,
+        fullName: row.fullName,
+        email: row.email,
+        typeName: row.typeName,
+      } satisfies PaymentFlowRow
+    })
+    .filter((row) => {
+      if (query.provider && validProviders.includes(query.provider)) {
+        return row.provider === query.provider
+      }
+      return true
+    })
 }

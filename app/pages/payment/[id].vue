@@ -20,6 +20,22 @@ interface OrderView {
   credentialToken: string | null
 }
 
+interface PaymentPayload {
+  cashierUrl?: string
+  qrContent?: string
+}
+
+interface ActivePayment {
+  id: string
+  provider: string
+  providerPaymentNo: string | null
+  status: string
+  amountFen: number
+  payload: PaymentPayload | null
+}
+
+interface ProviderOption { name: string, label: string, available: boolean }
+
 definePageMeta({ layout: 'flow' })
 const { t, locale } = useI18n()
 
@@ -76,10 +92,77 @@ async function submitClaim() {
   }
 }
 
+/* ── 在线支付（支付宝/微信/模拟）：渠道选择 → 创建支付 → 扫码 → 回调驱动跳转 ── */
+
+const providers = ref<ProviderOption[]>([])
+const selectedProvider = ref('')
+const activePayment = ref<ActivePayment | null>(null)
+const creating = ref(false)
+const createError = ref('')
+
+const availableProviders = computed(() => providers.value.filter(p => p.available))
+const channelName = computed(() => {
+  const key = selectedProvider.value as 'alipay' | 'wechat' | 'mock'
+  return t(`payment.online.channels.${key}`)
+})
+
+async function loadProviders() {
+  try {
+    const res = await $fetch<{ providers: ProviderOption[] }>('/api/payments/providers')
+    providers.value = res.providers ?? []
+    // 默认渠道优先级：支付宝 > 微信 > 模拟
+    const prefer = ['alipay', 'wechat', 'mock']
+    const first = prefer.map(n => availableProviders.value.find(p => p.name === n)).find(Boolean)
+    selectedProvider.value = first?.name ?? ''
+  }
+  catch { /* 渠道不可用时仅隐藏在线区块，不影响对公转账 */ }
+}
+
+async function startPayment() {
+  if (!selectedProvider.value || creating.value) return
+  creating.value = true
+  createError.value = ''
+  try {
+    const res = await $fetch<{ payment: ActivePayment }>('/api/payments/create', {
+      method: 'POST',
+      body: { orderId: orderId.value, provider: selectedProvider.value },
+    })
+    activePayment.value = res.payment
+    startPolling()
+  }
+  catch (error: unknown) {
+    const err = error as { data?: { statusMessage?: string } }
+    createError.value = err.data?.statusMessage ?? t('payment.online.createFailed')
+  }
+  finally {
+    creating.value = false
+  }
+}
+
+/* 订单已失败/已过期（如二维码超时关闭）→ 为该报名重新生成订单并跳转新支付页 */
+const regenerating = ref(false)
+
+async function regenerateOrder() {
+  if (regenerating.value || !orderData.value) return
+  regenerating.value = true
+  try {
+    const res = await $fetch<{ order: { id: string } }>('/api/orders', {
+      method: 'POST',
+      body: { registrationId: orderData.value.order.registrationId },
+    })
+    stopPolling()
+    await navigateTo(`/payment/${res.order.id}`, { replace: true })
+  }
+  catch { /* 竞态等异常由下一次点击重试 */ }
+  finally {
+    regenerating.value = false
+  }
+}
+
 let pollTimer: ReturnType<typeof setInterval> | null = null
 function startPolling() {
   stopPolling()
-  // 审核中轻轮询：会务组审批通过后自动跳转凭证页
+  // 轻轮询：在线支付回调 / 对公审批通过后自动跳转凭证页
   pollTimer = setInterval(async () => {
     try {
       const view = await $fetch<OrderView>(`/api/orders/${orderId.value}`)
@@ -90,7 +173,7 @@ function startPolling() {
       }
     }
     catch { /* transient */ }
-  }, 5000)
+  }, 2500)
 }
 
 function stopPolling() {
@@ -102,13 +185,17 @@ function stopPolling() {
 
 onUnmounted(stopPolling)
 
-onMounted(loadOrder)
+onMounted(() => {
+  loadOrder()
+  loadProviders()
+})
 
 const orderStatus = computed(() => orderData.value?.order.status ?? 'loading')
 
 watch(orderStatus, (status) => {
-  if (status === 'reviewing') startPolling()
-  else stopPolling()
+  // 在线支付激活后由 startPayment 自行管理轮询；对公审核中才由状态驱动
+  if (status === 'reviewing' && !activePayment.value) startPolling()
+  else if (!activePayment.value || status !== 'pending') stopPolling()
 }, { immediate: true })
 </script>
 
@@ -153,6 +240,40 @@ watch(orderStatus, (status) => {
         <p class="state small">{{ t('payment.reviewing.contact', { email: content.siteMeta.email }) }}</p>
       </section>
 
+      <!-- 在线支付（支付宝 / 微信 / 模拟渠道） -->
+      <section v-else-if="orderStatus === 'pending' && availableProviders.length" class="panel online" :aria-label="t('payment.online.ariaLabel')">
+        <p class="panel-title">{{ t('payment.online.title') }}</p>
+        <p class="state small">{{ t('payment.online.note') }}</p>
+
+        <div v-if="!activePayment" class="channels">
+          <label
+            v-for="p in availableProviders" :key="p.name" class="channel"
+            :class="{ active: selectedProvider === p.name }"
+          >
+            <input v-model="selectedProvider" type="radio" name="pay-channel" :value="p.name">
+            <span>{{ t(`payment.online.channels.${p.name}`) }}</span>
+          </label>
+          <p v-if="createError" class="msg bad mono">{{ createError }}</p>
+          <button class="btn btn-solid pay-btn" type="button" :disabled="creating || !selectedProvider" @click="startPayment">
+            {{ creating ? t('payment.online.creating') : t('payment.online.payNow', { amount: yuan(orderData.order.totalFen) }) }}
+          </button>
+        </div>
+
+        <div v-else class="qr-zone">
+          <p class="scan-hint">{{ t('payment.online.scan') }} · {{ channelName }}</p>
+          <img class="qr" :src="`/api/payments/${activePayment.id}/qr`" alt="payment QR">
+          <dl class="qr-meta">
+            <div class="q-row"><dt>{{ t('payment.online.amount') }}</dt><dd>¥{{ yuan(activePayment.amountFen) }}</dd></div>
+            <div class="q-row"><dt>{{ t('payment.online.tradeNo') }}</dt><dd class="mono">{{ activePayment.providerPaymentNo ?? '—' }}</dd></div>
+          </dl>
+          <a
+            v-if="activePayment.payload?.cashierUrl" class="cashier-link mono"
+            :href="activePayment.payload.cashierUrl" target="_blank" rel="noopener"
+          >{{ t('payment.online.openCashier') }}</a>
+          <p class="state small">{{ t('payment.online.waiting') }}</p>
+        </div>
+      </section>
+
       <!-- 待转账 -->
       <section v-else-if="orderStatus === 'pending'" class="panel" :aria-label="t('payment.pending.ariaLabel')">
         <p class="panel-title">{{ t('payment.pending.stepOne') }}</p>
@@ -189,7 +310,15 @@ watch(orderStatus, (status) => {
         </p>
       </section>
 
-      <p v-else class="state">{{ t('payment.statusLine', { status: orderStatus }) }}</p>
+      <!-- 已失败/已过期（二维码超时关闭等）：重新生成订单 -->
+      <section v-else class="panel" aria-live="polite">
+        <p class="panel-title">{{ t('payment.regenerate.title') }}</p>
+        <p class="state">{{ t('payment.statusLine', { status: orderStatus }) }}</p>
+        <p class="state small">{{ t('payment.regenerate.note') }}</p>
+        <button class="btn btn-solid pay-btn" type="button" :disabled="regenerating" @click="regenerateOrder">
+          {{ regenerating ? t('payment.regenerate.busy') : t('payment.regenerate.submit') }}
+        </button>
+      </section>
     </template>
 
     <p v-else class="state">{{ t('payment.loading') }}</p>
@@ -376,4 +505,76 @@ watch(orderStatus, (status) => {
 }
 
 .state.small { color: var(--grey); font-size: 12px; line-height: 1.8; max-width: 58ch; }
+
+/* ── 在线支付 ── */
+.channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0 6px;
+  align-items: center;
+}
+
+.channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--ink);
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 14.5px;
+  background: transparent;
+  transition: background .15s ease;
+}
+
+.channel:has(input:checked), .channel.active { background: var(--ink); color: var(--paper, #F7F6F2); }
+
+.channel input { accent-color: var(--copper-deep); }
+
+.pay-btn { margin-top: 6px; min-width: 240px; }
+
+.qr-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.scan-hint { font-size: 14.5px; font-weight: 600; }
+
+.qr {
+  width: clamp(200px, 40vw, 260px);
+  height: auto;
+  border: 1px solid var(--ink);
+  padding: 10px;
+  background: #F7F6F2;
+}
+
+.qr-meta { width: min(320px, 100%); }
+
+.q-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
+  border-bottom: 1px solid var(--hairline);
+  padding: 8px 0;
+  align-items: baseline;
+}
+
+.q-row dt {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--grey);
+}
+
+.q-row dd { font-size: 14.5px; overflow-wrap: anywhere; }
+
+.cashier-link {
+  font-size: 13px;
+  color: var(--copper-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 </style>
