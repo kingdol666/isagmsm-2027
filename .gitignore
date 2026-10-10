@@ -27,3 +27,6 @@ admin/backups/
 backups/
 deploy-nginx/
 sandbox-app-public-key.txt
+alipay-private.txt.txt
+alipay-public.txt.txt
+application_publi.txt.txt

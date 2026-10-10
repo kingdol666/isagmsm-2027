@@ -30,6 +30,8 @@ function resolveGateway(): string {
  * 开放平台密钥工具输出的是「裸 base64」（无 PEM 头尾与换行）；
  * 直接 createPrivateKey/createPublicKey 会解析失败。这里自动包上
  * PEM 头尾并按 64 列折行 —— 裸串与完整 PEM（\n 转义或真实换行）均支持。
+ * 私钥兼容 PKCS#8（Java 版工具输出）与 PKCS#1（非 Java 版工具输出，默认），
+ * 公钥兼容 X.509 SPKI 与 PKCS#1 两种格式。
  */
 function normalizePem(raw: string, kind: 'PRIVATE KEY' | 'PUBLIC KEY'): string {
   const text = raw.replace(/\\n/g, '\n').trim()
@@ -38,6 +40,24 @@ function normalizePem(raw: string, kind: 'PRIVATE KEY' | 'PUBLIC KEY'): string {
   const lines = body.match(/.{1,64}/g) ?? []
   if (!lines.length) throw new Error(`empty ${kind}`)
   return `-----BEGIN ${kind}-----\n${lines.join('\n')}\n-----END ${kind}-----\n`
+}
+
+/** 依次尝试各 PEM 头标（PKCS8→PKCS1 私钥；SPKI→PKCS1 公钥），任一可解析即用。 */
+function parsePemKey(raw: string, kind: 'private' | 'public') {
+  const labels = kind === 'private'
+    ? ['PRIVATE KEY', 'RSA PRIVATE KEY'] as const
+    : ['PUBLIC KEY', 'RSA PUBLIC KEY'] as const
+  let lastError: unknown
+  for (const label of labels) {
+    try {
+      const pem = normalizePem(raw, label)
+      return kind === 'private' ? createPrivateKey(pem) : createPublicKey(pem)
+    }
+    catch (error) {
+      lastError = error
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('key parse failed')
 }
 
 export interface AlipayConfig {
@@ -57,8 +77,8 @@ export function alipayConfigFromEnv(env: Record<string, string | undefined>): Al
   try {
     return {
       appId,
-      privateKey: createPrivateKey(normalizePem(privateKeyPem, 'PRIVATE KEY')),
-      alipayPublicKey: createPublicKey(normalizePem(publicKeyPem, 'PUBLIC KEY')),
+      privateKey: parsePemKey(privateKeyPem, 'private'),
+      alipayPublicKey: parsePemKey(publicKeyPem, 'public'),
       notifyUrl,
     }
   }
